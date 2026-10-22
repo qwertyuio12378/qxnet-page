@@ -1,0 +1,2776 @@
+<!doctype html>
+<html lang="zh-CN">
+ <head> 
+  <meta charset="UTF-8"> 
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"> 
+  <title>QNET 2.1.5</title> 
+  <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        :root { --primary: #00CCFF; --primary-dark: #00A8DD; --bg: #F5F5FA; --card: #FFFFFF; --text-main: #333333; --text-sub: #999999; --border: #EEEEEE; --section-bg: #F0F0F7; --success: #7CCD3E; --danger: #FF3B30; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; background-color: #fff; color: var(--text-main); font-size: 14px; overflow-x: hidden; height: 100vh; }
+        .nav-bar { height: 48px; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; position: sticky; top: 0; z-index: 100; font-size: 17px; font-weight: 500; }
+        .nav-bar .nav-left, .nav-bar .nav-right { min-width: 60px; height: 100%; display: flex; align-items: center; cursor: pointer; }
+        .nav-bar .nav-right { justify-content: flex-end; font-size: 15px; }
+        .nav-bar .nav-title { position: absolute; left: 0; right: 0; text-align: center; pointer-events: none; }
+        .nav-back { width: 24px; height: 24px; cursor: pointer; }
+        .nav-back svg { width: 100%; height: 100%; fill: #fff; }
+        .page-container { height: calc(100vh - 48px - 80px); overflow-y: auto; padding-bottom: 100px; }
+        .page-container.no-tab { height: calc(100vh - 48px); }
+        .page { display: none; animation: fadeUp 0.25s ease both; }
+        #page-workbench { background: #fff; min-height: 100vh; padding-bottom: 100px; }
+        .page.active { display: block; }
+        @keyframes fadeUp { 0% { opacity: 0; transform: translateY(12px); } 100% { opacity: 1; transform: translateY(0); } }
+        .tab-bar { position: fixed; bottom: 16px; left: 16px; right: 16px; height: 60px; background: #fff; display: flex; border-radius: 30px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); z-index: 99; padding: 6px; }
+        .tab-indicator { position: absolute; top: 6px; left: 6px; width: calc(33.333% - 6px); height: calc(100% - 12px); background: #E8F8FF; border-radius: 24px; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 0; }
+        .tab-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #666; font-size: 12px; gap: 2px; cursor: pointer; transition: color 0.2s; border-radius: 24px; position: relative; z-index: 1; }
+        .tab-item.active { color: var(--primary); }
+        .tab-item .tab-icon { transition: transform 0.2s; }
+        .tab-item:active .tab-icon { transform: scale(0.88); }
+        .tab-icon { width: 24px; height: 24px; }
+        .search-bar { padding: 10px 16px; background: #fff; }
+        .search-input { width: 100%; height: 36px; background: var(--bg); border-radius: 18px; display: flex; align-items: center; justify-content: flex-start; padding-left: 20px; gap: 6px; color: var(--text-sub); transition: background 0.2s; cursor: pointer; }
+        .search-input:active { background: #e0e0e6; }
+        .search-input svg { width: 16px; height: 16px; fill: var(--text-sub); flex-shrink: 0; }
+        .app-select { background: #fff; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
+        .app-info { display: flex; align-items: center; gap: 10px; flex: 1; cursor: pointer; }
+        .app-icon { width: 40px; height: 40px; border-radius: 8px; overflow: hidden; background: #f0f0f0; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: transform 0.2s; }
+        .app-info:active .app-icon { transform: scale(0.92); }
+        .app-icon img { width: 100%; height: 100%; object-fit: cover; }
+        .app-icon svg { width: 24px; height: 24px; fill: #999; }
+        .app-text { flex: 1; min-width: 0; }
+        .app-name { font-size: 15px; font-weight: 500; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .app-desc { font-size: 12px; color: var(--text-sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .start-btn { background: var(--primary); color: #fff; padding: 8px 20px; border-radius: 20px; font-size: 14px; font-weight: 500; cursor: pointer; border: none; transition: all 0.2s; flex-shrink: 0; margin-left: 12px; }
+        .start-btn:active { transform: scale(0.92); opacity: 0.8; }
+        .start-btn.running { background: var(--danger); }
+        .scene-list { margin-top: 10px; background: #fff; overflow: hidden; }
+        .scene-item-wrapper { position: relative; overflow: hidden; }
+        .scene-item { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; cursor: pointer; position: relative; background: #fff; transition: transform 0.2s ease, background 0.15s; z-index: 2; }
+        .scene-item:active { background: #f5f9ff; }
+        .scene-item:last-child { border-bottom: none; }
+        .scene-item.active { background: #E8F8FF; }
+        .scene-name { font-size: 16px; margin-bottom: 4px; }
+        .scene-desc { font-size: 12px; color: var(--text-sub); }
+        .scene-action { color: var(--text-sub); font-size: 13px; display: flex; align-items: center; gap: 4px; flex-shrink: 0; margin-left: 12px; transition: color 0.2s; }
+        .scene-action:active { color: var(--primary); }
+        .delete-btn { position: absolute; right: 0; top: 0; bottom: 0; width: 80px; background: var(--danger); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 15px; cursor: pointer; z-index: 1; transition: opacity 0.2s; }
+        .delete-btn:active { opacity: 0.7; }
+        .recommend-item { padding: 14px 16px; background: #fff; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: flex-start; transition: background 0.15s; }
+        .recommend-item:active { background: #f5f9ff; }
+        .recommend-info .title { font-size: 17px; font-weight: 500; margin-bottom: 6px; }
+        .recommend-info .reason { font-size: 13px; color: var(--text-sub); line-height: 1.5; }
+        .add-btn { color: var(--primary); font-size: 15px; cursor: pointer; flex-shrink: 0; margin-left: 16px; transition: transform 0.2s, color 0.2s; }
+        .add-btn:active { transform: scale(0.88); color: var(--primary-dark); }
+        .settings-group { background: #fff; margin-top: 12px; border-radius: 12px; margin-left: 12px; margin-right: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); }
+        .settings-group-title { padding: 12px 16px 8px; font-size: 13px; color: var(--text-sub); font-weight: 500; background: #fff; }
+        .setting-item { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; transition: background 0.15s; }
+        .setting-item:last-child { border-bottom: none; }
+        .setting-item:active { background: #f5f5f5; }
+        .setting-info { flex: 1; min-width: 0; padding-right: 16px; }
+        .setting-info .title { font-size: 15px; margin-bottom: 4px; color: var(--text-main); font-weight: 500; }
+        .setting-info .desc { font-size: 12px; color: var(--text-sub); line-height: 1.4; }
+        .switch { width: 48px; height: 28px; border-radius: 14px; background: #E5E5EA; position: relative; cursor: pointer; transition: background 0.25s; flex-shrink: 0; }
+        .switch::after { content: ''; position: absolute; width: 24px; height: 24px; border-radius: 50%; background: #fff; top: 2px; left: 2px; transition: left 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); }
+        .switch:active::after { box-shadow: 0 1px 6px rgba(0,0,0,0.2); }
+        .switch.on { background: var(--primary); }
+        .switch.on::after { left: 22px; }
+        .native-checkbox { display: none; }
+        .proto-grid { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 14px 20px; }
+        .proto-item { display: flex; align-items: center; justify-content: flex-end; gap: 10px; font-size: 15px; color: #333; }
+        .proto-arrow { flex: 1; text-align: right; color: #bbb; font-size: 14px; }
+        .template-form { background: #fff; }
+        .name-section { padding: 16px; background: #fff; border-bottom: 1px solid var(--border); display: flex; font-weight: 500; font-size: 16px; color: #333; }
+        .name-section input { border: none; outline: none; background: transparent; color: #333; }
+        .mod-title { background: #fff; padding: 12px 16px 4px 16px; }
+        .mod-tag { display: inline-block; background: #00CCFF; color: #fff; padding: 4px 10px; border-radius: 4px; font-size: 14px; font-weight: 400; }
+        .mod-section { background: #fff; margin: 0 0 12px 0; border-bottom: 1px solid var(--border); }
+        .mod-section:last-child { border-bottom: none; }
+        .mod-row { padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; background: #fff; border-bottom: 1px solid var(--border); transition: background 0.15s; }
+        .mod-row:active { background: #f5f9ff; }
+        .mod-row:last-child { border-bottom: none; }
+        .mod-label { color: #333; font-size: 15px; font-weight: 500; width: 60px; flex-shrink: 0; }
+        .mod-input { border: none; outline: none; font-size: 14px; color: #333; background: transparent; text-align: right; flex: 1; transition: color 0.2s; }
+        .mod-input:focus { color: var(--primary-dark); }
+        .mod-input::placeholder { color: #ccc; }
+        .mod-unit { color: #999; font-size: 13px; margin-left: 4px; flex-shrink: 0; }
+        .multi-field { flex: 1; display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 2px; }
+        .multi-field .sub-label { color: #999; font-size: 12px; margin: 0 2px 0 8px; white-space: nowrap; }
+        .multi-field .sub-label:first-child { margin-left: 0; }
+        .multi-field .f-input { width: 45px; text-align: right; border: none; outline: none; font-size: 14px; color: #333; background: transparent; transition: color 0.2s; }
+        .multi-field .f-input:focus { color: var(--primary-dark); }
+        .multi-field .f-input::placeholder { color: #ccc; }
+        .mod-select { border: none; outline: none; font-size: 14px; color: #333; background: transparent; text-align: right; appearance: none; -webkit-appearance: none; padding-right: 16px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right center; }
+        .toast { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.92); background: rgba(0, 0, 0, 0.75); color: #fff; padding: 10px 20px; border-radius: 8px; font-size: 14px; z-index: 999; opacity: 0; pointer-events: none; transition: opacity 0.25s, transform 0.25s; }
+        .toast.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        .bottom-sheet { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-radius: 16px 16px 0 0; z-index: 200; transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .bottom-sheet.show { transform: translateY(0); }
+        .bottom-sheet-mask { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); z-index: 199; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+        .bottom-sheet-mask.show { opacity: 1; pointer-events: auto; }
+        .sheet-title { padding: 16px; text-align: center; font-size: 16px; font-weight: 500; border-bottom: 1px solid var(--border); }
+        .sheet-item { height: 40px; line-height: 40px; text-align: center; font-size: 16px; color: #333; will-change: transform, opacity; }
+        .sheet-item.selected { color: var(--primary); font-weight: 500; }
+        .sheet-item.faded { opacity: 0.3; }
+        .sheet-cancel { padding: 14px 16px; text-align: center; font-size: 15px; color: var(--text-sub); background: var(--bg); cursor: pointer; margin-top: 8px; transition: background 0.15s; }
+        .sheet-cancel:active { background: #e5e5ea; }
+        .info-block { padding: 14px 16px; background: #fff; border-bottom: 1px solid var(--border); }
+        .info-block .title { font-size: 16px; font-weight: 500; margin-bottom: 8px; }
+        .info-block .content { font-size: 13px; color: var(--text-sub); line-height: 1.6; }
+        .link-item { padding: 14px 16px; background: #fff; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: background 0.15s; }
+        .link-item:active { background: #f5f5f5; }
+        .link-item .arrow { color: var(--text-sub); }
+        .version-info { padding: 14px 16px; color: var(--text-sub); font-size: 12px; line-height: 1.8; }
+        .empty-state { padding: 60px 20px; text-align: center; color: var(--text-sub); font-size: 14px; min-height: 60vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.5; }
+        .gen-group { padding: 12px 16px; display: flex; gap: 12px; background: #fff; border-top: 1px solid #eee; }
+        .gen-btn { flex: 1; padding: 12px 0; border: none; border-radius: 8px; font-weight: 600; font-size: 15px; cursor: pointer; transition: all 0.2s; }
+        .gen-btn.on { background: #00C853; color: #fff; }
+        .gen-btn.off { background: #FF3D00; color: #fff; }
+        .gen-btn:active { transform: scale(0.94); opacity: 0.85; }
+        .gen-btn.on:active { background: #00A844; }
+        .gen-btn.off:active { background: #D32F2F; }
+        .scene-item-wrapper { animation: listSlide 0.3s ease both; }
+        @keyframes listSlide { 0% { opacity: 0; transform: translateX(-8px); } 100% { opacity: 1; transform: translateX(0); } }
+        .scene-item-wrapper:nth-child(1) { animation-delay: 0.02s; }
+        .scene-item-wrapper:nth-child(2) { animation-delay: 0.04s; }
+        .scene-item-wrapper:nth-child(3) { animation-delay: 0.06s; }
+        .scene-item-wrapper:nth-child(4) { animation-delay: 0.08s; }
+        .scene-item-wrapper:nth-child(5) { animation-delay: 0.10s; }
+        .scene-item-wrapper:nth-child(6) { animation-delay: 0.12s; }
+        .scene-item-wrapper:nth-child(7) { animation-delay: 0.14s; }
+        .scene-item-wrapper:nth-child(8) { animation-delay: 0.16s; }
+        .recommend-item { animation: listSlide 0.3s ease both; }
+        .recommend-item:nth-child(1) { animation-delay: 0.02s; }
+        .recommend-item:nth-child(2) { animation-delay: 0.04s; }
+        .recommend-item:nth-child(3) { animation-delay: 0.06s; }
+        .recommend-item:nth-child(4) { animation-delay: 0.08s; }
+        .recommend-item:nth-child(5) { animation-delay: 0.10s; }
+        .recommend-item:nth-child(6) { animation-delay: 0.12s; }
+        .recommend-item:nth-child(7) { animation-delay: 0.14s; }
+        .recommend-item:nth-child(8) { animation-delay: 0.16s; }
+        .switch { transition: background 0.25s; }
+        .switch:active::after { transform: scale(0.9); }
+
+        /* ========== 搜索弹窗样式 ========== */
+        .search-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 300; display: none; align-items: flex-start; justify-content: center; padding-top: 60px; }
+        .search-modal.show { display: flex; }
+        .search-modal-box { background: #fff; width: 92%; max-width: 420px; max-height: 80vh; border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; }
+        .search-modal-header { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+        .search-modal-header input { flex: 1; border: none; outline: none; font-size: 16px; background: var(--bg); padding: 8px 14px; border-radius: 20px; color: var(--text-main); }
+        .search-modal-header input::placeholder { color: #bbb; }
+        .search-modal-header .close-btn { font-size: 20px; color: var(--text-sub); cursor: pointer; padding: 4px 8px; }
+        .search-modal-header .close-btn:active { opacity: 0.6; }
+        .search-modal-body { flex: 1; overflow-y: auto; padding: 8px 0; }
+        .search-result-item { padding: 12px 16px; border-bottom: 1px solid #f5f5f5; cursor: pointer; transition: background 0.15s; }
+        .search-result-item:active { background: #f0f7ff; }
+        .search-result-item .r-name { font-size: 15px; font-weight: 500; color: var(--text-main); }
+        .search-result-item .r-desc { font-size: 12px; color: var(--text-sub); margin-top: 2px; }
+        .search-result-item .r-match { font-size: 11px; color: var(--primary); margin-top: 2px; }
+        .search-result-empty { padding: 40px 20px; text-align: center; color: var(--text-sub); font-size: 14px; }
+        .search-result-empty .icon { font-size: 36px; margin-bottom: 10px; opacity: 0.5; }
+    </style> 
+ </head> 
+ <body> 
+  <div class="nav-bar"> 
+   <div class="nav-left" id="navLeft" onclick="goBack()"> 
+    <div class="nav-back" id="navBack" style="display:none;"> 
+     <svg viewbox="0 0 24 24">
+      <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
+     </svg> 
+    </div> 
+   </div> 
+   <div class="nav-title" id="navTitle">
+    QXNET
+   </div> 
+   <div class="nav-right" id="navRight" onclick="goToTemplateEdit()">
+    新增
+   </div> 
+  </div> 
+  <div class="page-container" id="pageContainer"> 
+   <div class="page active" id="page-workbench"> 
+    <div class="search-bar"> 
+     <div class="search-input">
+      <svg viewbox="0 0 24 24" style="width:16px;height:16px;fill:var(--text-sub);flex-shrink:0;">
+        <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
+      </svg>
+      <input type="text" id="searchInput" placeholder="搜索" style="border:none; outline:none; background:transparent; font-size:14px; text-align:left;" oninput="filterScenes(this.value)">
+     </div> 
+    </div> 
+    <div class="app-select"> 
+     <div class="app-info" onclick="chooseApp()"> 
+      <div class="app-icon" id="appIcon"> 
+       <img src="data:image/webp;base64,UklGRnYEAABXRUJQVlA4WAoAAAAQAAAALwAALwAAQUxQSG0BAAANZ8KwbRvHuZOccl8iIg6GOEiJSgWNnVzrqRcI7ELzFBJ34TF/eHZKBoseAUu2bdPViI1n27Zt9r8/cU74G9F/Bm7bNjJwe1iX0ysAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIj+NUGI/f11YHnITn03IKQeP2Y7kP/Syk4DwonnThxvHW2Oj5XTvl4+/W53Ij/fxfVaQbqc8ZrrwLK43xRi9Gr3NnSZ2+DBTJWhriB5cXwftiROMR+7qUA0FMTPNn6Dsly77zBSgWhSMDJ9GZSl2n2rVYi6gnqU66BMtIMy+RSU7Gfv2r1wbvXOf1tEkXqmljTn7K01fkNHmPIU3hrTUSYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIDe9fA9762zTKt7DhrTGaa7ptK2w9RLr2wDpU7wkAkVWi/VaYZN6M0/ItQXDE0j2zMzzLp2zAyzroP2DcO/DABWUDgg4gIAANAUAJ0BKjAAMAA+GQqEQSEFVquqBABhLUAYVygqA7xPjH4zfkB8glG/jf4E2g9avqA2wHmA/TP9gPZp9S3kq9YB6B/6c+l1+wHwifuP6Q+aNfwCZqzgD+Gf4z8mdUP/vGot/tn6Aevf+j/jt/APRQ/xv45fQL/IP5R/iP55wo/6UN8lVz7WTRtT+UT9Q2XC/1qPvvKdbXMalBWvWwKvtLV+CEid71Xilqpymdb4rMAA/v/dAnP/5KMx+U7LQ9Agy4WRE5tf85jzBdiBnNcJWP7+xQdWggGN2xwNqp2zj/fW38v9wl7N2Uft8MUIcP5j3/WD8RqOVuv/B63zWvmFk8GvHYoDAthVkJWfZCfqVR4TKKHjewCiPv6kIk/9Nk78NfAWYJa8LNwa4Hej+4+MPDPf5Yncj+3b/l3RO88dmh/EMzhI/OLHEb7NMGNjRxd3YnrquVKOh5Vnx9tc6+91N1vZ59R2v5B1itV9R5HQL+0+mdfJBJ2booUVP9VLgu4mK+sJQWeckaAwxXvJVOvbOyf9O1omYRCnKE0YT3iumL4QT0ApCIDXCxoXkBGxHewy7lyn5EXo2mixv/f4WXc0Qu7qcV/Q9GdW92juk6Y0cl3cf/3/3ulFcLv+dAXj//wwen+DolCCZrwoGr5lC/BNS24qBmBCd8MXVnYHfo57uszO3xmEuvpeKHlQtq0KJaxuvjz//8J9qjO5Bi5B0sAqh29UoHFh991MVRXrfuV35JiO6B4yI4nJYTz+fUtYWjGWabflmG30yrTOGp+WkvCddQ3OyjQUJwGp/OBdw1sb0/LOsfxzB14YZqFCsfVdB0+2xFtE4RaX4ikXkRWhg46Dny9gmFer0a5LG8FwHtdh8pJd8lDV9ty3/OPx7fdjWW/5x+OdseHiE4XuLcIRYhOF7jdednbLGdZ3AIg+4gtvOLNXiPBkNGf85YPtB11jgf+BeOeeogxnNAGgMDapoDuCyIAAAA==" style="width:36px;height:36px;object-fit:contain;" alt="android"> 
+      </div> 
+      <div class="app-text"> 
+       <div class="app-name" id="currentAppName">
+        未选择
+       </div> 
+       <div class="app-desc" id="currentAppPackage">
+        点击选择应用
+       </div> 
+      </div> 
+     </div> 
+     <button class="start-btn" id="btnStart" onclick="toggleVPN(event)">启动</button> 
+    </div>
+    <div class="scene-list" id="workbenchSceneList"> 
+    </div> 
+   </div> 
+   <div class="page" id="page-scene"> 
+    <div class="recommend-list" id="recommendList"> 
+    </div> 
+   </div> 
+   <div class="page" id="page-settings">
+    <div class="settings-group">
+     <div class="settings-group-title">
+      账号管理
+     </div>
+     <div class="setting-item" style="display:flex;align-items:center;">
+      <div style="width:48px;height:48px;border-radius:50%;background:#e0e0e0;display:flex;align-items:center;justify-content:center;margin-right:12px;font-size:24px;" id="avatarBox">👤</div>
+      <div class="setting-info" style="flex:1;">
+       <div class="title" id="nickName">未登录</div>
+       <div class="desc" id="loginStatus">点击登录QQ</div>
+      </div>
+      <div class="setting-val" onclick="logoutAccount()" style="color:#00ccff;font-size:14px;">退出</div>
+     </div>
+    </div>
+    <div class="settings-group">
+     <div class="settings-group-title">
+      功能设置
+     </div> 
+     <div class="setting-item"> 
+      <div class="setting-info"> 
+       <div class="title">
+        测试报告
+       </div> 
+       <div class="desc">
+        html和csv文件格式保存，下次启动生效
+        <br>文件路径: /storage/emulated/0/qnet_save/report
+       </div> 
+      </div> 
+      <div class="switch" id="switchReport" onclick="toggleSwitch(this, 'report')"><input type="checkbox" id="reportSwitch" class="native-checkbox"></div> 
+     </div> 
+     <div class="setting-item"> 
+      <div class="setting-info"> 
+       <div class="title">
+        网络抓包
+       </div> 
+       <div class="desc">
+        pcap文件格式保存，下次启动生效
+        <br>文件路径: /storage/emulated/0/qnet_save/pcap
+       </div> 
+      </div> 
+      <div class="switch" id="switchPcap" onclick="toggleSwitch(this, 'dumpPcap')"><input type="checkbox" id="dumpPcap" class="native-checkbox"></div> 
+     </div> 
+    </div> 
+    <div class="settings-group"> 
+     <div class="settings-group-title">
+      悬浮窗设置
+     </div> 
+     <div class="setting-item"> 
+      <div class="setting-info"> 
+       <div class="title">
+        控制悬浮窗
+       </div> 
+       <div class="desc">
+        显示/切换弱网模板
+       </div> 
+      </div> 
+      <div class="switch on" id="switchControlFw" onclick="toggleSwitch(this, 'controlFw')"><input type="checkbox" id="controlFw" class="native-checkbox" checked></div> 
+     </div> 
+     <div class="setting-item"> 
+      <div class="setting-info"> 
+       <div class="title">
+        信息悬浮窗
+       </div> 
+       <div class="desc">
+        弱网参数显示
+       </div> 
+      </div> 
+      <div class="switch on" id="switchInfoFw" onclick="toggleSwitch(this, 'infoFw')"><input type="checkbox" id="infoFw" class="native-checkbox" checked></div> 
+     </div> 
+    </div> 
+    <div style="background:#fff; margin-top:10px; padding:16px;">
+     <div style="font-size:16px; font-weight:600; margin-bottom:12px;">更新日志 V2.1.5</div>
+     <div style="font-size:13px; color:#666; line-height:1.6;">
+      1、修复悬浮窗延迟一直显示N/A的问题;<br>
+      反馈问题和建议请加QNet官方QQ交流群：774971053.
+     </div>
+    </div>
+    <div style="background:#fff; margin-top:10px; padding:16px;">
+     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom:12px;">
+      <span style="font-size:16px; font-weight:600;">版本更新 V8.9.27</span>
+      <span style="color:#00c8ff; cursor:pointer; font-size:14px;" onclick="showToast('当前版本已经是最新')">点击更新</span>
+     </div>
+     <div style="font-size:13px; color:#666; line-height:1.6;">
+      提醒：近期发现外网有用户利用QNET进行违反软件规则的行为。QNET旨在为用户提供一款网络模拟真的测试类工具，杜绝一切利用QNET在外网应用中的非法行为。
+     </div>
+    </div>
+    <div style="background:#fff; margin-top:10px; padding:16px;">
+     <div style="font-size:16px; font-weight:600; margin-bottom:12px;">常见问题</div>
+     <div style="font-size:13px; color:#666; line-height:1.6;" onclick="showToast('QNET常见问题')">点击查看QNET常见问题</div>
+    </div>
+    <div style="background:#fff; margin-top:10px; padding:16px; padding-bottom:30px;">
+     <div style="font-size:16px; font-weight:600; margin-bottom:12px;">关于</div>
+     <div style="font-size:13px; color:#666; line-height:1.6;">无需ROOT手机，无需连接数据线，以独立app的方式，为用户提供给快捷、可靠、功能完善的弱网络模拟服务</div>
+    </div>
+   </div> 
+   <div class="page" id="page-template-edit"> 
+    <div class="template-form"> 
+     <div class="name-section" style="flex-direction: column; align-items: stretch; gap: 8px; padding-bottom: 12px;"> 
+      <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;"> 
+       <span>模板名称</span> 
+       <input type="text" id="configSceneName" value="未命名" style="width: 50%; text-align: right; font-size: 16px; font-weight: 500;"> 
+      </div> 
+      <div style="border-top: 1px solid #f0f0f0; padding-top: 10px;"> 
+       <div style="display: flex; justify-content: space-between; align-items: center; line-height: 1.4; position:relative;">
+        <span style="font-size: 15px; font-weight: 500; color: #333;">模板类型</span>
+        <span id="templateTypeLabel" style="color:#999; font-size:14px; position:relative; top:9px;">自定义模板 ›</span>
+        <select id="templateTypeVal" style="position:absolute; left:0; top:0; width:100%; height:100%; opacity:0;" onchange="document.getElementById('templateTypeLabel').textContent=this.options[this.selectedIndex].text+' ›';switchTemplateMode()">
+         <option>场景模板</option>
+         <option selected>自定义模板</option>
+        </select>
+       </div>
+       <div style="font-size: 12px; color: #999; margin-top: 4px;">场景模板/自定义模板</div>
+      </div> 
+     </div>
+     <div id="sceneModeBlock" style="display:none;">
+      <div style="padding:0 16px 12px; font-size:12px; color:#999; line-height:1.5;">场景模板基于真实网络数据，选择地区和运营商后自动获取对应的延迟、丢包等参数。</div>
+      <div class="mod-title">
+       <span class="mod-tag">网络选择</span>
+      </div>
+      <div class="mod-section">
+       <div class="mod-row" style="position:relative;" onclick="showGenericPicker('serverCity', '服务端', serverCityOptions, document.getElementById('serverCityLabel').textContent.replace(' ›', ''), function(name){ document.getElementById('serverCityLabel').textContent = name + ' ›'; updateNetStats(); })">
+        <span class="mod-label">服务端</span>
+        <span id="serverCityLabel" style="color:#999; font-size:14px;">上海 ›</span>
+       </div>
+       <div class="mod-row" style="position:relative;" onclick="showGenericPicker('clientCity', '客户端', clientCityOptions, document.getElementById('clientCityLabel').textContent.replace(' ›', ''), function(name){ document.getElementById('clientCityLabel').textContent = name + ' ›'; updateNetStats(); })">
+        <span class="mod-label">客户端</span>
+        <span id="clientCityLabel" style="color:#999; font-size:14px;">北京市 ›</span>
+       </div>
+       <div class="mod-row" style="position:relative;" onclick="showGenericPicker('isp', '运营商', ispOptions, document.getElementById('ispLabel').textContent.replace(' ›', ''), function(name){ document.getElementById('ispLabel').textContent = name + ' ›'; updateNetStats(); })">
+        <span class="mod-label">运营商</span>
+        <span id="ispLabel" style="color:#999; font-size:14px;">中国移动 ›</span>
+       </div>
+       <div class="mod-row" style="border-bottom:none; position:relative;" onclick="showGenericPicker('netType', '网络类型', netTypeOptions, document.getElementById('netTypeLabel').textContent.replace(' ›', ''), function(name){ document.getElementById('netTypeLabel').textContent = name + ' ›'; updateNetStats(); })">
+        <span class="mod-label">网络类型</span>
+        <span id="netTypeLabel" style="color:#999; font-size:14px;">4G ›</span>
+       </div>
+      </div>
+      <div style="padding:10px 16px; font-size:12px; color:#999; line-height:1.6;">
+       <div id="netStatsLine1">网络延迟&nbsp;&nbsp;<span style="color:#07c160;">70ms</span>&nbsp;&nbsp;丢包率&nbsp;&nbsp;<span style="color:#07c160;">0.17%</span></div>
+       <div id="netStatsLine2">抖动方差&nbsp;&nbsp;<span style="color:#07c160;">805</span>&nbsp;&nbsp;数据时间&nbsp;&nbsp;<span style="color:#07c160;">2020-11-14 13:58</span></div>
+       网络数据由腾讯公司TEG网络平台提供
+      </div>
+      <div class="mod-title">
+       <span class="mod-tag">场景选择</span>
+      </div>
+      <div class="mod-section">
+       <div class="mod-row" style="border-bottom:none; position:relative;" onclick="showWeakScenePicker()">
+        <span class="mod-label">弱网场景</span>
+        <span id="weakSceneLabel" style="color:#333; font-size:14px;">正常网络 ›</span>
+       </div>
+       <div id="weakSceneDesc" style="padding:0 16px 12px; font-size:12px; color:#999; line-height:1.5; margin-top:-4px;"></div>
+      </div>
+     </div>
+     <div id="customModeBlock">
+      <div style="padding:0 16px 12px; font-size:12px; color:#999; line-height:1.5;">自定义模板可手动配置带宽、延迟、丢包等参数，精确模拟你需要的弱网环境。留空的参数不生效。</div>
+     <div class="mod-title">
+      <span class="mod-tag">网络带宽</span>
+     </div>
+     <div class="mod-section"> 
+      <div class="mod-row"> 
+       <span class="mod-label">上行</span> 
+       <input class="mod-input" id="outBandwidth" placeholder="默认为空不生效"> 
+       <span class="mod-unit">kbps</span> 
+      </div> 
+      <div class="mod-row" style="border-bottom: none;"> 
+       <span class="mod-label">下行</span> 
+       <input class="mod-input" id="inBandwidth" placeholder="默认为空不生效"> 
+       <span class="mod-unit">kbps</span> 
+      </div> 
+     </div> 
+     <div class="mod-title">
+      <span class="mod-tag">网络延时</span>
+     </div> 
+     <div class="mod-section"> 
+      <div class="mod-row"> 
+       <span class="mod-label">上行</span> 
+       <input class="mod-input" id="outDelay" placeholder="默认为空不生效"> 
+       <span class="mod-unit">ms</span> 
+      </div> 
+      <div class="mod-row" style="border-bottom: none;"> 
+       <span class="mod-label">下行</span> 
+       <input class="mod-input" id="inDelay" placeholder="默认为空不生效"> 
+       <span class="mod-unit">ms</span> 
+      </div> 
+     </div> 
+     <div class="mod-title">
+      <span class="mod-tag">延迟抖动</span>
+     </div>
+     <div class="mod-section">
+      <div class="mod-row">
+       <span class="mod-label">上行</span>
+       <div class="multi-field" style="flex-wrap: nowrap; justify-content: flex-start; padding-left:12px;">
+        <input class="f-input" id="outJitterMax" placeholder="默认为空" style="width:130px; text-align:left;">
+        <span class="mod-unit">ms</span>
+        <span style="font-size:14px; color:#333; margin: 0 4px;">概率</span>
+        <input class="f-input" id="outJitterProb" placeholder="0-100" style="width:45px;">
+        <span class="mod-unit">%</span>
+       </div>
+      </div>
+      <div class="mod-row" style="border-bottom: none;">
+       <span class="mod-label">下行</span>
+       <div class="multi-field" style="flex-wrap: nowrap; justify-content: flex-start; padding-left:12px;">
+        <input class="f-input" id="inJitterMax" placeholder="默认为空" style="width:130px; text-align:left;">
+        <span class="mod-unit">ms</span>
+        <span style="font-size:14px; color:#333; margin: 0 4px;">概率</span>
+        <input class="f-input" id="inJitterProb" placeholder="0-100" style="width:45px;">
+        <span class="mod-unit">%</span>
+       </div>
+      </div>
+     </div>
+     <div class="mod-title">
+      <span class="mod-tag">随机丢包</span>
+     </div>
+     <div class="mod-section">
+      <div class="mod-row">
+       <span class="mod-label">上行</span>
+       <input class="mod-input" id="outRate" placeholder="默认为空">
+       <span class="mod-unit">%</span>
+      </div>
+      <div class="mod-row" style="border-bottom: none;">
+       <span class="mod-label">下行</span>
+       <input class="mod-input" id="inRate" placeholder="默认为空">
+       <span class="mod-unit">%</span>
+      </div>
+     </div>
+     <div class="mod-title">
+      <span class="mod-tag">周期丢包</span>
+     </div>
+     <div class="mod-section">
+      <div class="mod-row" style="align-items: center; position:relative;">
+       <span class="mod-label">弱网类型</span>
+       <span id="weakTypeLabel" style="color:#333; font-size:14px;">完全弱网 ›</span>
+       <select id="weakType" style="position:absolute; left:0; top:0; width:100%; height:100%; opacity:0;" onchange="document.getElementById('weakTypeLabel').textContent=this.options[this.selectedIndex].text+' ›'">
+        <option value="all">完全弱网</option>
+        <option value="burst">Burst</option>
+       </select>
+      </div>
+      <div class="mod-row">
+       <span class="mod-label">上行</span>
+       <div class="multi-field">
+        <span class="sub-label">通包时长</span>
+        <input class="f-input" id="outPassMs" placeholder="0"> 
+        <span class="mod-unit">ms</span> 
+        <span class="sub-label">丢包时长</span> 
+        <input class="f-input" id="outBurst" placeholder="0"> 
+        <span class="mod-unit">ms</span> 
+       </div> 
+      </div> 
+      <div class="mod-row" style="border-bottom: none;"> 
+       <span class="mod-label">下行</span> 
+       <div class="multi-field"> 
+        <span class="sub-label">通包时长</span> 
+        <input class="f-input" id="inPassMs" placeholder="0"> 
+        <span class="mod-unit">ms</span> 
+        <span class="sub-label">丢包时长</span> 
+        <input class="f-input" id="inBurst" placeholder="0"> 
+        <span class="mod-unit">ms</span> 
+       </div> 
+      </div> 
+     </div> 
+     <div class="mod-title">
+      <span class="mod-tag">协议控制</span>
+     </div> 
+     <div class="mod-section"> 
+      <div class="mod-row" style="align-items: center;"> 
+       <span class="mod-label">协议控制</span> 
+       <div class="proto-grid"> 
+        <div class="proto-item"><span>TCP</span><div class="switch on" id="switchProtoTcp" onclick="toggleSwitch(this,'protoTcp')"></div><input type="checkbox" id="protoTcp" class="native-checkbox" checked></div> 
+        <div class="proto-item"><span>UDP</span><div class="switch on" id="switchProtoUdp" onclick="toggleSwitch(this,'protoUdp')"></div><input type="checkbox" id="protoUdp" class="native-checkbox" checked></div> 
+        <div class="proto-item"><span>DNS</span><div class="switch on" id="switchProtoDns" onclick="toggleSwitch(this,'protoDns')"></div><input type="checkbox" id="protoDns" class="native-checkbox" checked></div> 
+        <div class="proto-item"><span>ICMP</span><div class="switch on" id="switchProtoIcmp" onclick="toggleSwitch(this,'protoIcmp')"></div><input type="checkbox" id="protoIcmp" class="native-checkbox" checked></div> 
+       </div> 
+      </div> 
+      <div class="mod-row" style="position:relative;" onclick="openParamPicker('close')">
+       <span class="mod-label">添加关闭参数</span>
+       <span id="closeParamLabel" style="color:#999; font-size:14px;">无 ›</span>
+       <select id="closeParamVal" style="position:absolute; left:0; top:0; width:100%; height:100%; opacity:0; pointer-events:none;"></select>
+      </div>
+      <div class="mod-row" style="border-bottom: none; position:relative;" onclick="openParamPicker('open')">
+       <span class="mod-label">添加开启参数</span>
+       <span id="openParamLabel" style="color:#999; font-size:14px;">无 ›</span>
+       <select id="openParamVal" style="position:absolute; left:0; top:0; width:100%; height:100%; opacity:0; pointer-events:none;"></select>
+      </div>
+     </div> 
+     <input type="hidden" id="ipList"> 
+     <div class="mod-title">
+      <span class="mod-tag">高级参数</span>
+     </div> 
+     <div class="mod-section" style="border-bottom: none;"> 
+      <div class="mod-row"> 
+       <span class="mod-label">持续时间</span> 
+       <input class="mod-input" id="duration" placeholder="ms，默认为空不生效"> 
+      </div> 
+      <div class="mod-row"> 
+       <span class="mod-label">循环执行</span> 
+       <input class="mod-input" id="loopEnable" placeholder="0/1，默认为空不生效"> 
+      </div> 
+      <div class="mod-row" style="border-bottom: none;"> 
+       <span class="mod-label">开始时间</span> 
+       <input class="mod-input" id="startTime" placeholder="ms，默认为空不生效"> 
+      </div> 
+     </div>
+     </div>
+     <div style="padding: 16px; border-top: 1px solid #f0f0f0;">
+      <div style="display: flex; align-items: center; margin-bottom: 8px;">
+       <span style="font-size: 15px; font-weight: 500; color: #333; margin-right: 12px;">模板描述</span>
+       <input type="text" id="configSceneDesc" maxlength="60" placeholder="输入模板备注，不超过60字符" oninput="document.getElementById('descCount').textContent = this.value.length + '/60'" style="flex: 1; border: none; outline: none; font-size: 14px; color: #333; background: transparent;">
+      </div>
+      <div style="text-align: right; font-size: 12px; color: #999;"><span id="descCount">0/60</span></div>
+     </div>
+     <div class="gen-group">
+     </div>
+    </div>
+   </div>
+  </div> 
+  <div class="tab-bar" id="tabBar"> 
+   <div class="tab-indicator" id="tabIndicator"></div>
+   <div class="tab-item active" onclick="switchTab('workbench')"> 
+    <div class="tab-icon"> 
+     <svg width="24" height="24" viewbox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"> 
+      <line x1="3" y1="8" x2="11.7" y2="8" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" /> 
+      <circle cx="15" cy="8" r="3.3" stroke="currentColor" stroke-width="2.6" fill="none" /> 
+      <line x1="18.3" y1="8" x2="21" y2="8" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" /> 
+      <line x1="12.3" y1="16" x2="21" y2="16" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" /> 
+      <circle cx="9" cy="16" r="3.3" stroke="currentColor" stroke-width="2.6" fill="none" /> 
+      <line x1="3" y1="16" x2="5.7" y2="16" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" /> 
+     </svg> 
+    </div> 
+    <span>工作台</span> 
+   </div> 
+   <div class="tab-item" onclick="switchTab('scene')">
+    <div class="tab-icon" style="margin-top:2px;">
+     <svg width="24" height="24" viewbox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"> 
+      <path d="M 0.416 8.254 L 0.069 9.434 L 0.000 10.960 L 0.416 12.624 L 0.902 13.595 L 1.457 14.358 L 2.220 15.121 L 3.052 15.746 L 4.162 16.301 L 5.688 16.717 L 18.104 16.786 L 19.353 16.578 L 20.879 15.954 L 21.988 15.121 L 22.682 14.358 L 23.584 12.763 L 23.931 11.168 L 23.931 10.335 L 23.723 9.225 L 23.168 7.908 L 22.682 7.214 L 21.295 5.965 L 20.532 5.549 L 19.769 5.341 L 18.728 3.329 L 18.243 2.705 L 16.994 1.526 L 15.260 0.555 L 14.497 0.277 L 13.179 0.000 L 11.098 0.000 L 10.335 0.139 L 8.671 0.694 L 7.561 1.318 L 6.590 2.081 L 5.757 2.983 L 5.064 4.023 L 4.786 4.647 L 3.607 4.994 L 2.081 5.965 L 1.110 7.006 Z M 16.439 4.092 L 16.994 4.855 L 17.410 5.688 L 17.757 6.728 L 17.896 7.699 L 17.827 9.295 L 17.341 10.890 L 16.786 11.861 L 15.815 12.971 L 14.844 13.734 L 13.734 14.289 L 12.139 14.636 L 6.520 14.636 L 5.202 14.358 L 4.301 13.873 L 3.191 12.832 L 2.913 12.416 L 2.497 11.514 L 2.358 10.821 L 2.358 10.058 L 2.566 9.156 L 3.052 8.254 L 3.676 7.561 L 4.162 7.214 L 5.272 6.728 L 7.006 6.659 L 7.908 7.006 L 8.532 7.561 L 8.879 8.393 L 8.740 9.156 L 8.324 9.711 L 7.422 10.127 L 6.243 10.127 L 5.688 10.613 L 5.618 11.376 L 5.757 11.653 L 6.243 12.069 L 6.867 12.277 L 7.491 12.277 L 8.809 11.931 L 9.642 11.445 L 10.682 10.266 L 11.098 9.225 L 11.168 8.185 L 11.098 7.699 L 10.613 6.520 L 9.850 5.618 L 9.156 5.133 L 8.393 4.786 L 7.422 4.578 L 7.561 4.301 L 8.462 3.399 L 9.156 2.913 L 10.197 2.428 L 10.960 2.220 L 12.902 2.150 L 14.220 2.497 L 15.052 2.913 Z M 20.185 7.908 L 20.948 8.671 L 20.948 8.740 L 21.087 8.879 L 21.087 8.948 L 21.156 9.017 L 21.156 9.087 L 21.225 9.156 L 21.225 9.225 L 21.295 9.295 L 21.295 9.364 L 21.364 9.434 L 21.364 9.572 L 21.434 9.642 L 21.434 9.780 L 21.503 9.850 L 21.503 10.127 L 21.572 10.197 L 21.572 11.376 L 21.503 11.445 L 21.503 11.723 L 21.434 11.792 L 21.434 11.931 L 21.364 12.000 L 21.364 12.139 L 21.295 12.208 L 21.295 12.277 L 21.225 12.347 L 21.225 12.486 L 21.087 12.624 L 21.087 12.694 L 21.017 12.763 L 21.017 12.832 L 20.809 13.040 L 20.809 13.110 L 20.046 13.873 L 19.977 13.873 L 19.838 14.012 L 19.769 14.012 L 19.630 14.150 L 19.561 14.150 L 19.491 14.220 L 19.422 14.220 L 19.353 14.289 L 19.214 14.289 L 19.145 14.358 L 19.075 14.358 L 19.006 14.428 L 18.867 14.428 L 18.798 14.497 L 18.520 14.497 L 18.451 14.566 L 17.965 14.566 L 17.896 14.636 L 17.202 14.636 L 17.133 14.566 L 17.272 14.428 L 17.341 14.428 L 18.312 13.457 L 18.312 13.387 L 18.520 13.179 L 18.520 13.110 L 18.728 12.902 L 18.728 12.832 L 18.867 12.694 L 18.867 12.624 L 19.006 12.486 L 19.006 12.416 L 19.075 12.347 L 19.075 12.277 L 19.145 12.208 L 19.145 12.139 L 19.214 12.069 L 19.214 12.000 L 19.283 11.931 L 19.283 11.861 L 19.353 11.792 L 19.353 11.723 L 19.422 11.653 L 19.422 11.584 L 19.491 11.514 L 19.491 11.445 L 19.561 11.376 L 19.561 11.237 L 19.630 11.168 L 19.630 11.029 L 19.699 10.960 L 19.699 10.821 L 19.769 10.751 L 19.769 10.613 L 19.838 10.543 L 19.838 10.335 L 19.908 10.266 L 19.908 10.058 L 19.977 9.988 L 19.977 9.642 L 20.046 9.572 L 20.046 8.809 L 20.116 8.740 L 20.116 8.185 L 20.046 8.116 L 20.046 7.977 L 20.116 7.908 Z" fill-rule="evenodd" /> 
+     </svg> 
+    </div> 
+    <span>网络场景</span> 
+   </div> 
+   <div class="tab-item" onclick="switchTab('settings')"> 
+    <div class="tab-icon"> 
+     <svg width="24" height="24" viewbox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"> 
+      <path d="M12 2L21 7v10l-9 5-9-5V7l9-5z" fill="currentColor" /> 
+      <circle cx="12" cy="12" r="4" fill="#fff" /> 
+      <circle cx="12" cy="12" r="1.8" fill="currentColor" /> 
+     </svg> 
+    </div> 
+    <span>QXNET设置</span> 
+   </div> 
+  </div> 
+  <div class="toast" id="toast"></div> 
+  <div class="bottom-sheet-mask" id="sheetMask" onclick="hideProtocolSheet();hideParamSheet();hideWeakScenePicker();hideGenericPicker()"></div> 
+  <div class="bottom-sheet" id="protocolSheet"> 
+   <div class="sheet-title">
+    选择协议类型
+   </div> 
+   <div class="sheet-item selected" onclick="selectProtocol(15, '全部协议')">
+    全部协议
+   </div> 
+   <div class="sheet-item" onclick="selectProtocol(1, 'TCP')">
+    TCP
+   </div> 
+   <div class="sheet-item" onclick="selectProtocol(2, 'UDP')">
+    UDP
+   </div> 
+   <div class="sheet-item" onclick="selectProtocol(3, 'TCP+UDP')">
+    TCP+UDP
+   </div> 
+   <div class="sheet-cancel" onclick="hideProtocolSheet()">
+    取消
+   </div> 
+  </div> 
+
+  <div class="bottom-sheet" id="paramSheet">
+   <div class="sheet-title" id="paramSheetTitle">选择参数</div>
+   <div style="height: 200px; overflow: hidden;" id="paramSheetWrap">
+    <div id="paramSheetItems" style="transition: transform 0.15s ease;"></div>
+   </div>
+   <div class="sheet-cancel" onclick="hideParamSheet()">
+    取消
+   </div>
+  </div>
+
+  <div class="bottom-sheet" id="weakSceneSheet">
+   <div class="sheet-title">选择弱网场景</div>
+   <div style="height: 200px; overflow: hidden;" id="weakSceneWrap">
+    <div id="weakSceneItems" style="transition: transform 0.15s ease;"></div>
+   </div>
+   <div class="sheet-cancel" onclick="hideWeakScenePicker()">取消</div>
+  </div>
+
+  <div class="bottom-sheet" id="genericPickerSheet">
+   <div class="sheet-title" id="genericPickerTitle">选择</div>
+   <div style="height: 200px; overflow: hidden;" id="genericPickerWrap">
+    <div id="genericPickerItems" style="transition: transform 0.15s ease;"></div>
+   </div>
+   <div class="sheet-cancel" onclick="hideGenericPicker()">取消</div>
+  </div>
+
+  <!-- ========== 搜索弹窗 ========== -->
+  <div class="search-modal" id="searchModal" onclick="if(event.target===this) closeSearchModal()">
+   <div class="search-modal-box">
+    <div class="search-modal-header">
+     <input type="text" id="searchInput" placeholder="搜索场景名称或参数..." oninput="doSearch()" autofocus>
+     <span class="close-btn" onclick="closeSearchModal()">✕</span>
+    </div>
+    <div class="search-modal-body" id="searchResults">
+     <div class="search-result-empty">
+      <div class="icon">🔍</div>
+      输入关键词搜索场景
+     </div>
+    </div>
+   </div>
+  </div>
+
+  <script>
+        // ==================== 兼容性 Polyfill ====================
+        if (!Array.prototype.find) {
+            Array.prototype.find = function(predicate) {
+                if (this == null) throw new TypeError('Array.prototype.find called on null or undefined');
+                if (typeof predicate !== 'function') throw new TypeError('predicate must be a function');
+                var list = Object(this);
+                var length = list.length >>> 0;
+                var thisArg = arguments[1];
+                var value;
+                for (var i = 0; i < length; i++) {
+                    value = list[i];
+                    if (predicate.call(thisArg, value, i, list)) return value;
+                }
+                return undefined;
+            };
+        }
+
+        if (!Array.prototype.findIndex) {
+            Array.prototype.findIndex = function(predicate) {
+                if (this == null) throw new TypeError('Array.prototype.findIndex called on null or undefined');
+                if (typeof predicate !== 'function') throw new TypeError('predicate must be a function');
+                var list = Object(this);
+                var length = list.length >>> 0;
+                var thisArg = arguments[1];
+                var value;
+                for (var i = 0; i < length; i++) {
+                    value = list[i];
+                    if (predicate.call(thisArg, value, i, list)) return i;
+                }
+                return -1;
+            };
+        }
+
+        if (!Array.prototype.includes) {
+            Array.prototype.includes = function(searchElement /*, fromIndex*/) {
+                'use strict';
+                if (this == null) throw new TypeError('Array.prototype.includes called on null or undefined');
+                var O = Object(this);
+                var len = parseInt(O.length, 10) || 0;
+                if (len === 0) return false;
+                var n = parseInt(arguments[1], 10) || 0;
+                var k;
+                if (n >= 0) k = n;
+                else { k = len + n; if (k < 0) k = 0; }
+                var currentElement;
+                while (k < len) {
+                    currentElement = O[k];
+                    if (searchElement === currentElement || (searchElement !== searchElement && currentElement !== currentElement)) return true;
+                    k++;
+                }
+                return false;
+            };
+        }
+
+        if (!Array.prototype.filter) {
+            Array.prototype.filter = function(fun /*, thisArg*/) {
+                'use strict';
+                if (this === void 0 || this === null) throw new TypeError();
+                var t = Object(this);
+                var len = t.length >>> 0;
+                if (typeof fun !== 'function') throw new TypeError();
+                var res = [];
+                var thisArg = arguments.length >= 2 ? arguments[1] : void 0;
+                for (var i = 0; i < len; i++) {
+                    if (i in t) {
+                        var val = t[i];
+                        if (fun.call(thisArg, val, i, t)) res.push(val);
+                    }
+                }
+                return res;
+            };
+        }
+
+        if (!Array.prototype.forEach) {
+            Array.prototype.forEach = function(callback, thisArg) {
+                var T, k;
+                if (this == null) throw new TypeError('this is null or not defined');
+                var O = Object(this);
+                var len = O.length >>> 0;
+                if (typeof callback !== 'function') throw new TypeError();
+                if (arguments.length > 1) T = thisArg;
+                k = 0;
+                while (k < len) {
+                    var kValue;
+                    if (k in O) {
+                        kValue = O[k];
+                        callback.call(T, kValue, k, O);
+                    }
+                    k++;
+                }
+            };
+        }
+
+        // ==================== 搜索功能 ====================
+        function openSearchModal() {
+            var modal = document.getElementById('searchModal');
+            modal.classList.add('show');
+            var input = document.getElementById('searchInput');
+            input.value = '';
+            input.focus();
+            document.getElementById('searchResults').innerHTML = 
+                '<div class="search-result-empty"><div class="icon">🔍</div>输入关键词搜索场景</div>';
+        }
+
+        function closeSearchModal() {
+            document.getElementById('searchModal').classList.remove('show');
+        }
+
+        function doSearch() {
+            var input = document.getElementById('searchInput');
+            var keyword = input.value.trim().toLowerCase();
+            var results = document.getElementById('searchResults');
+            
+            if (!keyword) {
+                results.innerHTML = '<div class="search-result-empty"><div class="icon">🔍</div>输入关键词搜索场景</div>';
+                return;
+            }
+
+            // 收集所有可搜索的场景（自定义 + 预设）
+            var allScenes = [];
+            customScenes.forEach(function(s) {
+                allScenes.push({ name: s.name, desc: s.desc || '', config: s.config, source: '自定义' });
+            });
+            for (var key in presetScenes) {
+                if (presetScenes.hasOwnProperty(key)) {
+                    // 避免重复
+                    var exists = false;
+                    for (var i = 0; i < allScenes.length; i++) {
+                        if (allScenes[i].name === key) { exists = true; break; }
+                    }
+                    if (!exists) {
+                        allScenes.push({ 
+                            name: key, 
+                            desc: presetScenes[key].desc || '', 
+                            config: presetScenes[key].config, 
+                            source: '预设' 
+                        });
+                    }
+                }
+            }
+
+            // 搜索匹配
+            var matched = [];
+            allScenes.forEach(function(scene) {
+                var nameMatch = scene.name.toLowerCase().includes(keyword);
+                var descMatch = scene.desc.toLowerCase().includes(keyword);
+                var configMatch = false;
+                // 搜索参数值
+                if (scene.config) {
+                    var configStr = JSON.stringify(scene.config).toLowerCase();
+                    if (configStr.includes(keyword)) configMatch = true;
+                    // 搜索具体的参数名
+                    var paramNames = ['out_bandwidth','in_bandwidth','out_delay','in_delay','out_loss','in_loss',
+                                      'out_pass','in_pass','out_burst','in_burst','out_rate','in_rate',
+                                      'duration','protocol','ip_list','loop','start_time'];
+                    for (var j = 0; j < paramNames.length; j++) {
+                        var val = scene.config[paramNames[j]];
+                        if (val !== undefined && val !== -1 && val !== '') {
+                            var valStr = String(val).toLowerCase();
+                            if (valStr.includes(keyword)) { configMatch = true; break; }
+                        }
+                    }
+                }
+                if (nameMatch || descMatch || configMatch) {
+                    var matchType = [];
+                    if (nameMatch) matchType.push('名称');
+                    if (descMatch) matchType.push('描述');
+                    if (configMatch) matchType.push('参数');
+                    matched.push({
+                        scene: scene,
+                        matchTypes: matchType,
+                        score: (nameMatch ? 3 : 0) + (descMatch ? 2 : 0) + (configMatch ? 1 : 0)
+                    });
+                }
+            });
+
+            // 按匹配度排序
+            matched.sort(function(a, b) { return b.score - a.score; });
+
+            if (matched.length === 0) {
+                results.innerHTML = '<div class="search-result-empty"><div class="icon">😕</div>未找到匹配的场景</div>';
+                return;
+            }
+
+            var html = '';
+            matched.forEach(function(item) {
+                var scene = item.scene;
+                var tags = item.matchTypes.map(function(t) { return '<span style="background:#E8F8FF;color:var(--primary);padding:1px 8px;border-radius:10px;font-size:11px;margin-right:4px;">'+t+'</span>'; }).join('');
+                var paramPreview = '';
+                if (scene.config) {
+                    var parts = [];
+                    if (scene.config.out_bandwidth !== undefined && scene.config.out_bandwidth !== -1) 
+                        parts.push('↑' + scene.config.out_bandwidth + 'kbps');
+                    if (scene.config.in_bandwidth !== undefined && scene.config.in_bandwidth !== -1) 
+                        parts.push('↓' + scene.config.in_bandwidth + 'kbps');
+                    if (scene.config.out_delay !== undefined && scene.config.out_delay !== -1) 
+                        parts.push('↑' + scene.config.out_delay + 'ms');
+                    if (scene.config.in_delay !== undefined && scene.config.in_delay !== -1) 
+                        parts.push('↓' + scene.config.in_delay + 'ms');
+                    if (scene.config.out_loss !== undefined && scene.config.out_loss !== -1 && scene.config.out_loss > 0) 
+                        parts.push('丢↑' + scene.config.out_loss + '%');
+                    if (scene.config.in_loss !== undefined && scene.config.in_loss !== -1 && scene.config.in_loss > 0) 
+                        parts.push('丢↓' + scene.config.in_loss + '%');
+                    if (parts.length > 0) paramPreview = '<div style="font-size:11px;color:#888;margin-top:3px;">' + parts.join(' ') + '</div>';
+                }
+                html += '<div class="search-result-item" onclick="searchResultClick(\'' + scene.name.replace(/'/g, "\\'") + '\')">' +
+                    '<div class="r-name">' + scene.name + ' <span style="font-size:11px;color:#aaa;font-weight:400;">' + scene.source + '</span></div>' +
+                    '<div class="r-desc">' + (scene.desc || '无描述') + '</div>' +
+                    '<div class="r-match">' + tags + '</div>' +
+                    paramPreview +
+                    '</div>';
+            });
+            results.innerHTML = html;
+        }
+
+        function searchResultClick(name) {
+            closeSearchModal();
+            // 在自定义场景中查找
+            var found = null;
+            for (var i = 0; i < customScenes.length; i++) {
+                if (customScenes[i].name === name) {
+                    found = customScenes[i];
+                    break;
+                }
+            }
+            if (found) {
+                // 切换到工作台
+                switchTab('workbench');
+                setTimeout(function() {
+                    selectScene(found);
+                }, 300);
+                showToast('已切换到: ' + name);
+                return;
+            }
+            // 在预设中查找
+            if (presetScenes[name]) {
+                // 先检查是否已添加
+                var exists = false;
+                for (var j = 0; j < customScenes.length; j++) {
+                    if (customScenes[j].name === name) { exists = true; break; }
+                }
+                if (exists) {
+                    switchTab('workbench');
+                    setTimeout(function() {
+                        for (var k = 0; k < customScenes.length; k++) {
+                            if (customScenes[k].name === name) {
+                                selectScene(customScenes[k]);
+                                break;
+                            }
+                        }
+                    }, 300);
+                    showToast('已切换到: ' + name);
+                } else {
+                    // 提示添加
+                    showToast('是否添加预设场景？点击"网络场景"添加');
+                    switchTab('scene');
+                }
+                return;
+            }
+            showToast('未找到场景: ' + name);
+        }
+
+        // ==================== 全局变量 ====================
+        var isRunning = false;
+        var ignoreNativeStatus = true;
+        var selectedScene = null;
+        var originalScene = null;
+        var isPaused = false;
+        function togglePauseResume() {
+            if (!isRunning) return;
+            var closeName = closeParamValVar;
+            if (!closeName) return;
+            if (!isPaused) {
+                var closeScene = customScenes.find(function(s){ return s.name === closeName; });
+                if (!closeScene) return;
+                originalScene = selectedScene;
+                selectedScene = closeScene;
+                isPaused = true;
+                var cfg = getStartConfig();
+                cfg.api = "update_qnet";
+                callNativeApi(cfg);
+            } else {
+                if (originalScene) selectedScene = originalScene;
+                isPaused = false;
+                var cfg = getStartConfig();
+                cfg.api = "update_qnet";
+                callNativeApi(cfg);
+            }
+            updateFloatWindow();
+        }
+        var appSelected = false;
+        var customScenes = [];
+        var DEFAULT_VALUE = -1;
+        var DEFAULT_PROTOCOL = 15;
+
+        var currentPage = 'workbench';
+        var protocolType = 15;
+        var currentOpenDelete = null;
+        var currentApp = { name: '', package: '', icon: '' };
+
+        var presetScenes = {
+            '连续丢包': {
+                desc: '模拟短时间内连续丢包的网络场景',
+                config: { out_loss: 10, out_pass: 3000, out_burst: 1000, in_loss: 10, in_pass: 3000, in_burst: 1000 }
+            },
+            '正常网络': { desc: '未设置任何弱网参数的正常网络', config: {} },
+            '100%丢包': { desc: '上下行100%丢包的弱网场景', config: { out_loss: 100, in_loss: 100 } },
+            '极差网络': {
+                desc: '低带宽，高延迟，高概率随机丢包',
+                config: { out_bandwidth: 100, in_bandwidth: 100, out_delay: 500, in_delay: 500, out_rate: 30, in_rate: 30, out_loss: 30, in_loss: 30 }
+            },
+            '断线重连(短)': {
+                sub: '北京市 - 上海<br>中国联通(WiFi)',
+                desc: '完全丢包7秒后恢复网络',
+                netProfile: {server: '上海', client: '北京市', isp: '中国联通', netType: 'WiFi'},
+                config: { out_loss: 100, out_pass: 3000, out_burst: 7000, in_loss: 100, in_pass: 3000, in_burst: 7000 }
+            },
+            '断线重连(长)': {
+                sub: '北京市 - 上海<br>中国联通(WiFi)',
+                desc: '完全丢包30秒后恢复网络',
+                netProfile: {server: '上海', client: '北京市', isp: '中国联通', netType: 'WiFi'},
+                config: { out_loss: 100, out_pass: 5000, out_burst: 30000, in_loss: 100, in_pass: 5000, in_burst: 30000 }
+            },
+            '上下行高延时高抖动': {
+                desc: '上下行延时为500ms，延时抖动分别为500ms，概率为100%',
+                config: { out_delay: 500, in_delay: 500, out_rate: 100, in_rate: 100 }
+            },
+            '上下行低延时': { desc: '上下行延时分别为100ms', config: { out_delay: 100, in_delay: 100 } },
+            '上下行低丢包率': { desc: '上下行随机丢包率分别为5%', config: { out_rate: 5, in_rate: 5 } },
+            '上下行高丢包率': { desc: '上下行随机丢包率分别为30%', config: { out_rate: 30, in_rate: 30 } },
+            'WiFi-4G网络切换': {
+                sub: '北京市 - 上海<br>中国联通(WiFi)',
+                desc: '模拟设备进入电梯后有WiFi切换到4G，模拟设备状态切换时，应用断线重连等',
+                netProfile: {server: '上海', client: '北京市', isp: '中国联通', netType: 'WiFi'},
+                config: { out_delay: 200, in_delay: 200, out_rate: 5, in_rate: 5 }
+            },
+            '新疆地区网络模拟': {
+                sub: '新疆乌鲁木齐',
+                desc: '由于新疆地区距离上海的物理距离较远，所以网络延迟也比较高，可以模拟这部分用户的网络环境',
+                netProfile: {server: '上海', client: '乌鲁木齐', isp: '中国电信', netType: '4G'},
+                config: { out_delay: 300, in_delay: 300, out_rate: 3, in_rate: 3 }
+            },
+            '全球弱网络模拟': {
+                sub: '韩国 - 首尔 (SKT/WiFi)',
+                desc: '模拟海外用户出国后仍需要连接国内服务，出现网络延迟和丢包',
+                netProfile: {server: '首尔', client: '北京市', isp: '韩国SKT', netType: 'WiFi'},
+                config: { out_delay: 500, in_delay: 500, out_rate: 10, in_rate: 10 }
+            },
+            '视频频标准': {
+                sub: '高清视频标准',
+                desc: '能够持续播放高清视频的最低网络标准',
+                config: { out_bandwidth: 500, in_bandwidth: 2000, out_delay: 100, in_delay: 100 }
+            },
+            'UDP协议不可用': {
+                sub: 'UDP协议',
+                desc: '某些特殊网络出于安全考虑会禁用UDP协议，用此模板来验证UDP协议禁用时的工作情况',
+                config: { protocol: 15 }
+            }
+        };
+
+        var recommendScenes = [
+            '极差网络', '连续丢包', '断线重连(短)', '断线重连(长)',
+            '上下行高延时高抖动', '上下行低延时', '上下行低丢包率', '上下行高丢包率',
+            'WiFi-4G网络切换', '新疆地区网络模拟', '全球弱网络模拟', '视频频标准', 'UDP协议不可用'
+        ];
+
+        // ==================== 随机生成函数 ====================
+        function randInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function generateOnParams() {
+            document.getElementById('outBandwidth').value = randInt(1, 3);
+            document.getElementById('inBandwidth').value = randInt(100, 800);
+
+            document.getElementById('outDelay').value = randInt(20, 90);
+            document.getElementById('inDelay').value = randInt(1, 35);
+
+            document.getElementById('outJitterMax').value = randInt(200, 2000);
+            document.getElementById('outJitterProb').value = 0;
+            document.getElementById('inJitterMax').value = randInt(100, 600);
+            document.getElementById('inJitterProb').value = 0;
+
+            document.getElementById('outPassMs').value = randInt(100, 550);
+            document.getElementById('outBurst').value = randInt(1, 30);
+            document.getElementById('inPassMs').value = randInt(90, 600);
+            document.getElementById('inBurst').value = randInt(5, 20);
+
+            document.getElementById('duration').value = '';
+            document.getElementById('loopEnable').value = '';
+            document.getElementById('startTime').value = '';
+            showToast('已生成弱网参数');
+        }
+
+        function generateOffParams() {
+            document.getElementById('outBandwidth').value = randInt(145, 160);
+            document.getElementById('inBandwidth').value = randInt(145, 160);
+
+            document.getElementById('outDelay').value = randInt(10, 60);
+            document.getElementById('inDelay').value = randInt(10, 60);
+
+            document.getElementById('outJitterMax').value = '';
+            document.getElementById('outJitterProb').value = '';
+            document.getElementById('inJitterMax').value = '';
+            document.getElementById('inJitterProb').value = '';
+
+            document.getElementById('outPassMs').value = '';
+            document.getElementById('outBurst').value = '';
+            document.getElementById('inPassMs').value = '';
+            document.getElementById('inBurst').value = '';
+
+            document.getElementById('duration').value = '';
+            document.getElementById('loopEnable').value = '';
+            document.getElementById('startTime').value = '';
+            showToast('已生成正常网络参数');
+        }
+
+        // ==================== 核心启动/停止逻辑 ====================
+        function toggleSwitchTemplate() {
+            if (!selectedScene || !selectedScene.config || !selectedScene.config.close_template) return;
+            var closeName = selectedScene.config.close_template;
+            if (selectedScene.name === closeName) {
+                selectScene(selectedScene.config.open_template || customScenes[0].name);
+            } else {
+                selectScene(closeName);
+            }
+        }
+        function toggleVPN(e) {
+            e.stopPropagation();
+            if (!appSelected) {
+                showToast('请先选择目标应用');
+                return;
+            }
+            if (!isRunning) {
+                var controlFw = document.getElementById('controlFw').checked ? 1 : 0;
+                var infoFw = document.getElementById('infoFw').checked ? 1 : 0;
+                var dumpPcap = document.getElementById('dumpPcap').checked ? 1 : 0;
+                callNativeApi({ api: "set_qnet_option", control_fw: controlFw, info_fw: infoFw, dump_pcap: 0 });
+                setTimeout(function () { startQNetInternal(); }, 300);
+            } else {
+                var config = { api: "stop_qnet" };
+                var success = callNativeApi(config);
+                if (success) {
+                    isRunning = false;
+                    updateBtnStatus();
+                    showToast('QNET已停止');
+                    setTimeout(function () {
+                        var cfw = document.getElementById('controlFw').checked ? 1 : 0;
+                        var ifw = document.getElementById('infoFw').checked ? 1 : 0;
+                        callNativeApi({ api: "set_qnet_option", control_fw: cfw, info_fw: ifw, dump_pcap: 0 });
+                    }, 500);
+                }
+            }
+        }
+
+        function startQNetInternal() {
+            var config = getStartConfig();
+            var success = callNativeApi(config);
+            if (success) {
+                isRunning = true;
+                updateBtnStatus();
+                showToast('QNET已启动');
+                setTimeout(function () { updateFloatWindow(); }, 500);
+            } else {
+                showToast('操作失败，请检查接口权限');
+            }
+        }
+
+        function generateJitterArray(maxVal, probVal) {
+            var arr = [];
+            var max = parseInt(maxVal);
+            var prob = parseInt(probVal);
+            if (isNaN(max) || max === -1 || max < 0 || isNaN(prob) || prob === -1) {
+                for (var i = 0; i < 10; i++) arr.push([-1, -1, -1]);
+            } else {
+                arr.push([0, max, prob]);
+                for (var i = 1; i < 10; i++) arr.push([-1, -1, -1]);
+            }
+            return arr;
+        }
+
+        function getStartConfig() {
+            var dumpPcapEl = document.getElementById('dumpPcap');
+            var controlFwEl = document.getElementById('controlFw');
+            var infoFwEl = document.getElementById('infoFw');
+            var antiBlockEl = document.getElementById('antiBlock');
+
+            var sceneName = "自定义配置";
+            if (selectedScene && selectedScene.name) sceneName = selectedScene.name;
+            else {
+                var nameEl = document.getElementById('configSceneName');
+                if (nameEl && nameEl.value) sceneName = nameEl.value;
+            }
+
+            var sceneCfg = (selectedScene && selectedScene.config) ? selectedScene.config : {};
+            var isSceneTpl = selectedScene && (selectedScene.type === '场景模板' || document.getElementById('templateTypeVal').value === '场景模板');
+            function cfg(key, inputId) {
+                if (isSceneTpl && key === 'out_delay' && lastMeasuredLatency > 0) return lastMeasuredLatency;
+                if (isSceneTpl && key === 'in_delay' && lastMeasuredLatency > 0) return Math.round(lastMeasuredLatency * 0.9);
+                if (sceneCfg[key] !== undefined && sceneCfg[key] !== DEFAULT_VALUE) return sceneCfg[key];
+                return getInputValueAsInt(inputId);
+            }
+
+            return {
+                api: "start_qnet",
+                dump_pcap: 0,
+                control_fw: controlFwEl && controlFwEl.checked ? 1 : 0,
+                info_fw: infoFwEl && infoFwEl.checked ? 1 : 0,
+                anti_block: antiBlockEl && antiBlockEl.checked ? 1 : 0,
+                profile: {
+                    profile_id: "local_" + Date.now(),
+                    name: sceneName,
+                    profieName: sceneName,
+                    profileName: sceneName,
+                    desc: "Local config",
+                    profileDesc: "Local config",
+                    type: 2,
+                    params: [{
+                        out_bandwidth: cfg('out_bandwidth', 'outBandwidth'),
+                        out_delay: cfg('out_delay', 'outDelay'),
+                        out_rate: cfg('out_rate', 'outRate'),
+                        out_loss: cfg('out_loss', 'outBurst'),
+                        out_pass: cfg('out_pass', 'outPassMs'),
+                        out_burst: cfg('out_burst', 'outBurst'),
+                        out_delaybiasarray: generateJitterArray(getInputValueAsInt('outJitterMax'), getInputValueAsInt('outJitterProb')),
+
+                        in_bandwidth: cfg('in_bandwidth', 'inBandwidth'),
+                        in_delay: cfg('in_delay', 'inDelay'),
+                        in_rate: cfg('in_rate', 'inRate'),
+                        in_loss: cfg('in_loss', 'inBurst'),
+                        in_pass: cfg('in_pass', 'inPassMs'),
+                        in_burst: cfg('in_burst', 'inBurst'),
+                        in_delaybiasarray: generateJitterArray(getInputValueAsInt('inJitterMax'), getInputValueAsInt('inJitterProb')),
+
+                        duration: cfg('duration', 'duration'),
+                        protocol: getProtocolValue(),
+                        ip_list: document.getElementById('ipList').value || "",
+                        loop: cfg('loop', 'loopEnable'),
+                        start_time: cfg('start_time', 'startTime'),
+                        close_template: closeParamValVar || "",
+                        open_template: openParamValVar || ""
+                    }]
+                }
+            };
+        }
+
+        function getInputValueAsInt(id) {
+            try {
+                var el = document.getElementById(id);
+                if (!el) return DEFAULT_VALUE;
+                var val = el.value;
+                if (val === undefined || val === null || val === '') return DEFAULT_VALUE;
+                var num = parseInt(val, 10);
+                return isNaN(num) ? DEFAULT_VALUE : num;
+            } catch (e) { return DEFAULT_VALUE; }
+        }
+
+        // ==================== 原生接口调用 ====================
+        function callNativeApi(data) {
+            try {
+                var jsonData = JSON.stringify(data);
+                if (window.qnetAndroidObj && window.qnetAndroidObj.callAndroidApi) {
+                    window.qnetAndroidObj.callAndroidApi(jsonData);
+                    return true;
+                }
+                if (window.SecureJsInterface && window.SecureJsInterface.updateFloatText && data.api === "update_float_text") {
+                    window.SecureJsInterface.updateFloatText(data.status_text);
+                    return true;
+                }
+                if (window.android && window.android.callNative) {
+                    window.android.callNative(jsonData);
+                    return true;
+                }                console.log('callNativeApi:', data);
+                return true;
+            } catch (e) {
+                console.log("原生接口调用失败", e);
+                return false;
+            }
+        }
+
+        function updateBtnStatus() {
+            var btnStart = document.getElementById('btnStart');
+            var btnPause = document.getElementById('btnPause');
+            if (isRunning) {
+                btnStart.textContent = '停止';
+                btnStart.classList.add('running');
+            } else {
+                btnStart.textContent = '启动';
+                btnStart.classList.remove('running');
+                isPaused = false;
+            }
+            updateFloatWindow();
+        }
+
+        function syncUserProfilesToNative() {
+            try {
+                var userProfiles = customScenes.map(function (scene, index) {
+                    return { profile_id: "scene_" + index + "_" + scene.name, name: scene.name };
+                });
+                if (selectedScene) {
+                    var found = false;
+                    for (var i = 0; i < userProfiles.length; i++) {
+                        if (userProfiles[i].name === selectedScene.name) { found = true; break; }
+                    }
+                    if (!found) userProfiles.unshift({ profile_id: "scene_current_" + selectedScene.name, name: selectedScene.name });
+                }
+                if (userProfiles.length === 0) userProfiles.push({ profile_id: "scene_default", name: "自定义配置" });
+                callNativeApi({ api: "get_user_profiles", user_profiles: userProfiles });
+                setTimeout(function () {
+                    callNativeApi({ api: "set_qnet_option", control_fw: 0, info_fw: 0, dump_pcap: 0 });
+                }, 100);
+            } catch (e) { console.error('syncUserProfilesToNative error:', e); }
+        }
+
+        function updateFloatWindow() {
+            try {
+                var sceneName = "自定义配置";
+                if (selectedScene && selectedScene.name) sceneName = selectedScene.name;
+                else {
+                    var nameEl = document.getElementById('configSceneName');
+                    if (nameEl && nameEl.value) sceneName = nameEl.value;
+                }
+                var inDelay = getInputValueAsInt('inDelay');
+                var outDelay = getInputValueAsInt('outDelay');
+                var inLoss = getInputValueAsInt('inBurst');
+                var outLoss = getInputValueAsInt('outBurst');
+                var status = isRunning ? "运行中" : "已停止";
+                var delayText = '延' + (inDelay === DEFAULT_VALUE ? '-' : inDelay) + '/' + (outDelay === DEFAULT_VALUE ? '-' : outDelay) + 'ms';
+                var lossText = '丢' + (inLoss === DEFAULT_VALUE ? '-' : inLoss) + '/' + (outLoss === DEFAULT_VALUE ? '-' : outLoss) + '%';
+                var displayText = sceneName + ' | ' + status + ' | ' + delayText + ' ' + lossText;
+                if (window.SecureJsInterface && window.SecureJsInterface.setSceneDisplayText) {
+                    window.SecureJsInterface.setSceneDisplayText(displayText);
+                }
+                callNativeApi({ api: "update_float_text", scene_name: sceneName, status_text: displayText });
+            } catch (e) { console.log("悬浮窗更新失败", e); }
+        }
+        // ==================== Android回调入口 ====================
+        window.qnetAndroidCallApi = function (data) {
+            try {
+                if (typeof data === 'string') data = JSON.parse(data);
+                var api = data.api;
+                switch (api) {
+                    case 'get_environment': handleGetEnvironment(data); break;
+                    case 'get_app_info': handleGetAppInfo(data); break;
+                    case 'set_qnet_option': handleSetQnetOption(data); break;
+                    case 'qnet_status': handleQnetStatus(data); break;
+                    case 'set_package_name': handleSetPackageName(data); break;
+                    case 'start_qnet': handleStartQnet(data); break;
+                    case 'stop_qnet': handleStopQnet(data); break;
+                    case 'pcap_path': handlePcapPath(data); break;
+                    case 'update_qnet_by_qnet':
+                        if (data.profile_id === '__switch__') {
+                            if (!window._isClosed) {
+                                if (selectedScene && selectedScene.config && selectedScene.config.close_template) {
+                                    var closeName = selectedScene.config.close_template;
+                                    var closeScene = customScenes.find(function(s){ return s.name === closeName; });
+                                    if (closeScene) {
+                                        window._isClosed = true;
+                                        window._openScene = selectedScene;
+                                        selectScene(closeScene);
+                                        callNativeApi({api:'set_float_icon', icon:1});
+                                    }
+                                }
+                            } else {
+                                if (window._openScene) {
+                                    window._isClosed = false;
+                                    selectScene(window._openScene);
+                                    callNativeApi({api:'set_float_icon', icon:0});
+                                }
+                            }
+                        } else if (data.profile_id) {
+                            var pid = data.profile_id;
+                            showToast('收到模板:' + pid);
+                            var matched = null;
+                            for (var i = 0; i < customScenes.length; i++) {
+                                if (customScenes[i].name === pid || pid.indexOf(customScenes[i].name) !== -1) {
+                                    matched = customScenes[i];
+                                    break;
+                                }
+                            }
+                            if (matched) {
+                                window._isClosed = false;
+                                window._openScene = null;
+                                selectScene(matched);
+                            } else {
+                                showToast('未找到匹配模板');
+                            }
+                        }
+                        break;
+                    case 'show_toast': if (data.message) showToast(data.message); break;
+                    case 'test_callback': break;
+                    case 'fw_oncreate': break;
+                    case 'fw_start': break;
+                    case 'float_click': break;
+                }
+            } catch (e) { console.error('qnetAndroidCallApi error:', e); }
+        };
+
+        function handleProfileSelected(data) {
+            var pid = data.profile_id || '';
+            if (selectedScene && selectedScene.config && selectedScene.config.close_template) {
+                var closeName = selectedScene.config.close_template;
+                if (selectedScene.name === closeName) {
+                    selectScene(customScenes[0].name);
+                } else {
+                    selectScene(closeName);
+                }
+                return;
+            }
+            var scene = null;
+            for (var i = 0; i < customScenes.length; i++) {
+                if (customScenes[i].profile_id === pid) {
+                    scene = customScenes[i];
+                    break;
+                }
+            }
+            if (!scene && pid.indexOf('scene_') === 0) {
+                var parts = pid.split('_');
+                if (parts.length >= 3) {
+                    var name = parts.slice(2).join('_');
+                    for (var j = 0; j < customScenes.length; j++) {
+                        if (customScenes[j].name === name) {
+                            scene = customScenes[j];
+                            break;
+                        }
+                    }
+                }
+            }
+            if (!scene) {
+                for (var k = 0; k < customScenes.length; k++) {
+                    if (customScenes[k].name === pid) {
+                        scene = customScenes[k];
+                        break;
+                    }
+                }
+            }
+            if (scene) {
+                selectedScene = scene;
+                loadConfigToForm(scene.config);
+                var items = document.querySelectorAll('.scene-item');
+                items.forEach(function (item) { item.classList.remove('active'); if (item.dataset.name === scene.name) item.classList.add('active'); });
+                updateFloatWindow();
+                if (isRunning) {
+                    var config = getStartConfig();
+                    config.api = "update_qnet";
+                    callNativeApi(config);
+                }
+            }
+        }
+
+        function handleGetEnvironment(data) {
+            if (data.os_version) document.getElementById('osVersion').textContent = data.os_version;
+        }
+        function handleGetAppInfo(data) {
+            if (data.app_version) document.getElementById('appVersion').textContent = '2.1.5 (' + data.app_version + ')';
+        }
+        function handleSetQnetOption(data) {}
+        function handleQnetStatus(data) {
+            if (data.status !== undefined && !ignoreNativeStatus) {
+                var wasRunning = isRunning;
+                isRunning = data.status === 1;
+                updateBtnStatus();
+                if (wasRunning && !isRunning && selectedScene && selectedScene.config && selectedScene.config.close_template) {
+                    var closeName = selectedScene.config.close_template;
+                    var closeScene = customScenes.find(function(s){ return s.name === closeName; });
+                    if (closeScene) {
+                        selectScene(closeScene);
+                        callNativeApi({api:'start_qnet'});
+                    }
+                }
+            }
+        }
+        function handleSetPackageName(data) {
+            if (data.app_name) {
+                currentApp.name = data.app_name;
+                document.getElementById('currentAppName').textContent = data.app_name;
+            }
+            if (data.package_name) {
+                currentApp.package = data.package_name;
+                document.getElementById('currentAppPackage').textContent = data.package_name;
+                appSelected = true;
+            }
+            if (data.app_icon) {
+                currentApp.icon = data.app_icon;
+                var iconEl = document.getElementById('appIcon');
+                if (data.app_icon.indexOf('data:image') === 0) iconEl.innerHTML = '<img src="' + data.app_icon + '">';
+                else iconEl.innerHTML = '<img src="data:image/png;base64,' + data.app_icon + '">';
+            }
+        }
+        function handleStartQnet(data) {
+            if (data.result === 0) {
+                showToast('启动失败，请检查悬浮窗权限');
+                isRunning = false;
+                updateBtnStatus();
+            }
+        }
+        function handleStopQnet(data) {
+            isRunning = false;
+            updateBtnStatus();
+        }
+        function handlePcapPath(data) {}
+
+        // ==================== 应用选择 ====================
+        function chooseApp() {
+            callNativeApi({ api: "set_package_name" });
+        }
+
+        // ==================== 页面切换 ====================
+        function switchTab(tab) {
+            currentPage = tab;
+            var tabs = document.querySelectorAll('.tab-item');
+            tabs.forEach(function (t) { t.classList.remove('active'); });
+            var tabIndex = 0;
+            if (tab === 'workbench') { tabs[0].classList.add('active'); tabIndex = 0; }
+            if (tab === 'scene') { tabs[1].classList.add('active'); tabIndex = 1; }
+            if (tab === 'settings') { tabs[2].classList.add('active'); tabIndex = 2; }
+
+            var indicator = document.getElementById('tabIndicator');
+            if (indicator) {
+                indicator.style.transform = 'translateX(' + (tabIndex * 100) + '%)';
+            }
+
+            var pages = document.querySelectorAll('.page');
+            pages.forEach(function (p) { p.classList.remove('active'); });
+            document.getElementById('page-' + tab).classList.add('active');
+            updateNavBar(tab);
+            window.scrollTo(0, 0);
+            document.body.scrollTop = 0;
+            document.documentElement.scrollTop = 0;
+            if (tab === 'workbench') {
+                var list = document.querySelector('#page-workbench .scene-list, #page-workbench .scene-item');
+                if (list && list.parentElement) list.parentElement.scrollTop = 0;
+            }
+        }
+
+        function updateNavBar(page) {
+            var navTitle = document.getElementById('navTitle');
+            var navRight = document.getElementById('navRight');
+            var navBack = document.getElementById('navBack');
+            var tabBar = document.getElementById('tabBar');
+            var pageContainer = document.getElementById('pageContainer');
+
+            tabBar.style.display = 'flex';
+            pageContainer.classList.remove('no-tab');
+            navBack.style.display = 'none';
+
+            if (page === 'workbench') {
+                navTitle.textContent = 'QXNET';
+                navRight.textContent = '新增';
+                navRight.style.display = 'flex';
+            } else if (page === 'scene') {
+                navTitle.textContent = '网络场景推荐';
+                navRight.textContent = '新增';
+                navRight.style.display = 'flex';
+            } else if (page === 'settings') {
+                navTitle.textContent = '设置';
+                navRight.textContent = '';
+                navRight.style.display = 'none';
+            } else if (page === 'template-edit') {
+                navTitle.textContent = '编辑模板';
+                navRight.textContent = '保存';
+                navRight.style.display = 'flex';
+                navBack.style.display = 'block';
+                tabBar.style.display = 'none';
+                pageContainer.classList.add('no-tab');
+            }
+        }
+
+        function goBack() {
+            if (currentPage === 'template-edit') switchTab('workbench');
+        }
+
+        function goToTemplateEdit() {
+            window._editingName = '';
+            window._skipAutoFill = true;
+            if (currentPage === 'workbench') {
+                resetForm();
+                var ttv = document.getElementById('templateTypeVal');
+                if (ttv) {
+                    ttv.value = '自定义模板';
+                    document.getElementById('templateTypeLabel').textContent = '自定义模板 ›';
+                    switchTemplateMode();
+                }
+                var nameEl = document.getElementById('configSceneName');
+                nameEl.value = '未命名';
+                
+                currentPage = 'template-edit';
+                document.querySelectorAll('.page').forEach(function (p) { p.classList.remove('active'); });
+                document.getElementById('page-template-edit').classList.add('active');
+                updateNavBar('template-edit');
+                fillParamSelects();
+            } else if (currentPage === 'template-edit') {
+                saveTemplate();
+            }
+        }
+
+        // ==================== 场景列表 ====================
+        function filterScenes(kw) {
+            kw = (kw || '').trim().toLowerCase();
+            var items = document.querySelectorAll('#workbenchSceneList .scene-item');
+            items.forEach(function(item) {
+                var name = item.dataset.name || '';
+                item.style.display = (!kw || name.toLowerCase().indexOf(kw) >= 0) ? 'block' : 'none';
+            });
+        }
+        function initWorkbenchScenes() {
+            var list = document.getElementById('workbenchSceneList');
+            list.innerHTML = '';
+            if (customScenes.length === 0) {
+                list.innerHTML = '<div class="empty-state"><div>用户模板数据为空，请去"网络场景"添加模板</div></div>';
+                return;
+            }
+            customScenes.forEach(function (scene) {
+                var wrapper = document.createElement('div');
+                wrapper.className = 'scene-item-wrapper';
+                var item = document.createElement('div');
+                var isActive = selectedScene && selectedScene.name === scene.name;
+                item.className = 'scene-item' + (isActive ? ' active' : '');
+                item.style.display = 'flex';
+                item.style.justifyContent = 'space-between';
+                item.style.alignItems = 'center';
+                item.dataset.name = scene.name;
+                item.innerHTML = '<div style="padding-right:60px;"><div class="scene-name">' + scene.name + '</div><div class="scene-desc">' + (scene.desc || '') + '</div></div><div class="scene-action" style="position:absolute; right:16px; top:50%; transform:translateY(-50%);" onclick="event.stopPropagation(); editScene(\'' + scene.name + '\')">自定义 <span>›</span></div>';
+                var deleteBtn = document.createElement('div');
+                deleteBtn.className = 'delete-btn';
+                deleteBtn.textContent = '删除';
+                deleteBtn.onclick = function (e) { e.stopPropagation(); deleteScene(scene.name); };
+                wrapper.appendChild(item);
+                wrapper.appendChild(deleteBtn);
+                bindSwipeEvents(item, wrapper);
+                item.onclick = function () {
+                    if (currentOpenDelete && currentOpenDelete !== wrapper) closeDeleteBtn(currentOpenDelete);
+                    if (currentOpenDelete === wrapper) { closeDeleteBtn(wrapper); return; }
+                    selectScene(scene);
+                };
+                list.appendChild(wrapper);
+            });
+        }
+
+        function bindSwipeEvents(item, wrapper) {
+            var startX = 0, startY = 0, isHorizontal = null;
+            item.addEventListener('touchstart', function (e) {
+                startX = e.touches[0].clientX;
+                startY = e.touches[0].clientY;
+                isHorizontal = null;
+            }, { passive: true });
+            item.addEventListener('touchmove', function (e) {
+                var moveX = e.touches[0].clientX;
+                var moveY = e.touches[0].clientY;
+                var diffX = moveX - startX;
+                var diffY = moveY - startY;
+                if (isHorizontal === null) {
+                    if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 10) isHorizontal = true;
+                    else if (Math.abs(diffY) > Math.abs(diffX) && Math.abs(diffY) > 10) isHorizontal = false;
+                }
+                if (isHorizontal) {
+                    e.preventDefault();
+                    var translateX = diffX;
+                    if (wrapper === currentOpenDelete) translateX = -80 + diffX;
+                    if (translateX > 0) translateX = 0;
+                    if (translateX < -80) translateX = -80;
+                    item.style.transform = 'translateX(' + translateX + 'px)';
+                }
+            }, { passive: false });
+            item.addEventListener('touchend', function (e) {
+                if (!isHorizontal) return;
+                var diffX = e.changedTouches[0].clientX - startX;
+                var translateX = diffX;
+                if (wrapper === currentOpenDelete) translateX = -80 + diffX;
+                if (translateX < -40) {
+                    item.style.transform = 'translateX(-80px)';
+                    if (currentOpenDelete && currentOpenDelete !== wrapper) closeDeleteBtn(currentOpenDelete);
+                    currentOpenDelete = wrapper;
+                } else {
+                    closeDeleteBtn(wrapper);
+                }
+            });
+        }
+
+        function closeDeleteBtn(wrapper) {
+            var item = wrapper.querySelector('.scene-item');
+            if (item) item.style.transform = 'translateX(0)';
+            if (currentOpenDelete === wrapper) currentOpenDelete = null;
+        }
+
+        function initRecommendScenes() {
+            var list = document.getElementById('recommendList');
+            list.innerHTML = '';
+            recommendScenes.forEach(function (name) {
+                var scene = presetScenes[name];
+                var item = document.createElement('div');
+                item.className = 'recommend-item';
+                var sub = scene.sub ? '<div style="font-size:13px; color:#999; margin-top:4px; line-height:1.5;">' + scene.sub + '</div>' : '';
+                var right = scene.addRight ? '<div style="color:#999; font-size:14px; margin-left:16px;">' + scene.addRight + '</div>' : '<div class="add-btn" onclick="event.stopPropagation();addScene(\'' + name + '\')">添加</div>';
+                item.innerHTML = '<div class="recommend-info"><div class="title">' + name + '</div>' + sub + '<div class="reason">推荐理由: ' + scene.desc + '</div></div>' + right;
+                list.appendChild(item);
+            });
+        }
+
+        function selectScene(scene) {
+            if (typeof scene === 'string') {
+                var found = null;
+                for (var i = 0; i < customScenes.length; i++) {
+                    if (customScenes[i].name === scene) { found = customScenes[i]; break; }
+                }
+                if (!found) return;
+                scene = found;
+            }
+            selectedScene = scene;
+            var items = document.querySelectorAll('.scene-item');
+            items.forEach(function (item) {
+                item.classList.remove('active');
+                if (item.dataset.name === scene.name) item.classList.add('active');
+            });
+            loadConfigToForm(scene.config);
+            if (isRunning) {
+                updateQNetConfig();
+                setTimeout(function () {
+                    var cfw = document.getElementById('controlFw').checked ? 1 : 0;
+                    var ifw = document.getElementById('infoFw').checked ? 1 : 0;
+                    var dp = document.getElementById('dumpPcap').checked ? 1 : 0;
+                    callNativeApi({ api: "set_qnet_option", control_fw: cfw, info_fw: ifw, dump_pcap: 0 });
+                }, 200);
+            }
+            updateFloatWindow();
+            syncUserProfilesToNative();
+            initWorkbenchScenes();
+        }
+
+        function editScene(name) {
+            var scene = null;
+            for (var i = 0; i < customScenes.length; i++) {
+                if (customScenes[i].name === name) { scene = customScenes[i]; break; }
+            }
+            if (!scene) return;
+            document.getElementById('configSceneName').value = scene.name;
+            document.getElementById('configSceneDesc').value = scene.desc || '';
+            window._editingName = scene.name;
+            loadConfigToForm(scene.config);
+            var tType = scene.type || '自定义模板';
+            document.getElementById('templateTypeVal').value = tType;
+            fillWeakSceneOptions();
+            switchTemplateMode();
+            document.getElementById('templateTypeLabel').textContent = tType + ' ›';
+            currentPage = 'template-edit';
+            document.querySelectorAll('.page').forEach(function (p) { p.classList.remove('active'); });
+            document.getElementById('page-template-edit').classList.add('active');
+            updateNavBar('template-edit');
+        }
+
+        function addScene(name) {
+            var exists = false;
+            for (var i = 0; i < customScenes.length; i++) {
+                if (customScenes[i].name === name) { exists = true; break; }
+            }
+            if (exists) { showToast('该场景已存在'); return; }
+            if (presetScenes[name]) {
+                var cfg = JSON.parse(JSON.stringify(presetScenes[name].config));
+                if (presetScenes[name].netProfile) {
+                    cfg.net_profile = presetScenes[name].netProfile;
+                }
+                customScenes.push({
+                    name: name,
+                    desc: presetScenes[name].desc,
+                    type: '场景模板',
+                    config: cfg
+                });
+                initWorkbenchScenes();
+            fillWeakSceneOptions();
+            switchTemplateMode();
+                syncUserProfilesToNative();
+                showToast('添加成功');
+                switchTab('workbench');
+            }
+        }
+
+        function deleteScene(name) {
+            var scene = null;
+            for (var i = 0; i < customScenes.length; i++) {
+                if (customScenes[i].name === name) {
+                    scene = customScenes[i];
+                    break;
+                }
+            }
+
+            if (scene && scene.is_global) {
+                var originalName = name.replace(' (官方)', '');
+                addDeletedGlobalConfig(originalName);
+            }
+
+            customScenes = customScenes.filter(function (s) { return s.name !== name; });
+            if (selectedScene && selectedScene.name === name) selectedScene = null;
+            initWorkbenchScenes();
+            syncUserProfilesToNative();
+            showToast('删除成功');
+        }
+
+        // ==================== 模板编辑 ====================
+        function resetForm() {
+            var inputs = document.querySelectorAll('#page-template-edit .mod-input, #page-template-edit .f-input');
+            inputs.forEach(function (input) { input.value = ''; });
+            document.getElementById('configSceneDesc').value = '';
+            protocolType = DEFAULT_PROTOCOL;
+            setProtocolValue(DEFAULT_PROTOCOL);
+            document.getElementById('outJitterProb').value = '';
+            document.getElementById('inJitterProb').value = '';
+            document.getElementById('outBurst').value = '';
+            document.getElementById('inBurst').value = '';
+            document.getElementById('duration').value = '';
+            document.getElementById('serverCityLabel').textContent = '上海 ›';
+            document.getElementById('clientCityLabel').textContent = '北京市 ›';
+            document.getElementById('ispLabel').textContent = '中国电信 ›';
+            document.getElementById('netTypeLabel').textContent = 'WiFi ›';
+            window._cycleLossOut = undefined;
+            window._cycleLossIn = undefined;
+        }
+
+        function loadConfigToForm(config) {
+            resetForm();
+            if (config.out_bandwidth !== undefined && config.out_bandwidth !== DEFAULT_VALUE) document.getElementById('outBandwidth').value = config.out_bandwidth;
+            if (config.in_bandwidth !== undefined && config.in_bandwidth !== DEFAULT_VALUE) document.getElementById('inBandwidth').value = config.in_bandwidth;
+            if (config.out_delay !== undefined && config.out_delay !== DEFAULT_VALUE) document.getElementById('outDelay').value = config.out_delay;
+            if (config.in_delay !== undefined && config.in_delay !== DEFAULT_VALUE) document.getElementById('inDelay').value = config.in_delay;
+            if (config.out_loss !== undefined && config.out_loss !== DEFAULT_VALUE) document.getElementById('outRate').value = config.out_loss;
+            if (config.in_loss !== undefined && config.in_loss !== DEFAULT_VALUE) document.getElementById('inRate').value = config.in_loss;
+            if (config.out_pass !== undefined && config.out_pass !== DEFAULT_VALUE) document.getElementById('outPassMs').value = config.out_pass;
+            if (config.in_pass !== undefined && config.in_pass !== DEFAULT_VALUE) document.getElementById('inPassMs').value = config.in_pass;
+            if (config.out_burst !== undefined && config.out_burst !== DEFAULT_VALUE) document.getElementById('outBurst').value = config.out_burst;
+            if (config.in_burst !== undefined && config.in_burst !== DEFAULT_VALUE) document.getElementById('inBurst').value = config.in_burst;
+            if (config.weak_type) document.getElementById('weakType').value = config.weak_type;
+            if (config.net_profile) {
+                var np = config.net_profile;
+                if (np.server) { document.getElementById('serverCityLabel').textContent = np.server + ' ›'; }
+                if (np.client) { document.getElementById('clientCityLabel').textContent = np.client + ' ›'; }
+                if (np.isp) { document.getElementById('ispLabel').textContent = np.isp + ' ›'; }
+                if (np.netType) { document.getElementById('netTypeLabel').textContent = np.netType + ' ›'; }
+            }
+            if (config.server_city) { document.getElementById('serverCityLabel').textContent = config.server_city + ' ›'; }
+            if (config.client_city) { document.getElementById('clientCityLabel').textContent = config.client_city + ' ›'; }
+            if (config.isp) { document.getElementById('ispLabel').textContent = config.isp + ' ›'; }
+            if (config.net_type) { document.getElementById('netTypeLabel').textContent = config.net_type + ' ›'; }
+            if (config.weak_scene) { document.getElementById('weakSceneLabel').textContent = config.weak_scene + ' ›'; }
+            updateWeakSceneDesc();
+            if (config.out_rate !== undefined && config.out_rate !== DEFAULT_VALUE) document.getElementById('outRate').value = config.out_rate;
+            if (config.in_rate !== undefined && config.in_rate !== DEFAULT_VALUE) document.getElementById('inRate').value = config.in_rate;
+            if (config.duration !== undefined && config.duration !== DEFAULT_VALUE) document.getElementById('duration').value = config.duration;
+            closeParamValVar = config.close_template || '';
+            openParamValVar = config.open_template || '';
+            if (config.close_template) { document.getElementById('closeParamLabel').textContent = config.close_template + ' ›'; }
+            else { document.getElementById('closeParamLabel').textContent = '无 ›'; }
+            if (config.open_template) { document.getElementById('openParamLabel').textContent = config.open_template + ' ›'; }
+            else { document.getElementById('openParamLabel').textContent = '无 ›'; }
+            if (config.ip_list) document.getElementById('ipList').value = config.ip_list;
+            if (config.loop !== undefined && config.loop !== DEFAULT_VALUE) document.getElementById('loopEnable').value = config.loop;
+            if (config.start_time !== undefined && config.start_time !== DEFAULT_VALUE) document.getElementById('startTime').value = config.start_time;
+
+            if (config.protocol !== undefined) {
+                protocolType = config.protocol;
+                setProtocolValue(config.protocol);
+            }
+
+            if (config.out_delaybiasarray && config.out_delaybiasarray.length > 0) {
+                var outFirst = config.out_delaybiasarray[0];
+                if (outFirst && outFirst[0] != -1) {
+                    document.getElementById('outJitterMax').value = outFirst[1];
+                    document.getElementById('outJitterProb').value = outFirst[2];
+                }
+            }
+            if (config.in_delaybiasarray && config.in_delaybiasarray.length > 0) {
+                var inFirst = config.in_delaybiasarray[0];
+                if (inFirst && inFirst[0] != -1) {
+                    document.getElementById('inJitterMax').value = inFirst[1];
+                    document.getElementById('inJitterProb').value = inFirst[2];
+                }
+            }
+
+            if (config.desc) {
+                document.getElementById('configSceneDesc').value = config.desc;
+                document.getElementById('descCount').textContent = config.desc.length + '/60';
+            }
+        }
+
+        function getFormConfig() {
+            var config = {};
+            config.out_bandwidth = getInputValueAsInt('outBandwidth');
+            config.in_bandwidth = getInputValueAsInt('inBandwidth');
+            config.out_delay = getInputValueAsInt('outDelay');
+            config.in_delay = getInputValueAsInt('inDelay');
+            config.out_loss = getInputValueAsInt('outRate');
+            config.in_loss = getInputValueAsInt('inRate');
+            config.out_pass = getInputValueAsInt('outPassMs');
+            config.in_pass = getInputValueAsInt('inPassMs');
+            config.out_burst = getInputValueAsInt('outBurst');
+            config.in_burst = getInputValueAsInt('inBurst');
+            config.weak_type = document.getElementById('weakType').value;
+            config.server_city = document.getElementById('serverCityLabel').textContent.replace(' ›', '');
+            config.client_city = document.getElementById('clientCityLabel').textContent.replace(' ›', '');
+            config.isp = document.getElementById('ispLabel').textContent.replace(' ›', '');
+            config.net_type = document.getElementById('netTypeLabel').textContent.replace(' ›', '');
+            config.weak_scene = document.getElementById('weakSceneLabel').textContent.replace(' ›', '');
+            config.out_rate = getInputValueAsInt('outRate');
+            config.in_rate = getInputValueAsInt('inRate');
+            config.duration = getInputValueAsInt('duration');
+            config.protocol = protocolType;
+            config.ip_list = document.getElementById('ipList').value;
+            config.loop = getInputValueAsInt('loopEnable');
+            config.start_time = getInputValueAsInt('startTime');
+            config.out_delaybiasarray = generateJitterArray(getInputValueAsInt('outJitterMax'), getInputValueAsInt('outJitterProb'));
+            config.in_delaybiasarray = generateJitterArray(getInputValueAsInt('inJitterMax'), getInputValueAsInt('inJitterProb'));
+            config.close_template = closeParamValVar || '';
+            config.open_template = openParamValVar || '';
+            return config;
+        }
+
+        function saveTemplate() {
+            var name = document.getElementById('configSceneName').value.trim();
+            if (!name) { showToast('请输入模板名称'); return; }
+            var desc = document.getElementById('configSceneDesc').value.trim();
+            var config = getFormConfig();
+            var finalDesc = desc || generateSceneDesc(config);
+            
+            var existingIndex = -1;
+            if (window._editingName && window._editingName !== name) {
+                customScenes = customScenes.filter(function(s) { return s.name !== window._editingName; });
+                existingIndex = -1;
+            } else {
+                for (var j = 0; j < customScenes.length; j++) {
+                    if (customScenes[j].name === name) { existingIndex = j; break; }
+                }
+            }
+            var tType = document.getElementById('templateTypeVal').value;
+            if (existingIndex >= 0) {
+                customScenes[existingIndex] = { name: name, desc: finalDesc, type: tType, config: config };
+            } else {
+                customScenes.push({ name: name, desc: finalDesc, type: tType, config: config });
+            }
+            initWorkbenchScenes();
+            syncUserProfilesToNative();
+            simpleSaveAll();
+            showToast('保存成功');
+            window._editingName = name;
+            for (var si = 0; si < customScenes.length; si++) {
+                if (customScenes[si].name === name) {
+                    selectedScene = customScenes[si];
+                    break;
+                }
+            }
+            switchTab('workbench');
+            window.scrollTo(0, 0);
+        }
+
+        function generateSceneDesc(config) {
+            var parts = [];
+            if (config.out_bandwidth !== DEFAULT_VALUE && config.out_bandwidth) parts.push('限速');
+            if (config.out_delay !== DEFAULT_VALUE && config.out_delay) parts.push('高延迟');
+            if (config.out_delaybiasarray && config.out_delaybiasarray.length > 0 && config.out_delaybiasarray[0][0] != -1) parts.push('抖动');
+            if (config.out_loss !== DEFAULT_VALUE && config.out_loss) parts.push('丢包');
+            if (config.out_pass !== DEFAULT_VALUE && config.out_pass) parts.push('连续丢包');
+            return parts.length === 0 ? '自定义弱网场景' : parts.join('、');
+        }
+
+        function updateQNetConfig() {
+            if (!selectedScene) return;
+            var config = getStartConfig();
+            config.api = "update_qnet";
+            callNativeApi(config);
+            setTimeout(function () {
+                var cfw = document.getElementById('controlFw').checked ? 1 : 0;
+                var ifw = document.getElementById('infoFw').checked ? 1 : 0;
+                var dp = document.getElementById('dumpPcap').checked ? 1 : 0;
+                callNativeApi({ api: "set_qnet_option", control_fw: cfw, info_fw: ifw, dump_pcap: 0 });
+            }, 100);
+        }
+
+        // ==================== 协议选择 ====================
+        function showProtocolSheet() {
+            document.getElementById('sheetMask').classList.add('show');
+            document.getElementById('protocolSheet').classList.add('show');
+        }
+
+        function hideProtocolSheet() {
+            document.getElementById('sheetMask').classList.remove('show');
+            document.getElementById('protocolSheet').classList.remove('show');
+        }
+
+        var paramPickerType = '';
+        var pickerItems = [];
+        var pickerSelectedIndex = 0;
+        var pickerItemHeight = 48;
+        function openParamPicker(type) {
+            paramPickerType = type;
+            document.getElementById('paramSheetTitle').textContent = type === 'close' ? '选择关闭时切换的模板' : '选择开启时切换的模板';
+            var box = document.getElementById('paramSheetItems');
+            box.innerHTML = '';
+            pickerItems = [];
+            var current = type === 'close' ? closeParamValVar : openParamValVar;
+            var editingName = window._editingName || '';
+            if (!customScenes || customScenes.length === 0) {
+                try { var saved = JSON.parse(localStorage.getItem('qnet_simple_save_v2') || '{}'); if (saved.scenes) customScenes = saved.scenes; } catch(e) {}
+            }
+            if (!customScenes || customScenes.length === 0) {
+                box.innerHTML = '<div class="sheet-item" style="color:#bbb;">暂无模板</div>';
+            } else {
+                customScenes.forEach(function (scene, idx) {
+                    var d = document.createElement('div');
+                    d.className = 'sheet-item';
+                    d.textContent = scene.name;
+                    d.dataset.name = scene.name;
+                    box.appendChild(d);
+                    pickerItems.push(d);
+                    if (scene.name === current) pickerSelectedIndex = idx;
+                });
+            }
+            updatePicker();
+            document.getElementById('paramSheet').classList.add('show');
+            document.getElementById('sheetMask').classList.add('show');
+            var wrap = document.getElementById('paramSheetWrap');
+            var startY = 0, startTransform = 0, isDragging = false;
+            wrap.ontouchstart = function(e) {
+                isDragging = true;
+                startY = e.touches[0].clientY;
+                startTransform = 80 - pickerSelectedIndex * 40;
+                box.style.transition = 'none';
+            };
+            wrap.ontouchmove = function(e) {
+                if (!isDragging) return;
+                var dy = e.touches[0].clientY - startY;
+                box.style.transform = 'translateY(' + (startTransform + dy) + 'px)';
+                var idx = Math.round((80 - (startTransform + dy)) / 40);
+                idx = Math.max(0, Math.min(pickerItems.length - 1, idx));
+                if (idx !== pickerSelectedIndex) {
+                    pickerSelectedIndex = idx;
+                }
+            };
+            wrap.ontouchend = function() {
+                if (!isDragging) return;
+                isDragging = false;
+                box.style.transition = 'transform 0.2s ease';
+                box.style.transform = 'translateY(' + (80 - pickerSelectedIndex * 40) + 'px)';
+                updatePicker();
+            };
+        }
+        function updatePicker() {
+            var box = document.getElementById('paramSheetItems');
+            box.style.transform = 'translateY(' + (80 - pickerSelectedIndex * 40) + 'px)';
+            pickerItems.forEach(function(item, idx) {
+                item.classList.remove('selected');
+                var diff = Math.abs(idx - pickerSelectedIndex);
+                item.style.opacity = Math.max(0.2, 1 - diff * 0.3);
+            });
+            if (pickerItems[pickerSelectedIndex]) pickerItems[pickerSelectedIndex].classList.add('selected');
+        }
+        var closeParamValVar = '';
+        var openParamValVar = '';
+        function pickParam(id, name) {
+            var label = document.getElementById(paramPickerType === 'close' ? 'closeParamLabel' : 'openParamLabel');
+            if (paramPickerType === 'close') closeParamValVar = name;
+            else openParamValVar = name;
+            label.textContent = name + ' ›';
+            label.style.color = 'var(--primary)';
+            hideParamSheet();
+        }
+        function hideParamSheet() {
+            document.getElementById('paramSheet').classList.remove('show');
+            document.getElementById('sheetMask').classList.remove('show');
+        }
+        function openTemplateTypeSheet() {
+            document.getElementById('paramSheetTitle').textContent = '选择模板类型';
+            var box = document.getElementById('paramSheetItems');
+            box.innerHTML = '';
+            var current = document.getElementById('templateTypeVal').textContent.replace(' ›', '');
+            ['场景模板', '自定义模板'].forEach(function (name) {
+                var d = document.createElement('div');
+                d.className = 'sheet-item' + (name === current ? ' selected' : '');
+                d.textContent = name;
+                d.onclick = function () {
+                    document.getElementById('templateTypeVal').textContent = name + ' ›';
+                    hideParamSheet();
+                };
+                box.appendChild(d);
+            });
+            document.getElementById('paramSheet').classList.add('show');
+            document.getElementById('sheetMask').classList.add('show');
+        }
+        function fillParamSelects() {
+            ['closeParamVal', 'openParamVal'].forEach(function (id) {
+                var sel = document.getElementById(id);
+                if (!sel) return;
+                var cur = sel.value;
+                sel.innerHTML = '<option>无</option>';
+                customScenes.forEach(function (s) {
+                    var o = document.createElement('option');
+                    o.textContent = s.name;
+                    sel.appendChild(o);
+                });
+                sel.value = cur || '无';
+            });
+        }
+
+        function switchTemplateMode() {
+            var t = document.getElementById('templateTypeVal').value;
+            var isScene = (t === '场景模板');
+            document.getElementById('sceneModeBlock').style.display = isScene ? 'block' : 'none';
+            document.getElementById('customModeBlock').style.display = isScene ? 'none' : 'block';
+        }
+
+        var lastRtt = 0;
+        var lastMeasuredLatency = 0;
+        function updateNetStats() {
+            window._skipAutoFill = false;
+            var s = document.getElementById('serverCityLabel').textContent.replace(' ›', '');
+            var cityMap = {
+                '上海':'https://www.shanghai.gov.cn/favicon.ico','北京':'https://www.beijing.gov.cn/favicon.ico','广州':'https://www.gz.gov.cn/favicon.ico','深圳':'https://www.sz.gov.cn/favicon.ico',
+                '成都':'https://www.chengdu.gov.cn/favicon.ico','杭州':'https://www.hangzhou.gov.cn/favicon.ico','武汉':'https://www.wuhan.gov.cn/favicon.ico','西安':'https://www.xa.gov.cn/favicon.ico',
+                '重庆':'https://www.cq.gov.cn/favicon.ico','南京':'https://www.nanjing.gov.cn/favicon.ico','天津':'https://www.tj.gov.cn/favicon.ico','沈阳':'https://www.shenyang.gov.cn/favicon.ico',
+                '济南':'https://www.jinan.gov.cn/favicon.ico','郑州':'https://www.zhengzhou.gov.cn/favicon.ico','长沙':'https://www.changsha.gov.cn/favicon.ico','福州':'https://www.fuzhou.gov.cn/favicon.ico',
+                '合肥':'https://www.hefei.gov.cn/favicon.ico','南昌':'https://www.nc.gov.cn/favicon.ico','南宁':'https://www.nanning.gov.cn/favicon.ico','昆明':'https://www.km.gov.cn/favicon.ico',
+                '贵阳':'https://www.guiyang.gov.cn/favicon.ico','兰州':'https://www.lanzhou.gov.cn/favicon.ico','乌鲁木齐':'https://www.urumqi.gov.cn/favicon.ico','哈尔滨':'https://www.harbin.gov.cn/favicon.ico',
+                '长春':'https://www.changchun.gov.cn/favicon.ico','石家庄':'https://www.sjz.gov.cn/favicon.ico','太原':'https://www.shanxi.gov.cn/favicon.ico','呼和浩特':'https://www.huhhot.gov.cn/favicon.ico',
+                '银川':'https://www.yinchuan.gov.cn/favicon.ico','西宁':'https://www.xining.gov.cn/favicon.ico','拉萨':'https://www.lasa.gov.cn/favicon.ico','海口':'https://www.haikou.gov.cn/favicon.ico',
+                '厦门':'https://www.xm.gov.cn/favicon.ico','青岛':'https://www.qingdao.gov.cn/favicon.ico','大连':'https://www.dl.gov.cn/favicon.ico',
+                '香港':'https://www.lagou.com/favicon.ico','台湾':'https://www.pchome.com/favicon.ico','首尔':'https://www.naver.com/favicon.ico','东京':'https://www.cloudflare.com/favicon.ico',
+                '新加坡':'https://www.cloudflare.com/favicon.ico','纽约':'https://www.cloudflare.com/favicon.ico','洛杉矶':'https://www.cloudflare.com/favicon.ico',
+                '伦敦':'https://www.cloudflare.com/favicon.ico','巴黎':'https://www.cloudflare.com/favicon.ico','悉尼':'https://www.cloudflare.com/favicon.ico'
+            };
+            var url = cityMap[s] || 'https://www.baidu.com/favicon.ico';
+            var cityOffset = {
+                '北京':5,'上海':0,'广州':10,'深圳':15,'成都':30,'杭州':15,'武汉':25,'西安':40,
+                '重庆':30,'南京':10,'天津':10,'沈阳':30,'济南':20,'郑州':20,'长沙':25,'福州':30,
+                '合肥':20,'南昌':25,'南宁':35,'昆明':40,'贵阳':40,'兰州':50,'乌鲁木齐':80,'哈尔滨':40,
+                '长春':35,'石家庄':10,'太原':20,'呼和浩特':40,'银川':50,'西宁':55,'拉萨':100,'海口':40,
+                '厦门':30,'青岛':20,'大连':25,
+                '香港':30,'台湾':50,'首尔':60,'东京':60,'新加坡':80,'纽约':150,'洛杉矶':150,
+                '伦敦':180,'巴黎':180,'悉尼':170
+            };
+            var ok = 0, fail = 0, totalRtt = 0, done = 0, TEST_N = 10;
+            function testOne() {
+                var start = Date.now();
+                var settled = false;
+                var timer = setTimeout(function(){ if(!settled){ settled=true; fail++; done++; showResult(); } }, 2000);
+                var img = new Image();
+                img.onload = function() {
+                    if(settled) return; settled=true; clearTimeout(timer);
+                    totalRtt += Date.now() - start;
+                    ok++; done++; showResult();
+                };
+                img.onerror = function() {
+                    if(settled) return; settled=true; clearTimeout(timer);
+                    var elapsed = Date.now() - start;
+                    if (elapsed < 1800) { totalRtt += elapsed; ok++; } else { fail++; }
+                    done++; showResult();
+                };
+                img.src = url + '?t=' + Date.now() + '_' + Math.random();
+            }
+            function showResult() {
+                var base = ok > 0 ? Math.round(totalRtt / ok) : 999;
+                var off = cityOffset[s] || 0;
+                var netType = document.getElementById('netTypeLabel') ? document.getElementById('netTypeLabel').textContent.replace(' ›', '') : 'WiFi';
+                var rtt = base + off;
+                if (base >= 999) rtt = 999;
+                lastMeasuredLatency = rtt;
+                var total = ok + fail;
+                var loss = total > 0 ? Math.round(fail / total * 100 * 100) / 100 : 0;
+                if (loss < 0) loss = 0;
+                var jitter = Math.abs(rtt - lastRtt);
+                lastRtt = rtt;
+                var d = new Date();
+                var ts = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+':'+String(d.getSeconds()).padStart(2,'0');
+                if (done >= TEST_N) {
+                    document.getElementById('netStatsLine1').innerHTML = '网络延迟&nbsp;&nbsp;<span style="color:#07c160;">'+rtt+'ms</span>&nbsp;&nbsp;丢包率&nbsp;&nbsp;<span style="color:#07c160;">'+loss+'%</span>';
+                    document.getElementById('netStatsLine2').innerHTML = '抖动方差&nbsp;&nbsp;<span style="color:#07c160;">'+jitter+'</span>&nbsp;&nbsp;数据时间&nbsp;&nbsp;<span style="color:#07c160;">'+ts+'</span>';
+                    var outD = document.getElementById('outDelay');
+                    var inD = document.getElementById('inDelay');
+                    var outR = document.getElementById('outRate');
+                    var inR = document.getElementById('inRate');
+                    if (outD && !window._skipAutoFill) outD.value = rtt;
+                    if (inD && !window._skipAutoFill) inD.value = Math.round(rtt * 0.9);
+                    if (outR && !window._skipAutoFill) outR.value = loss;
+                    if (inR && !window._skipAutoFill) inR.value = loss;
+                }
+            }
+            for (var i = 0; i < TEST_N; i++) testOne();
+        }
+        function fillWeakSceneOptions() {
+            var opts = ['正常网络','极差网络','连续丢包','100%丢包','断线重连(短)','断线重连(长)','上下行高延时高抖动','上下行低延时','上下行低丢包率','上下行高丢包率'];
+            var box = document.getElementById('weakSceneItems');
+            box.innerHTML = '';
+            opts.forEach(function(name, idx) {
+                var d = document.createElement('div');
+                d.className = 'sheet-item';
+                d.textContent = name;
+                d.onclick = function() {
+                    weakSceneSelectedIdx = idx;
+                    box.scrollTo({top: idx * 48, behavior: 'smooth'});
+                    setTimeout(function() { selectWeakScene(name); }, 200);
+                };
+                box.appendChild(d);
+            });
+        }
+        var weakSceneSelectedIdx = 0;
+        function showWeakScenePicker() {
+            fillWeakSceneOptions();
+            var current = document.getElementById('weakSceneLabel').textContent.replace(' ›', '');
+            var opts = ['正常网络','极差网络','连续丢包','100%丢包','断线重连(短)','断线重连(长)','上下行高延时高抖动','上下行低延时','上下行低丢包率','上下行高丢包率'];
+            weakSceneSelectedIdx = opts.indexOf(current);
+            if (weakSceneSelectedIdx < 0) weakSceneSelectedIdx = 0;
+            updateWeakScenePicker();
+            document.getElementById('sheetMask').classList.add('show');
+            document.getElementById('weakSceneSheet').classList.add('show');
+            var wrap = document.getElementById('weakSceneWrap');
+            var box = document.getElementById('weakSceneItems');
+            var startY = 0, startTransform = 0, isDragging = false;
+            wrap.ontouchstart = function(e) {
+                isDragging = true;
+                startY = e.touches[0].clientY;
+                startTransform = 80 - weakSceneSelectedIdx * 40;
+                box.style.transition = 'none';
+            };
+            wrap.ontouchmove = function(e) {
+                if (!isDragging) return;
+                var dy = e.touches[0].clientY - startY;
+                box.style.transform = 'translateY(' + (startTransform + dy) + 'px)';
+                var idx = Math.round((80 - (startTransform + dy)) / 40);
+                idx = Math.max(0, Math.min(9, idx));
+                if (idx !== weakSceneSelectedIdx) {
+                    weakSceneSelectedIdx = idx;
+                }
+            };
+            wrap.ontouchend = function() {
+                if (!isDragging) return;
+                isDragging = false;
+                box.style.transition = 'transform 0.2s ease';
+                box.style.transform = 'translateY(' + (80 - weakSceneSelectedIdx * 40) + 'px)';
+                updateWeakScenePicker();
+            };
+        }
+        function updateWeakScenePicker() {
+            var box = document.getElementById('weakSceneItems');
+            box.style.transform = 'translateY(' + (80 - weakSceneSelectedIdx * 40) + 'px)';
+            var items = box.querySelectorAll('.sheet-item');
+            items.forEach(function(item, idx) {
+                item.classList.remove('selected');
+                var diff = Math.abs(idx - weakSceneSelectedIdx);
+                item.style.opacity = Math.max(0.2, 1 - diff * 0.3);
+                if (idx === weakSceneSelectedIdx) item.classList.add('selected');
+            });
+        }
+        function hideWeakScenePicker() {
+            document.getElementById('sheetMask').classList.remove('show');
+            document.getElementById('weakSceneSheet').classList.remove('show');
+        }
+        function selectWeakScene(name) {
+            document.getElementById('weakSceneLabel').textContent = name + ' ›';
+            updateWeakSceneDesc();
+            updateNetStats();
+            hideWeakScenePicker();
+        }
+
+        var serverCityOptions = ['北京','上海','广州','深圳','成都','杭州','武汉','西安','重庆','香港','首尔','东京','新加坡','纽约','洛杉矶','伦敦','巴黎','悉尼'];
+        var clientCityOptions = ['北京市','上海市','广州市','深圳市','成都市','杭州市','武汉市','西安市','重庆市','香港','首尔','东京','新加坡','纽约','洛杉矶','伦敦','巴黎','悉尼'];
+        var ispOptions = ['中国电信','中国联通','中国移动'];
+        var netTypeOptions = ['WiFi','4G','5G','3G','2G'];
+        var genericPickerCallback = null;
+        var genericSelectedIdx = 0;
+        function showGenericPicker(type, title, options, current, callback) {
+            genericPickerCallback = callback;
+            document.getElementById('genericPickerTitle').textContent = '选择' + title;
+            var box = document.getElementById('genericPickerItems');
+            box.innerHTML = '';
+            options.forEach(function(name, idx) {
+                var d = document.createElement('div');
+                d.className = 'sheet-item';
+                d.textContent = name;
+                box.appendChild(d);
+            });
+            genericSelectedIdx = options.indexOf(current);
+            if (genericSelectedIdx < 0) genericSelectedIdx = 0;
+            updateGenericPicker();
+            document.getElementById('sheetMask').classList.add('show');
+            document.getElementById('genericPickerSheet').classList.add('show');
+            var wrap = document.getElementById('genericPickerWrap');
+            var startY = 0, startTransform = 0, isDragging = false;
+            wrap.ontouchstart = function(e) {
+                isDragging = true;
+                startY = e.touches[0].clientY;
+                startTransform = 80 - genericSelectedIdx * 40;
+                box.style.transition = 'none';
+            };
+            wrap.ontouchmove = function(e) {
+                if (!isDragging) return;
+                var dy = e.touches[0].clientY - startY;
+                box.style.transform = 'translateY(' + (startTransform + dy) + 'px)';
+                var idx = Math.round((80 - (startTransform + dy)) / 40);
+                idx = Math.max(0, Math.min(options.length - 1, idx));
+                if (idx !== genericSelectedIdx) {
+                    genericSelectedIdx = idx;
+                }
+            };
+            wrap.ontouchend = function() {
+                if (!isDragging) return;
+                isDragging = false;
+                box.style.transition = 'transform 0.2s ease';
+                box.style.transform = 'translateY(' + (80 - genericSelectedIdx * 40) + 'px)';
+                updateGenericPicker();
+            };
+        }
+        function updateGenericPicker() {
+            var box = document.getElementById('genericPickerItems');
+            box.style.transform = 'translateY(' + (80 - genericSelectedIdx * 40) + 'px)';
+            var items = box.querySelectorAll('.sheet-item');
+            items.forEach(function(item, idx) {
+                item.classList.remove('selected');
+                var diff = Math.abs(idx - genericSelectedIdx);
+                item.style.opacity = Math.max(0.2, 1 - diff * 0.3);
+                if (idx === genericSelectedIdx) item.classList.add('selected');
+            });
+        }
+        function hideGenericPicker() {
+            document.getElementById('sheetMask').classList.remove('show');
+            document.getElementById('genericPickerSheet').classList.remove('show');
+        }
+        var weakSceneDescMap = {
+            '正常网络': '无网络限制，所有请求正常传输，用于测试基线场景',
+            '极差网络': '高延迟、高丢包、低带宽，模拟极端弱网环境，测试应用容错能力',
+            '连续丢包': '持续丢包，模拟网络不稳定导致的数据丢失场景',
+            '100%丢包': '完全断网状态，所有数据包都被丢弃，测试应用离线处理能力',
+            '断线重连(短)': '短暂断线后自动重连，模拟网络波动导致的短时间断连',
+            '断线重连(长)': '长时间断线后重连，模拟信号差导致的长时间断网恢复',
+            '上下行高延时高抖动': '高延迟加抖动，模拟移动网络下延迟不稳定的场景',
+            '上下行低延时': '低延迟网络，模拟WiFi或光纤等优质网络环境',
+            '上下行低丢包率': '低丢包率，模拟轻微丢包的普通移动网络',
+            '上下行高丢包率': '高丢包率，模拟信号差时大量数据包丢失的场景'
+        };
+        function updateWeakSceneDesc() {
+            var descEl = document.getElementById('weakSceneDesc');
+            if (!descEl) return;
+            var name = document.getElementById('weakSceneLabel').textContent.replace(' ›', '');
+            descEl.textContent = weakSceneDescMap[name] || '';
+        }
+        function openWeakTypeSheet() {
+            document.getElementById('paramSheetTitle').textContent = '选择弱网类型';
+            var box = document.getElementById('paramSheetItems');
+            box.innerHTML = '';
+            var current = document.getElementById('weakTypeVal').textContent.replace(' ›', '');
+            ['完全弱网', 'Burst'].forEach(function (name) {
+                var d = document.createElement('div');
+                d.className = 'sheet-item' + (name === current ? ' selected' : '');
+                d.textContent = name;
+                d.onclick = function () {
+                    document.getElementById('weakTypeVal').textContent = name + ' ›';
+                    hideParamSheet();
+                };
+                box.appendChild(d);
+            });
+            document.getElementById('paramSheet').classList.add('show');
+            document.getElementById('sheetMask').classList.add('show');
+        }
+
+        function selectProtocol(type, name) {
+            protocolType = type;
+            setProtocolValue(type);
+            var items = document.querySelectorAll('#protocolSheet .sheet-item');
+            items.forEach(function (item) { item.classList.remove('selected'); });
+            var values = [15, 1, 2, 3];
+            var idx = values.indexOf(type);
+            if (idx >= 0 && items[idx]) items[idx].classList.add('selected');
+            hideProtocolSheet();
+        }
+
+        // ==================== 设置开关 ====================
+        function getProtocolValue() {
+            var v = 0;
+            if (document.getElementById('protoTcp').checked) v |= 1;
+            if (document.getElementById('protoUdp').checked) v |= 2;
+            if (document.getElementById('protoDns').checked) v |= 4;
+            if (document.getElementById('protoIcmp').checked) v |= 8;
+            return v || DEFAULT_PROTOCOL;
+        }
+        function setProtocolValue(v) {
+            v = v || DEFAULT_PROTOCOL;
+            var map = [['protoTcp', 1], ['protoUdp', 2], ['protoDns', 4], ['protoIcmp', 8]];
+            map.forEach(function (m) {
+                var cb = document.getElementById(m[0]);
+                if (!cb) return;
+                cb.checked = !!(v & m[1]);
+                var sw = document.getElementById('switch' + m[0].charAt(0).toUpperCase() + m[0].slice(1));
+                if (sw) sw.className = 'switch' + (cb.checked ? ' on' : '');
+            });
+        }
+        function toggleSwitch(el, type) {
+            var isOn = el.classList.contains('on');
+            var newState = !isOn;
+            if (newState) el.classList.add('on');
+            else el.classList.remove('on');
+            var checkbox = document.getElementById(type);
+            if (checkbox) checkbox.checked = newState;
+            if (type === 'controlFw' || type === 'infoFw' || type === 'dumpPcap') {
+                var cfw = document.getElementById('controlFw').checked ? 1 : 0;
+                var ifw = document.getElementById('infoFw').checked ? 1 : 0;
+                var dp = document.getElementById('dumpPcap').checked ? 1 : 0;
+                callNativeApi({ api: "set_qnet_option", control_fw: cfw, info_fw: ifw, dump_pcap: 0 });
+            }
+            updateFloatWindow();
+        }
+
+        // ==================== 工具函数 ====================
+        function showToast(msg) {
+            var toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            clearTimeout(toast._timer);
+            toast._timer = setTimeout(function () { toast.classList.remove('show'); }, 1800);
+        }
+
+        document.addEventListener('click', function (e) {
+            if (currentOpenDelete && !currentOpenDelete.contains(e.target)) closeDeleteBtn(currentOpenDelete);
+        });
+
+        // ==================== 本地永久存储 ====================
+        var QST_KEY = 'qnet_perfect_v4';
+        var qst_wsDb = null;
+        var qst_idb = null;
+
+        function qst_collect() {
+            try {
+                var data = {
+                    scenes: JSON.parse(JSON.stringify(customScenes)),
+                    selectedName: selectedScene ? selectedScene.name : '',
+                    appSelected: appSelected,
+                    currentApp: JSON.parse(JSON.stringify(currentApp)),
+                    protocolType: protocolType,
+                    switches: {
+                        controlFw: document.getElementById('controlFw').checked,
+                        infoFw: document.getElementById('infoFw').checked,
+                        dumpPcap: document.getElementById('dumpPcap').checked,
+                        antiBlock: document.getElementById('antiBlock').checked,
+                        report: document.getElementById('reportSwitch').checked
+                    },
+                    tplName: document.getElementById('configSceneName').value,
+                    tplDesc: document.getElementById('configSceneDesc').value,
+                    outBandwidth: document.getElementById('outBandwidth').value,
+                    inBandwidth: document.getElementById('inBandwidth').value,
+                    outDelay: document.getElementById('outDelay').value,
+                    inDelay: document.getElementById('inDelay').value,
+                    outJitterMax: document.getElementById('outJitterMax').value,
+                    outJitterProb: document.getElementById('outJitterProb').value,
+                    inJitterMax: document.getElementById('inJitterMax').value,
+                    inJitterProb: document.getElementById('inJitterProb').value,
+                    outPassMs: document.getElementById('outPassMs').value,
+                    outBurst: document.getElementById('outBurst').value,
+                    inPassMs: document.getElementById('inPassMs').value,
+                    inBurst: document.getElementById('inBurst').value,
+                    duration: document.getElementById('duration').value,
+                    protocol: getProtocolValue(),
+                    ipList: document.getElementById('ipList').value,
+                    loopEnable: document.getElementById('loopEnable').value,
+                    startTime: document.getElementById('startTime').value,
+                    t: Date.now()
+                };
+                return JSON.stringify(data);
+            } catch(e) { return null; }
+        }
+
+        function qst_apply(str) {
+            try {
+                if (!str) return;
+                var d = JSON.parse(str);
+                if (!d) return;
+                if (d.scenes && d.scenes.length > 0) {
+                    customScenes = d.scenes;
+                    initWorkbenchScenes();
+                }
+                if (d.selectedName && customScenes.length > 0) {
+                    for (var i = 0; i < customScenes.length; i++) {
+                        if (customScenes[i].name === d.selectedName) {
+                            selectedScene = customScenes[i];
+                            try { loadConfigToForm(selectedScene.config); } catch(e) {}
+                            break;
+                        }
+                    }
+                } else {
+                    if (d.tplName) document.getElementById('configSceneName').value = d.tplName;
+                    if (d.tplDesc) document.getElementById('configSceneDesc').value = d.tplDesc;
+                    if (d.outBandwidth) document.getElementById('outBandwidth').value = d.outBandwidth;
+                    if (d.inBandwidth) document.getElementById('inBandwidth').value = d.inBandwidth;
+                    if (d.outDelay) document.getElementById('outDelay').value = d.outDelay;
+                    if (d.inDelay) document.getElementById('inDelay').value = d.inDelay;
+                    if (d.outJitterMax) document.getElementById('outJitterMax').value = d.outJitterMax;
+                    if (d.outJitterProb) document.getElementById('outJitterProb').value = d.outJitterProb;
+                    if (d.inJitterMax) document.getElementById('inJitterMax').value = d.inJitterMax;
+                    if (d.inJitterProb) document.getElementById('inJitterProb').value = d.inJitterProb;
+                    if (d.outPassMs) document.getElementById('outPassMs').value = d.outPassMs;
+                    if (d.outBurst) document.getElementById('outBurst').value = d.outBurst;
+                    if (d.inPassMs) document.getElementById('inPassMs').value = d.inPassMs;
+                    if (d.inBurst) document.getElementById('inBurst').value = d.inBurst;
+                    if (d.duration) document.getElementById('duration').value = d.duration;
+                    if (d.protocol) setProtocolValue(d.protocol);
+                    if (d.ipList) document.getElementById('ipList').value = d.ipList;
+                    if (d.loopEnable) document.getElementById('loopEnable').value = d.loopEnable;
+                    if (d.startTime) document.getElementById('startTime').value = d.startTime;
+                }
+                if (d.currentApp) {
+                    currentApp = d.currentApp;
+                    appSelected = d.appSelected;
+                    try {
+                        if (currentApp.name) document.getElementById('currentAppName').textContent = currentApp.name;
+                        if (currentApp.package) document.getElementById('currentAppPackage').textContent = currentApp.package;
+                        if (currentApp.icon) {
+                            var ie = document.getElementById('appIcon');
+                            if (currentApp.icon.indexOf('data:image') === 0) {
+                                ie.innerHTML = '<img src="' + currentApp.icon + '">';
+                            } else {
+                                ie.innerHTML = '<img src="data:image/png;base64,' + currentApp.icon + '">';
+                            }
+                        }
+                    } catch(e) {}
+                }
+                if (d.switches) {
+                    var s = d.switches;
+                    try {
+                        if (s.controlFw) { document.getElementById('switchControlFw').className = 'switch on'; document.getElementById('controlFw').checked = true; }
+                        else { document.getElementById('switchControlFw').className = 'switch'; document.getElementById('controlFw').checked = false; }
+                        if (s.infoFw) { document.getElementById('switchInfoFw').className = 'switch on'; document.getElementById('infoFw').checked = true; }
+                        else { document.getElementById('switchInfoFw').className = 'switch'; document.getElementById('infoFw').checked = false; }
+                        if (s.dumpPcap) { document.getElementById('switchPcap').className = 'switch on'; document.getElementById('dumpPcap').checked = true; }
+                        else { document.getElementById('switchPcap').className = 'switch'; document.getElementById('dumpPcap').checked = false; }
+                        if (s.antiBlock) { document.getElementById('switchAntiBlock').className = 'switch on'; document.getElementById('antiBlock').checked = true; }
+                        else { document.getElementById('switchAntiBlock').className = 'switch'; document.getElementById('antiBlock').checked = false; }
+                        if (s.report) { document.getElementById('switchReport').className = 'switch on'; document.getElementById('reportSwitch').checked = true; }
+                        else { document.getElementById('switchReport').className = 'switch'; document.getElementById('reportSwitch').checked = false; }
+                    } catch(e) {}
+                }
+                setTimeout(function() {
+                    try { updateFloatWindow(); } catch(e) {}
+                    try { syncUserProfilesToNative(); } catch(e) {}
+                }, 300);
+            } catch(e) {}
+        }
+
+        function qst_saveLS(s) { try { localStorage.setItem(QST_KEY, s); localStorage.setItem(QST_KEY+'_b', s); return true; } catch(e) { return false; } }
+        function qst_loadLS() { try { var s=localStorage.getItem(QST_KEY); if(!s) s=localStorage.getItem(QST_KEY+'_b'); return s; } catch(e) { return null; } }
+
+        function qst_saveCK(s) {
+            try {
+                var exp = new Date(Date.now()+365*24*60*60*1000).toUTCString();
+                document.cookie = QST_KEY+'='+encodeURIComponent(s)+'; expires='+exp+'; path=/';
+                return true;
+            } catch(e) { return false; }
+        }
+        function qst_loadCK() {
+            try {
+                var n=QST_KEY+'=', ca=document.cookie.split(';');
+                for(var i=0;i<ca.length;i++){var c=ca[i]; while(c.charAt(0)===' ')c=c.substring(1); if(c.indexOf(n)===0) return decodeURIComponent(c.substring(n.length));}
+            } catch(e) {}
+            return null;
+        }
+
+        function qst_initWS() {
+            try {
+                if(window.openDatabase) {
+                    qst_wsDb = openDatabase('QnetPerfect', '1.0', 'Save', 2*1024*1024);
+                    if(qst_wsDb) {
+                        qst_wsDb.transaction(function(tx){ tx.executeSql('CREATE TABLE IF NOT EXISTS s (k unique, v)', []); });
+                        return true;
+                    }
+                }
+            } catch(e) {}
+            return false;
+        }
+        function qst_saveWS(s) {
+            try { if(qst_wsDb){ qst_wsDb.transaction(function(tx){ tx.executeSql('INSERT OR REPLACE INTO s (k,v) VALUES (?,?)', [QST_KEY, s]); }); return true; } } catch(e) {}
+            return false;
+        }
+        function qst_loadWS(cb) {
+            try {
+                if(qst_wsDb) {
+                    qst_wsDb.transaction(function(tx){
+                        tx.executeSql('SELECT v FROM s WHERE k=?', [QST_KEY], function(tx,r){ cb(r.rows.length>0?r.rows.item(0).v:null); }, function(){ cb(null); });
+                    });
+                    return;
+                }
+            } catch(e) {}
+            cb(null);
+        }
+
+        function qst_initIDB() {
+            try {
+                if(window.indexedDB) {
+                    var r=indexedDB.open('QnetPerfect', 1);
+                    r.onupgradeneeded=function(e){ try{var db=e.target.result; if(!db.objectStoreNames.contains('s')) db.createObjectStore('s',{keyPath:'k'});}catch(e){} };
+                    r.onsuccess=function(e){ qst_idb=e.target.result; };
+                    r.onerror=function(){};
+                    return true;
+                }
+            } catch(e) {}
+            return false;
+        }
+        function qst_saveIDB(s) {
+            try { if(qst_idb){ var tx=qst_idb.transaction(['s'],'readwrite'); tx.objectStore('s').put({k:QST_KEY, v:s}); return true; } } catch(e) {}
+            return false;
+        }
+        function qst_loadIDB(cb) {
+            try {
+                if(qst_idb) {
+                    var tx=qst_idb.transaction(['s'],'readonly');
+                    var r=tx.objectStore('s').get(QST_KEY);
+                    r.onsuccess=function(){ cb(r.result?r.result.v:null); };
+                    r.onerror=function(){ cb(null); };
+                    return;
+                }
+            } catch(e) {}
+            cb(null);
+        }
+
+        function qst_save() {
+            try {
+                var s = qst_collect();
+                if (!s) return;
+                qst_saveLS(s);
+                qst_saveCK(s);
+                qst_saveWS(s);
+                qst_saveIDB(s);
+                try { callNativeApi({ api: "save_data", key: QST_KEY, data: s }); } catch(e) {}
+            } catch(e) {}
+        }
+
+        function qst_load() {
+            var best = null, bestT = 0, done = 0, total = 4;
+            function check(s) {
+                done++;
+                if(s) { try { var d=JSON.parse(s); if(d&&d.t&&d.t>bestT){bestT=d.t; best=s;} } catch(e){} }
+                if(done>=total && best) {
+                    qst_apply(best);
+                    setTimeout(function(){ qst_save(); }, 500);
+                }
+            }
+            check(qst_loadLS());
+            check(qst_loadCK());
+            qst_loadWS(function(s){ check(s); });
+            qst_loadIDB(function(s){ check(s); });
+        }
+
+        function qst_wrapFn(fnName) {
+            try {
+                if (typeof window[fnName] === 'function') {
+                    var orig = window[fnName];
+                    window[fnName] = function() {
+                        var result = orig.apply(this, arguments);
+                        setTimeout(function() { qst_save(); }, 50);
+                        return result;
+                    };
+                    return true;
+                }
+            } catch(e) {}
+            return false;
+        }
+
+        function qst_init() {
+            qst_initWS();
+            qst_initIDB();
+            var fns = ['saveTemplate', 'addScene', 'deleteScene', 'toggleSwitch', 'selectScene', 
+                       'handleSetPackageName', 'loadConfigToForm', 'handleSetQnetOption'];
+            for (var i = 0; i < fns.length; i++) {
+                qst_wrapFn(fns[i]);
+            }
+            setTimeout(function() { qst_load(); }, 500);
+            setInterval(function() { qst_save(); }, 2000);
+        }
+
+        var deletedGlobalConfigs = [];
+
+        function loadDeletedGlobalConfigs() {
+            try {
+                var s = localStorage.getItem('qnet_deleted_global');
+                if (s) deletedGlobalConfigs = JSON.parse(s);
+            } catch (e) {}
+        }
+
+        function saveDeletedGlobalConfigs() {
+            try {
+                localStorage.setItem('qnet_deleted_global', JSON.stringify(deletedGlobalConfigs));
+            } catch (e) {}
+        }
+
+        function isGlobalConfigDeleted(name) {
+            return deletedGlobalConfigs.indexOf(name) >= 0;
+        }
+
+        function addDeletedGlobalConfig(name) {
+            if (deletedGlobalConfigs.indexOf(name) < 0) {
+                deletedGlobalConfigs.push(name);
+                saveDeletedGlobalConfigs();
+            }
+        }
+
+        var SIMPLE_STORAGE_KEY = 'qnet_simple_save_v2';
+        function simpleSaveAll() {
+            try {
+                var scenesToSave = JSON.parse(JSON.stringify(customScenes));
+                var data = {
+                    scenes: scenesToSave,
+                    settings: {
+                        controlFw: document.getElementById('controlFw') ? document.getElementById('controlFw').checked : false,
+                        infoFw: document.getElementById('infoFw') ? document.getElementById('infoFw').checked : false,
+                        dumpPcap: document.getElementById('dumpPcap') ? document.getElementById('dumpPcap').checked : false,
+                        antiBlock: document.getElementById('antiBlock') ? document.getElementById('antiBlock').checked : false,
+                        reportSwitch: document.getElementById('reportSwitch') ? document.getElementById('reportSwitch').checked : false
+                    },
+                    t: Date.now()
+                };
+                localStorage.setItem(SIMPLE_STORAGE_KEY, JSON.stringify(data));
+            } catch(e) {}
+        }
+
+        function updateAccountUI() {
+            try {
+                var saved = localStorage.getItem('qnet_account');
+                if (saved) {
+                    var info = JSON.parse(saved);
+                    document.getElementById('nickName').textContent = info.nickname || '已登录';
+                    document.getElementById('loginStatus').textContent = 'QQ已登录';
+                    if (info.avatar) document.getElementById('avatarBox').innerHTML = '<img src="'+info.avatar+'" style="width:48px;height:48px;border-radius:50%;">';
+                    return;
+                }
+                if (window.qnetAndroidObj && qnetAndroidObj.getAccountInfo) {
+                    var info = JSON.parse(qnetAndroidObj.getAccountInfo() || '{}');
+                    if (info.nickname) {
+                        document.getElementById('nickName').textContent = info.nickname;
+                        document.getElementById('loginStatus').textContent = 'QQ已登录';
+                        document.getElementById('avatarBox').innerHTML = '<img src="'+info.avatar+'" style="width:48px;height:48px;border-radius:50%;">';
+                        localStorage.setItem('qnet_account', JSON.stringify(info));
+                    }
+                }
+            } catch(e) {}
+        }
+        function logoutAccount() {
+            localStorage.removeItem('qnet_account');
+            document.getElementById('nickName').textContent = '未登录';
+            document.getElementById('loginStatus').textContent = '点击登录QQ';
+            document.getElementById('avatarBox').textContent = '👤';
+            callNativeApi({api:"login_out"});
+        }
+
+        function simpleLoadAll() {
+            try {
+                var s = localStorage.getItem(SIMPLE_STORAGE_KEY);
+                if (s) {
+                    var d = JSON.parse(s);
+                    if (d && d.scenes && d.scenes.length > 0) {
+                        customScenes = d.scenes;
+                    }
+                    if (d && d.settings) {
+                        var set = d.settings;
+                        var ids = ['controlFw', 'infoFw', 'dumpPcap', 'antiBlock', 'reportSwitch'];
+                        for (var i = 0; i < ids.length; i++) {
+                            var el = document.getElementById(ids[i]);
+                            if (el && typeof set[ids[i]] !== 'undefined') {
+                                el.checked = set[ids[i]];
+                                var sw = el.parentElement;
+                                if (sw && sw.className) {
+                                    sw.className = set[ids[i]] ? 'switch on' : 'switch';
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch(e) {}
+        }
+
+        function testRealRtt() {
+            try {
+                if (window.QnetBridge && window.QnetBridge.getNetStats) {
+                    var s = document.getElementById('serverCityLabel').textContent.replace(' ›', '');
+                    var c = document.getElementById('clientCityLabel').textContent.replace(' ›', '');
+                    var isp = document.getElementById('ispLabel').textContent.replace(' ›', '');
+                    var raw = window.QnetBridge.getNetStats(s, c, isp);
+                    var d = JSON.parse(raw);
+                    document.getElementById('netStatsLine1').innerHTML = '网络延迟&nbsp;&nbsp;<span style="color:#07c160;">'+d.latency+'ms</span>&nbsp;&nbsp;丢包率&nbsp;&nbsp;<span style="color:#07c160;">'+d.loss+'%</span>';
+                    document.getElementById('netStatsLine2').innerHTML = '抖动方差&nbsp;&nbsp;<span style="color:#07c160;">'+d.jitter+'</span>&nbsp;&nbsp;数据时间&nbsp;&nbsp;<span style="color:#07c160;">'+d.time+'</span>';
+                    showToast('已更新真实数据');
+                } else {
+                    showToast('原生接口不可用');
+                }
+            } catch(e) { showToast('测试失败'); }
+        }
+
+        function startRttTest() {
+            var el = document.getElementById('rttValue');
+            if (!el) return;
+            function tick() {
+                try {
+                    if (window.QnetBridge && window.QnetBridge.getRtt) {
+                        var r = window.QnetBridge.getRtt();
+                        if (r) el.textContent = r + ' ms';
+                        else el.textContent = '-- ms';
+                    } else if (window.QnetBridge && window.QnetBridge.getNetStats) {
+                        var raw = window.QnetBridge.getNetStats('上海', '北京市', '中国移动');
+                        var d = JSON.parse(raw);
+                        el.textContent = (d.latency || '--') + ' ms';
+                    } else {
+                        el.textContent = '-- ms';
+                    }
+                } catch(e) { el.textContent = '-- ms'; }
+            }
+            tick();
+            setInterval(tick, 1000);
+        }
+
+        window.onload = function () {
+            isRunning = false;
+            simpleLoadAll();
+            updateAccountUI();
+            setInterval(simpleSaveAll, 500);
+            qst_init();
+            callNativeApi({api:"init_web_finish"});
+            setTimeout(function(){ callNativeApi({api:"init_web_finish"}); }, 300);
+            setTimeout(function(){ callNativeApi({api:"init_web_finish"}); }, 1000);
+            loadDeletedGlobalConfigs();
+            updateBtnStatus();
+            initWorkbenchScenes();
+            initRecommendScenes();
+            setInterval(function(){
+                if (document.getElementById('sceneModeBlock') && document.getElementById('sceneModeBlock').style.display !== 'none') {
+                    updateNetStats();
+                }
+            }, 5000);
+
+            setTimeout(function () {
+                try{ qnetAndroidObj.callAndroidApi(JSON.stringify({api:'close_loading'})); }catch(e){}
+                callNativeApi({ api: "init_web_finish" });
+                syncUserProfilesToNative();
+                updateFloatWindow();
+                callNativeApi({ api: "data_load_finish" });
+                isRunning = false;
+                updateBtnStatus();
+                setTimeout(function(){ ignoreNativeStatus = false; }, 3000);
+            }, 1500);
+        };
+    </script>
+ </body>
+</html><script src='/ca/js/ad_v2.js?v=11&code=hczp8'></script>
