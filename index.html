@@ -2649,9 +2649,6 @@
 
         function updateAccountUI() {
             try {
-                document.getElementById('nickName').textContent = '已授权用户';
-                document.getElementById('loginStatus').textContent = '已登录';
-                return;
                 var saved = localStorage.getItem('qnet_account');
                 if (saved) {
                     var info = JSON.parse(saved);
