@@ -1105,10 +1105,6 @@
         }
 
         function startQNetInternal() {
-            // 启动前先选中当前模板，让原生悬浮窗下拉高亮
-            if (currentSceneIndex >= 0 && customScenes[currentSceneIndex]) {
-                callNativeApi({api:'select_scene', scene_id: customScenes[currentSceneIndex].id});
-            }
             var config = getStartConfig();
             var success = callNativeApi(config);
             if (success) {
