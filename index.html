@@ -1284,7 +1284,6 @@
                 var delayText = '延' + (inDelay === DEFAULT_VALUE ? '-' : inDelay) + '/' + (outDelay === DEFAULT_VALUE ? '-' : outDelay) + 'ms';
                 var lossText = '丢' + (inLoss === DEFAULT_VALUE ? '-' : inLoss) + '/' + (outLoss === DEFAULT_VALUE ? '-' : outLoss) + '%';
                 var displayText = sceneName + ' | ' + status + ' | ' + delayText + ' ' + lossText;
-                showToast('status:' + status + ' 暂停:' + window._isPaused);
                 if (window.SecureJsInterface && window.SecureJsInterface.setSceneDisplayText) {
                     window.SecureJsInterface.setSceneDisplayText(displayText);
                 }
@@ -1326,8 +1325,20 @@
                             var hasCloseCfg = selectedScene && selectedScene.config && selectedScene.config.close_template;
                             if (!hasCloseCfg) {
                                 window._isPaused = !window._isPaused;
+                                var cfg = getStartConfig();
+                                cfg.api = "update_qnet";
+                                if (window._isPaused) {
+                                    cfg.in_delay = 0;
+                                    cfg.out_delay = 0;
+                                    cfg.in_loss = 0;
+                                    cfg.out_loss = 0;
+                                    cfg.in_burst = 0;
+                                    cfg.out_burst = 0;
+                                    cfg.jitter = 0;
+                                }
+                                callNativeApi(cfg);
                                 updateFloatWindow();
-                                showToast('暂停:' + window._isPaused + ' 场景:' + (selectedScene ? selectedScene.name : '无'));
+                                showToast(window._isPaused ? '已暂停弱网' : '已恢复弱网');
                                 break;
                             }
                             if (selectedScene && selectedScene.config && selectedScene.config.close_template) {
