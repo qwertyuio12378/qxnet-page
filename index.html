@@ -1092,6 +1092,7 @@
                 if (success) {
                     isRunning = false;
                     updateBtnStatus();
+                    showStatusBanner('停止QNET成功');
                     showToast('QNET已停止');
                     callNativeApi({api:'set_float_icon', icon:0});
                     setTimeout(function () {
@@ -1110,6 +1111,7 @@
                 isRunning = true;
                 _bannerEnabled = true;
                 updateBtnStatus();
+                showStatusBanner('启动QNET成功');
                 showToast('QNET已启动');
                 callNativeApi({api:'set_float_icon', icon:1});
                 setTimeout(function () { updateFloatWindow(); }, 500);
@@ -1269,12 +1271,10 @@
             if (isRunning) {
                 btnStart.textContent = '停止';
                 btnStart.classList.add('running');
-                showStatusBanner('启动QNET成功');
             } else {
                 btnStart.textContent = '启动';
                 btnStart.classList.remove('running');
                 isPaused = false;
-                showStatusBanner('停止QNET成功');
             }
             updateFloatWindow();
         }
