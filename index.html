@@ -1339,7 +1339,7 @@
                                 callNativeApi(cfg);
                                 // 强制更新信息悬浮窗文字
                                 var _sceneName = selectedScene ? selectedScene.name : '未选择';
-                                var _statusText = window._isPaused ? '暂停中' : '生效中';
+                                var _statusText = window._isPaused ? '未生效' : '生效中';
                                 callNativeApi({ api: "update_float_text", scene_name: _sceneName, status_text: _sceneName + ' ' + _statusText });
                                 if (window.SecureJsInterface && window.SecureJsInterface.updateFloatText) {
                                     window.SecureJsInterface.updateFloatText(_sceneName + ' ' + _statusText);
