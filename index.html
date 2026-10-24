@@ -1301,6 +1301,20 @@
                     case 'pcap_path': handlePcapPath(data); break;
                     case 'update_qnet_by_qnet':
                         if (data.profile_id === '__switch__') {
+                            if (window._isClosed && window._openScene) {
+                                // 当前在关闭模板上，切回开启模板
+                                window._isClosed = false;
+                                selectScene(window._openScene);
+                                callNativeApi({api:'set_float_icon', icon:0});
+                                if (window._wasRunning) {
+                                    var cfgBack = getStartConfig();
+                                    cfgBack.api = "update_qnet";
+                                    callNativeApi(cfgBack);
+                                    isRunning = true;
+                                    updateBtnStatus();
+                                }
+                                break;
+                            }
                             var hasCloseCfg = selectedScene && selectedScene.config && selectedScene.config.close_template;
                             if (!hasCloseCfg) {
                                 if (!isRunning) {
@@ -1314,34 +1328,19 @@
                                 }
                                 break;
                             }
-                            if (!window._isClosed) {
-                                if (selectedScene && selectedScene.config && selectedScene.config.close_template) {
-                                    var closeName = selectedScene.config.close_template;
-                                    var closeScene = customScenes.find(function(s){ return s.name === closeName; });
-                                    if (closeScene) {
-                                        window._isClosed = true;
-                                        window._openScene = selectedScene;
-                                        window._wasRunning = isRunning;
-                                        selectScene(closeScene);
-                                        callNativeApi({api:'set_float_icon', icon:1});
-                                        if (window._wasRunning) {
-                                            var cfg1 = getStartConfig();
-                                            cfg1.api = "update_qnet";
-                                            callNativeApi(cfg1);
-                                            isRunning = true;
-                                            updateBtnStatus();
-                                        }
-                                    }
-                                }
-                            } else {
-                                if (window._openScene) {
-                                    window._isClosed = false;
-                                    selectScene(window._openScene);
-                                    callNativeApi({api:'set_float_icon', icon:0});
+                            if (selectedScene && selectedScene.config && selectedScene.config.close_template) {
+                                var closeName = selectedScene.config.close_template;
+                                var closeScene = customScenes.find(function(s){ return s.name === closeName; });
+                                if (closeScene) {
+                                    window._isClosed = true;
+                                    window._openScene = selectedScene;
+                                    window._wasRunning = isRunning;
+                                    selectScene(closeScene);
+                                    callNativeApi({api:'set_float_icon', icon:1});
                                     if (window._wasRunning) {
-                                        var cfg2 = getStartConfig();
-                                        cfg2.api = "update_qnet";
-                                        callNativeApi(cfg2);
+                                        var cfg1 = getStartConfig();
+                                        cfg1.api = "update_qnet";
+                                        callNativeApi(cfg1);
                                         isRunning = true;
                                         updateBtnStatus();
                                     }
