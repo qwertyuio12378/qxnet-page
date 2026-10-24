@@ -1282,8 +1282,7 @@
                     window.SecureJsInterface.setSceneDisplayText(displayText);
                 }
                 callNativeApi({ api: "update_float_text", scene_name: sceneName, status_text: displayText });
-                var _hasCloseCfg = selectedScene && selectedScene.config && selectedScene.config.close_template;
-                callNativeApi({api:'set_float_icon', icon: _hasCloseCfg ? (window._isClosed ? 0 : 1) : (isRunning ? 1 : 0)});
+                callNativeApi({api:'set_float_icon', icon: window._isClosed ? 0 : (isRunning ? 1 : 0)});
             } catch (e) { console.log("悬浮窗更新失败", e); }
         }
         // ==================== Android回调入口 ====================
@@ -1324,8 +1323,12 @@
                                     callNativeApi({ api: "set_qnet_option", control_fw: cfw0, info_fw: ifw0, dump_pcap: 0 });
                                     setTimeout(function () { startQNetInternal(); }, 300);
                                 } else {
-                                    var _sn = (selectedScene && selectedScene.name) ? selectedScene.name : '未选模板';
-                                    showToast('当前['+_sn+']未配置关闭模板');
+                                    var stopCfg = { api: "stop_qnet" };
+                                    if (callNativeApi(stopCfg)) {
+                                        isRunning = false;
+                                        updateBtnStatus();
+                                        showToast('QNET已停止');
+                                    }
                                 }
                                 break;
                             }
