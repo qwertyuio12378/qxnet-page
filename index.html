@@ -1282,7 +1282,8 @@
                     window.SecureJsInterface.setSceneDisplayText(displayText);
                 }
                 callNativeApi({ api: "update_float_text", scene_name: sceneName, status_text: displayText });
-                callNativeApi({api:'set_float_icon', icon: window._isClosed ? 0 : 1});
+                var _hasCloseCfg = selectedScene && selectedScene.config && selectedScene.config.close_template;
+                callNativeApi({api:'set_float_icon', icon: _hasCloseCfg ? (window._isClosed ? 0 : 1) : (isRunning ? 1 : 0)});
             } catch (e) { console.log("悬浮窗更新失败", e); }
         }
         // ==================== Android回调入口 ====================
