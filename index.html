@@ -1068,6 +1068,7 @@
         }
         function toggleVPN(e) {
             e.stopPropagation();
+            _bannerEnabled = true;
             if (!appSelected) {
                 showToast('请先选择目标应用');
                 return;
@@ -1235,7 +1236,9 @@
         }
 
         var _bannerTimer = null;
+        var _bannerEnabled = false;
         function showStatusBanner(text) {
+            if (!_bannerEnabled) return;
             var banner = document.getElementById('statusBanner');
             var bannerText = document.getElementById('statusBannerText');
             bannerText.textContent = text;
