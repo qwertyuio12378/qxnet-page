@@ -1309,12 +1309,7 @@
                                     callNativeApi({ api: "set_qnet_option", control_fw: cfw0, info_fw: ifw0, dump_pcap: 0 });
                                     setTimeout(function () { startQNetInternal(); }, 300);
                                 } else {
-                                    var stopCfg = { api: "stop_qnet" };
-                                    if (callNativeApi(stopCfg)) {
-                                        isRunning = false;
-                                        updateBtnStatus();
-                                        showToast('QNET已停止');
-                                    }
+                                    showToast('未配置关闭模板，请在参数编辑页添加');
                                 }
                                 break;
                             }
