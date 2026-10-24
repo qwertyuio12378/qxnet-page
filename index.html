@@ -1720,6 +1720,13 @@
                 }, 200);
             }
             updateFloatWindow();
+            // 刚选场景时就根据close_template配置直接设置图标，避免刚启动时闪▶
+            var _hasCloseCfg = scene.config && scene.config.close_template;
+            if (_hasCloseCfg && !window._isClosed) {
+                callNativeApi({api:'set_float_icon', icon:0});
+            } else if (_hasCloseCfg && window._isClosed) {
+                callNativeApi({api:'set_float_icon', icon:1});
+            }
             syncUserProfilesToNative();
             initWorkbenchScenes();
         }
