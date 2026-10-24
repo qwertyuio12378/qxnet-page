@@ -187,7 +187,7 @@
   </div> 
   <div class="page-container" id="pageContainer"> 
    <div class="page active" id="page-workbench">
-    <div id="statusBanner" style="display:none; position:fixed; top:70px; left:50%; transform:translateX(-50%); z-index:9999; align-items:center; justify-content:center; gap:10px; padding:14px 28px; background:#e3f2fd; color:#1976d2; font-size:15px; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.15); white-space:nowrap;">
+    <div id="statusBanner" style="display:none; position:fixed; top:70px; left:50%; transform:translateX(-50%) translateY(-20px); z-index:9999; align-items:center; justify-content:center; gap:10px; padding:14px 28px; background:#e3f2fd; color:#1976d2; font-size:15px; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.15); white-space:nowrap; opacity:0; transition:all 0.3s ease-out;">
       <svg viewBox="0 0 24 24" style="width:22px;height:22px;fill:#4caf50;">
         <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
       </svg>
@@ -1243,9 +1243,16 @@
             var bannerText = document.getElementById('statusBannerText');
             bannerText.textContent = text;
             banner.style.display = 'flex';
+            // 下一帧加过渡动画
+            requestAnimationFrame(function() {
+                banner.style.opacity = '1';
+                banner.style.transform = 'translateX(-50%) translateY(0)';
+            });
             if (_bannerTimer) clearTimeout(_bannerTimer);
             _bannerTimer = setTimeout(function() {
-                banner.style.display = 'none';
+                banner.style.opacity = '0';
+                banner.style.transform = 'translateX(-50%) translateY(-20px)';
+                setTimeout(function() { banner.style.display = 'none'; }, 300);
             }, 3000);
         }
         function updateBtnStatus() {
