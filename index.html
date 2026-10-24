@@ -1285,6 +1285,23 @@
                     case 'pcap_path': handlePcapPath(data); break;
                     case 'update_qnet_by_qnet':
                         if (data.profile_id === '__switch__') {
+                            var hasCloseCfg = selectedScene && selectedScene.config && selectedScene.config.close_template;
+                            if (!hasCloseCfg) {
+                                if (!isRunning) {
+                                    var cfw0 = document.getElementById('controlFw').checked ? 1 : 0;
+                                    var ifw0 = document.getElementById('infoFw').checked ? 1 : 0;
+                                    callNativeApi({ api: "set_qnet_option", control_fw: cfw0, info_fw: ifw0, dump_pcap: 0 });
+                                    setTimeout(function () { startQNetInternal(); }, 300);
+                                } else {
+                                    var stopCfg = { api: "stop_qnet" };
+                                    if (callNativeApi(stopCfg)) {
+                                        isRunning = false;
+                                        updateBtnStatus();
+                                        showToast('QNET已停止');
+                                    }
+                                }
+                                break;
+                            }
                             if (!window._isClosed) {
                                 if (selectedScene && selectedScene.config && selectedScene.config.close_template) {
                                     var closeName = selectedScene.config.close_template;
