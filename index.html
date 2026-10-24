@@ -1480,15 +1480,8 @@
             }
         }
         function handleStartQnet(data) {
-            showToast('启动回调result:' + data.result);
-            if (data.result !== 0) {
-                showToast('启动失败，请检查悬浮窗权限');
-                isRunning = false;
-                updateBtnStatus();
-            } else {
-                isRunning = true;
-                updateBtnStatus();
-            }
+            isRunning = true;
+            updateBtnStatus();
         }
         function handleStopQnet(data) {
             isRunning = false;
