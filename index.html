@@ -1323,11 +1323,21 @@
                                     callNativeApi({ api: "set_qnet_option", control_fw: cfw0, info_fw: ifw0, dump_pcap: 0 });
                                     setTimeout(function () { startQNetInternal(); }, 300);
                                 } else {
-                                    var stopCfg = { api: "stop_qnet" };
-                                    if (callNativeApi(stopCfg)) {
+                                    // 暂停：保持VPN连接，清空弱网规则，不调用stop_qnet
+                                    var pauseCfg = {
+                                        api: "update_qnet",
+                                        out_bandwidth: 0, in_bandwidth: 0,
+                                        out_delay: 0, in_delay: 0,
+                                        out_loss: 0, in_loss: 0,
+                                        out_pass: 0, in_pass: 0,
+                                        out_burst: 0, in_burst: 0,
+                                        duration: 0, loop: 0,
+                                        weak_type: "", protocol: "udp"
+                                    };
+                                    if (callNativeApi(pauseCfg)) {
                                         isRunning = false;
                                         updateBtnStatus();
-                                        showToast('QNET已停止');
+                                        showToast('已暂停');
                                     }
                                 }
                                 break;
