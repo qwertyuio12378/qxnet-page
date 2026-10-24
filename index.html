@@ -1108,11 +1108,9 @@
             var config = getStartConfig();
             var success = callNativeApi(config);
             if (success) {
-                isRunning = true;
                 _bannerEnabled = true;
                 updateBtnStatus();
-                showStatusBanner('启动QNET成功');
-                showToast('QNET已启动');
+                showToast('正在启动QNET...');
                 callNativeApi({api:'set_float_icon', icon:1});
                 setTimeout(function () { updateFloatWindow(); }, 500);
             } else {
@@ -1518,8 +1516,17 @@
             }
         }
         function handleStartQnet(data) {
+            if (data && data.result === 0) {
+                // 原生回调 result=0 表示没有悬浮窗权限，未真正启动
+                isRunning = false;
+                updateBtnStatus();
+                showStatusBanner('启动QNET失败，请先开启悬浮窗权限');
+                showToast('启动失败：请先开启悬浮窗权限');
+                return;
+            }
             isRunning = true;
             updateBtnStatus();
+            showStatusBanner('启动QNET成功');
         }
         function handleStopQnet(data) {
             isRunning = false;
