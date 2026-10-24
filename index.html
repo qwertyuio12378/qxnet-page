@@ -1682,6 +1682,11 @@
                 scene = found;
             }
             selectedScene = scene;
+            if (!scene.config || !scene.config.close_template) {
+                window._isClosed = false;
+                window._hasCloseSwitch = false;
+                window._openScene = null;
+            }
             var items = document.querySelectorAll('.scene-item');
             items.forEach(function (item) {
                 item.classList.remove('active');
