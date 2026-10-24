@@ -186,8 +186,14 @@
    </div> 
   </div> 
   <div class="page-container" id="pageContainer"> 
-   <div class="page active" id="page-workbench"> 
-    <div class="search-bar"> 
+   <div class="page active" id="page-workbench">
+    <div id="statusBanner" style="display:none; align-items:center; justify-content:center; gap:8px; padding:10px 16px; background:#e3f2fd; color:#1976d2; font-size:14px;">
+      <svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:#4caf50;">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+      </svg>
+      <span id="statusBannerText">启动QNET成功</span>
+    </div>
+    <div class="search-bar">
      <div class="search-input">
       <svg viewbox="0 0 24 24" style="width:16px;height:16px;fill:var(--text-sub);flex-shrink:0;">
         <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
@@ -1228,16 +1234,29 @@
             }
         }
 
+        var _bannerTimer = null;
+        function showStatusBanner(text) {
+            var banner = document.getElementById('statusBanner');
+            var bannerText = document.getElementById('statusBannerText');
+            bannerText.textContent = text;
+            banner.style.display = 'flex';
+            if (_bannerTimer) clearTimeout(_bannerTimer);
+            _bannerTimer = setTimeout(function() {
+                banner.style.display = 'none';
+            }, 3000);
+        }
         function updateBtnStatus() {
             var btnStart = document.getElementById('btnStart');
             var btnPause = document.getElementById('btnPause');
             if (isRunning) {
                 btnStart.textContent = '停止';
                 btnStart.classList.add('running');
+                showStatusBanner('启动QNET成功');
             } else {
                 btnStart.textContent = '启动';
                 btnStart.classList.remove('running');
                 isPaused = false;
+                showStatusBanner('停止QNET成功');
             }
             updateFloatWindow();
         }
