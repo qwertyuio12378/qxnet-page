@@ -327,6 +327,22 @@
      <div style="font-size:13px; color:#666; line-height:1.6;" onclick="showToast('QNET常见问题')">点击查看QNET常见问题</div>
     </div>
     <div style="background:#fff; margin-top:10px; padding:16px; padding-bottom:30px;">
+     <div style="font-size:16px; font-weight:600; margin-bottom:12px;">云端模板备份</div>
+     <div style="font-size:13px; color:#666; line-height:1.6; margin-bottom:10px;">将模板数据保存到GitHub仓库，换设备也能恢复。</div>
+     <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+      <span style="font-size:13px; color:#333; flex-shrink:0;">仓库名</span>
+      <input type="text" id="cloudRepo" value="qwertyuio12378/qxnet-page" style="flex:1; height:36px; border:1px solid #e5e5e5; border-radius:8px; padding:0 10px; font-size:13px;">
+     </div>
+     <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+      <span style="font-size:13px; color:#333; flex-shrink:0;">GitHub Token</span>
+      <input type="password" id="cloudToken" placeholder="填写你的GitHub Token（只存本机）" style="flex:1; height:36px; border:1px solid #e5e5e5; border-radius:8px; padding:0 10px; font-size:13px;">
+     </div>
+     <div style="display:flex; gap:10px;">
+      <div style="flex:1; text-align:center; padding:10px 0; background:#00c8ff; color:#fff; border-radius:20px; font-size:14px;" onclick="cloudSave()">上传模板</div>
+      <div style="flex:1; text-align:center; padding:10px 0; background:#fff; color:#00c8ff; border:1px solid #00c8ff; border-radius:20px; font-size:14px;" onclick="cloudLoad()">下载模板</div>
+     </div>
+    </div>
+    <div style="background:#fff; margin-top:10px; padding:16px; padding-bottom:30px;">
      <div style="font-size:16px; font-weight:600; margin-bottom:12px;">关于</div>
      <div style="font-size:13px; color:#666; line-height:1.6;">无需ROOT手机，无需连接数据线，以独立app的方式，为用户提供给快捷、可靠、功能完善的弱网络模拟服务</div>
     </div>
@@ -2863,10 +2879,105 @@
             setInterval(tick, 1000);
         }
 
+        // ==================== 云端模板备份 (GitHub) ====================
+        var CLOUD_FILE = 'qnet_templates.json';
+        function getCloudCred() {
+            var repo = (document.getElementById('cloudRepo') ? document.getElementById('cloudRepo').value : '').trim();
+            var token = (document.getElementById('cloudToken') ? document.getElementById('cloudToken').value : '').trim();
+            if (!token) token = localStorage.getItem('qnet_cloud_token') || '';
+            if (!repo) repo = 'qwertyuio12378/qxnet-page';
+            return { repo: repo, token: token };
+        }
+        function cloudSave() {
+            var cred = getCloudCred();
+            if (!cred.token) {
+                showToast('请先填写GitHub Token');
+                showStatusBanner('上传失败：请填写GitHub Token');
+                return;
+            }
+            localStorage.setItem('qnet_cloud_token', cred.token);
+            // 组装要保存的数据
+            var data = {
+                scenes: customScenes,
+                settings: {
+                    controlFw: document.getElementById('controlFw') ? document.getElementById('controlFw').checked : false,
+                    infoFw: document.getElementById('infoFw') ? document.getElementById('infoFw').checked : false,
+                    dumpPcap: document.getElementById('dumpPcap') ? document.getElementById('dumpPcap').checked : false,
+                    antiBlock: document.getElementById('antiBlock') ? document.getElementById('antiBlock').checked : false,
+                    reportSwitch: document.getElementById('reportSwitch') ? document.getElementById('reportSwitch').checked : false
+                },
+                t: Date.now()
+            };
+            var content = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+            // 先查现有文件拿sha
+            fetch('https://api.github.com/repos/' + cred.repo + '/contents/' + CLOUD_FILE, {
+                headers: { 'Authorization': 'token ' + cred.token, 'Accept': 'application/vnd.github.v3+json' }
+            }).then(function (res) {
+                var sha = null;
+                if (res.status === 200) {
+                    return res.json().then(function (j) { sha = j.sha; return putCloud(cred, content, sha); });
+                } else if (res.status === 404) {
+                    return putCloud(cred, content, null);
+                } else {
+                    return res.json().then(function (j) { throw new Error('查询失败 ' + (j.message || res.status)); });
+                }
+            }).then(function (j) {
+                showToast('模板已上传到云端');
+                showStatusBanner('模板上传成功');
+            }).catch(function (e) {
+                showToast('上传失败');
+                showStatusBanner('上传失败：' + e.message);
+            });
+        }
+        function putCloud(cred, content, sha) {
+            var body = {
+                message: '更新QXNET模板备份',
+                content: content
+            };
+            if (sha) body.sha = sha;
+            return fetch('https://api.github.com/repos/' + cred.repo + '/contents/' + CLOUD_FILE, {
+                method: 'PUT',
+                headers: { 'Authorization': 'token ' + cred.token, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            }).then(function (res) {
+                if (res.status === 200 || res.status === 201) return res.json();
+                return res.json().then(function (j) { throw new Error(j.message || res.status); });
+            });
+        }
+        function cloudLoad() {
+            var cred = getCloudCred();
+            fetch('https://api.github.com/repos/' + cred.repo + '/contents/' + CLOUD_FILE, {
+                headers: { 'Authorization': 'token ' + cred.token, 'Accept': 'application/vnd.github.v3+json' }
+            }).then(function (res) {
+                if (res.status === 200) return res.json();
+                return res.json().then(function (j) { throw new Error(j.message || res.status); });
+            }).then(function (j) {
+                var json = decodeURIComponent(escape(atob(j.content)));
+                var d = JSON.parse(json);
+                if (d && d.scenes && d.scenes.length > 0) {
+                    customScenes = d.scenes;
+                    simpleSaveAll();
+                    initWorkbenchScenes();
+                    initRecommendScenes();
+                    showToast('已从云端恢复模板');
+                    showStatusBanner('模板下载成功');
+                } else {
+                    showToast('云端没有模板数据');
+                }
+            }).catch(function (e) {
+                showToast('下载失败');
+                showStatusBanner('下载失败：' + e.message);
+            });
+        }
+
         window.onload = function () {
             isRunning = false;
             simpleLoadAll();
             updateAccountUI();
+            if (localStorage.getItem('qnet_cloud_token')) {
+                var tkEl = document.getElementById('cloudToken');
+                if (tkEl) tkEl.value = localStorage.getItem('qnet_cloud_token');
+            }
             setInterval(simpleSaveAll, 500);
             qst_init();
             callNativeApi({api:"init_web_finish"});
