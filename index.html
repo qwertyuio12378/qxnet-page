@@ -1324,17 +1324,28 @@
                             }
                             var hasCloseCfg = selectedScene && selectedScene.config && selectedScene.config.close_template;
                             if (!hasCloseCfg) {
-                                // 没配close_template：原生逻辑——启动/停止VPN
-                                if (!isRunning) {
-                                    var cfw = document.getElementById('controlFw').checked ? 1 : 0;
-                                    var ifw = document.getElementById('infoFw').checked ? 1 : 0;
-                                    callNativeApi({ api: "set_qnet_option", control_fw: cfw, info_fw: ifw, dump_pcap: 0 });
-                                    setTimeout(function () { startQNetInternal(); }, 300);
-                                } else {
-                                    callNativeApi({ api: "stop_qnet" });
-                                    isRunning = false;
-                                    updateBtnStatus();
+                                window._isPaused = !window._isPaused;
+                                var cfg = getStartConfig();
+                                cfg.api = "update_qnet";
+                                if (window._isPaused) {
+                                    cfg.in_delay = 0;
+                                    cfg.out_delay = 0;
+                                    cfg.in_loss = 0;
+                                    cfg.out_loss = 0;
+                                    cfg.in_burst = 0;
+                                    cfg.out_burst = 0;
+                                    cfg.jitter = 0;
                                 }
+                                callNativeApi(cfg);
+                                // 强制更新信息悬浮窗文字
+                                var _sceneName = selectedScene ? selectedScene.name : '未选择';
+                                var _statusText = window._isPaused ? '暂停中' : '生效中';
+                                callNativeApi({ api: "update_float_text", scene_name: _sceneName, status_text: _sceneName + ' ' + _statusText });
+                                if (window.SecureJsInterface && window.SecureJsInterface.updateFloatText) {
+                                    window.SecureJsInterface.updateFloatText(_sceneName + ' ' + _statusText);
+                                }
+                                updateFloatWindow();
+                                showToast(window._isPaused ? '已暂停弱网' : '已恢复弱网');
                                 break;
                             }
                             if (selectedScene && selectedScene.config && selectedScene.config.close_template) {
