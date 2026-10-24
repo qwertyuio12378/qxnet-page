@@ -1352,13 +1352,15 @@
                                 var closeName = selectedScene.config.close_template;
                                 var closeScene = customScenes.find(function(s){ return s.name === closeName; });
                                 if (closeScene) {
-                                    window._isClosed = true;
-                                    window._openScene = selectedScene;
-                                    window._wasRunning = isRunning;
-                                    window._hasCloseSwitch = true;
+                                    var prevScene = selectedScene;
+                                    var wasRunning = isRunning;
                                     selectScene(closeScene);
+                                    window._isClosed = true;
+                                    window._openScene = prevScene;
+                                    window._wasRunning = wasRunning;
+                                    window._hasCloseSwitch = true;
                                     callNativeApi({api:'set_float_icon', icon:1});
-                                    if (window._wasRunning) {
+                                    if (wasRunning) {
                                         var cfg1 = getStartConfig();
                                         cfg1.api = "update_qnet";
                                         callNativeApi(cfg1);
