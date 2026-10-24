@@ -1330,7 +1330,11 @@
                                         selectScene(closeScene);
                                         callNativeApi({api:'set_float_icon', icon:1});
                                         if (window._wasRunning) {
-                                            restartQNet();
+                                            var cfg1 = getStartConfig();
+                                            cfg1.api = "update_qnet";
+                                            callNativeApi(cfg1);
+                                            isRunning = true;
+                                            updateBtnStatus();
                                         }
                                     }
                                 }
@@ -1340,7 +1344,11 @@
                                     selectScene(window._openScene);
                                     callNativeApi({api:'set_float_icon', icon:0});
                                     if (window._wasRunning) {
-                                        restartQNet();
+                                        var cfg2 = getStartConfig();
+                                        cfg2.api = "update_qnet";
+                                        callNativeApi(cfg2);
+                                        isRunning = true;
+                                        updateBtnStatus();
                                     }
                                 }
                             }
