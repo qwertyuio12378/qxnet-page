@@ -1793,6 +1793,12 @@
             document.getElementById('netTypeLabel').textContent = 'WiFi ›';
             window._cycleLossOut = undefined;
             window._cycleLossIn = undefined;
+            closeParamValVar = '';
+            openParamValVar = '';
+            var closeLbl = document.getElementById('closeParamLabel');
+            if (closeLbl) closeLbl.textContent = '选择关闭时切换的模板 ›';
+            var openLbl = document.getElementById('openParamLabel');
+            if (openLbl) openLbl.textContent = '选择开启时切换的模板 ›';
         }
 
         function loadConfigToForm(config) {
