@@ -1409,17 +1409,8 @@
         function handleSetQnetOption(data) {}
         function handleQnetStatus(data) {
             if (data.status !== undefined && !ignoreNativeStatus) {
-                var wasRunning = isRunning;
                 isRunning = data.status === 1;
                 updateBtnStatus();
-                if (wasRunning && !isRunning && selectedScene && selectedScene.config && selectedScene.config.close_template) {
-                    var closeName = selectedScene.config.close_template;
-                    var closeScene = customScenes.find(function(s){ return s.name === closeName; });
-                    if (closeScene) {
-                        selectScene(closeScene);
-                        callNativeApi({api:'start_qnet'});
-                    }
-                }
             }
         }
         function handleSetPackageName(data) {
