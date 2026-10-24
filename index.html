@@ -1941,6 +1941,9 @@
                     d.className = 'sheet-item';
                     d.textContent = scene.name;
                     d.dataset.name = scene.name;
+                    d.onclick = (function (name) {
+                        return function () { pickParam(paramPickerType, name); };
+                    })(scene.name);
                     box.appendChild(d);
                     pickerItems.push(d);
                     if (scene.name === current) pickerSelectedIndex = idx;
