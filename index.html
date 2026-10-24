@@ -1282,7 +1282,7 @@
                     window.SecureJsInterface.setSceneDisplayText(displayText);
                 }
                 callNativeApi({ api: "update_float_text", scene_name: sceneName, status_text: displayText });
-                callNativeApi({api:'set_float_icon', icon: window._hasCloseSwitch ? (window._isClosed ? 0 : 1) : (isRunning ? 1 : 0)});
+                callNativeApi({api:'set_float_icon', icon: window._hasCloseSwitch ? (window._isClosed ? 1 : 0) : (isRunning ? 1 : 0)});
             } catch (e) { console.log("悬浮窗更新失败", e); }
         }
         // ==================== Android回调入口 ====================
@@ -1305,7 +1305,7 @@
                                 // 当前在关闭模板上，切回开启模板
                                 window._isClosed = false;
                                 selectScene(window._openScene);
-                                callNativeApi({api:'set_float_icon', icon:1});
+                                callNativeApi({api:'set_float_icon', icon:0});
                                 if (window._wasRunning) {
                                     var cfgBack = getStartConfig();
                                     cfgBack.api = "update_qnet";
@@ -1341,7 +1341,7 @@
                                     window._wasRunning = isRunning;
                                     window._hasCloseSwitch = true;
                                     selectScene(closeScene);
-                                    callNativeApi({api:'set_float_icon', icon:0});
+                                    callNativeApi({api:'set_float_icon', icon:1});
                                     if (window._wasRunning) {
                                         var cfg1 = getStartConfig();
                                         cfg1.api = "update_qnet";
