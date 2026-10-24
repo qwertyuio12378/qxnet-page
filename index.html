@@ -472,26 +472,24 @@
        </select>
       </div>
       <div class="mod-row">
-       <span class="mod-label">上行</span>
-       <div class="multi-field">
-        <span class="sub-label">放行时长</span>
-        <input class="f-input" id="outPassMs" placeholder="0"> 
-        <span class="mod-unit">ms</span> 
-        <span class="sub-label">丢包时长</span> 
-        <input class="f-input" id="outBurst" placeholder="0"> 
-        <span class="mod-unit">ms</span> 
-       </div> 
+       <span class="mod-label">上行放行时长</span>
+       <input class="mod-input" id="outPassMs" placeholder="默认为空不生效"> 
+       <span class="mod-unit">ms</span> 
+      </div> 
+      <div class="mod-row">
+       <span class="mod-label">上行丢包时长</span>
+       <input class="mod-input" id="outBurst" placeholder="默认为空不生效"> 
+       <span class="mod-unit">ms</span> 
+      </div> 
+      <div class="mod-row">
+       <span class="mod-label">下行放行时长</span>
+       <input class="mod-input" id="inPassMs" placeholder="默认为空不生效"> 
+       <span class="mod-unit">ms</span> 
       </div> 
       <div class="mod-row" style="border-bottom: none;"> 
-       <span class="mod-label">下行</span> 
-       <div class="multi-field"> 
-        <span class="sub-label">放行时长</span> 
-        <input class="f-input" id="inPassMs" placeholder="0"> 
-        <span class="mod-unit">ms</span> 
-        <span class="sub-label">丢包时长</span> 
-        <input class="f-input" id="inBurst" placeholder="0"> 
-        <span class="mod-unit">ms</span> 
-       </div> 
+       <span class="mod-label">下行丢包时长</span>
+       <input class="mod-input" id="inBurst" placeholder="默认为空不生效"> 
+       <span class="mod-unit">ms</span> 
       </div> 
      </div> 
      <div class="mod-title">
