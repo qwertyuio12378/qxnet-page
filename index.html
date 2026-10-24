@@ -1079,6 +1079,7 @@
                     isRunning = false;
                     updateBtnStatus();
                     showToast('QNET已停止');
+                    callNativeApi({api:'set_float_icon', icon:0});
                     setTimeout(function () {
                         var cfw = document.getElementById('controlFw').checked ? 1 : 0;
                         var ifw = document.getElementById('infoFw').checked ? 1 : 0;
@@ -1095,6 +1096,7 @@
                 isRunning = true;
                 updateBtnStatus();
                 showToast('QNET已启动');
+                callNativeApi({api:'set_float_icon', icon:1});
                 setTimeout(function () { updateFloatWindow(); }, 500);
             } else {
                 showToast('操作失败，请检查接口权限');
@@ -1267,6 +1269,7 @@
                     window.SecureJsInterface.setSceneDisplayText(displayText);
                 }
                 callNativeApi({ api: "update_float_text", scene_name: sceneName, status_text: displayText });
+                callNativeApi({api:'set_float_icon', icon: isRunning ? 1 : 0});
             } catch (e) { console.log("悬浮窗更新失败", e); }
         }
         // ==================== Android回调入口 ====================
