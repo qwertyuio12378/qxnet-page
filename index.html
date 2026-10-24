@@ -328,7 +328,7 @@
     </div>
     <div style="background:#fff; margin-top:10px; padding:16px; padding-bottom:30px;">
      <div style="font-size:16px; font-weight:600; margin-bottom:12px;">云端模板备份</div>
-     <div style="font-size:13px; color:#666; line-height:1.6; margin-bottom:10px;">将模板数据保存到GitHub仓库，换设备也能恢复。</div>
+     <div style="font-size:13px; color:#666; line-height:1.6; margin-bottom:10px;">按QQ登录账号保存模板到GitHub仓库，每个账号独立备份，换设备也能恢复。</div>
      <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
       <span style="font-size:13px; color:#333; flex-shrink:0;">仓库名</span>
       <input type="text" id="cloudRepo" value="qwertyuio12378/qxnet-page" style="flex:1; height:36px; border:1px solid #e5e5e5; border-radius:8px; padding:0 10px; font-size:13px;">
@@ -2880,7 +2880,30 @@
         }
 
         // ==================== 云端模板备份 (GitHub) ====================
-        var CLOUD_FILE = 'qnet_templates.json';
+        function getCloudAccountId() {
+            // 优先用QQ登录的openid，其次用本机存储的账号标识
+            try {
+                if (window.qnetAndroidObj && qnetAndroidObj.getAccountInfo) {
+                    var info = JSON.parse(qnetAndroidObj.getAccountInfo() || '{}');
+                    if (info.openid) return info.openid;
+                }
+            } catch(e) {}
+            try {
+                var saved = localStorage.getItem('qnet_account');
+                if (saved) {
+                    var acc = JSON.parse(saved);
+                    if (acc.openid) return acc.openid;
+                    if (acc.uin) return acc.uin;
+                    if (acc.nickname) return 'n_' + acc.nickname;
+                }
+            } catch(e) {}
+            return null;
+        }
+        function getCloudFile() {
+            var aid = getCloudAccountId();
+            if (!aid) return null;
+            return 'qnet_templates_' + aid + '.json';
+        }
         function getCloudCred() {
             var repo = (document.getElementById('cloudRepo') ? document.getElementById('cloudRepo').value : '').trim();
             var token = (document.getElementById('cloudToken') ? document.getElementById('cloudToken').value : '').trim();
@@ -2893,6 +2916,12 @@
             if (!cred.token) {
                 showToast('请先填写GitHub Token');
                 showStatusBanner('上传失败：请填写GitHub Token');
+                return;
+            }
+            var fname = getCloudFile();
+            if (!fname) {
+                showToast('请先登录QQ，才能按账号备份');
+                showStatusBanner('上传失败：未检测到QQ登录账号');
                 return;
             }
             localStorage.setItem('qnet_cloud_token', cred.token);
@@ -2910,14 +2939,14 @@
             };
             var content = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
             // 先查现有文件拿sha
-            fetch('https://api.github.com/repos/' + cred.repo + '/contents/' + CLOUD_FILE, {
+            fetch('https://api.github.com/repos/' + cred.repo + '/contents/' + fname, {
                 headers: { 'Authorization': 'token ' + cred.token, 'Accept': 'application/vnd.github.v3+json' }
             }).then(function (res) {
                 var sha = null;
                 if (res.status === 200) {
-                    return res.json().then(function (j) { sha = j.sha; return putCloud(cred, content, sha); });
+                    return res.json().then(function (j) { sha = j.sha; return putCloud(cred, fname, content, sha); });
                 } else if (res.status === 404) {
-                    return putCloud(cred, content, null);
+                    return putCloud(cred, fname, content, null);
                 } else {
                     return res.json().then(function (j) { throw new Error('查询失败 ' + (j.message || res.status)); });
                 }
@@ -2929,13 +2958,13 @@
                 showStatusBanner('上传失败：' + e.message);
             });
         }
-        function putCloud(cred, content, sha) {
+        function putCloud(cred, fname, content, sha) {
             var body = {
                 message: '更新QXNET模板备份',
                 content: content
             };
             if (sha) body.sha = sha;
-            return fetch('https://api.github.com/repos/' + cred.repo + '/contents/' + CLOUD_FILE, {
+            return fetch('https://api.github.com/repos/' + cred.repo + '/contents/' + fname, {
                 method: 'PUT',
                 headers: { 'Authorization': 'token ' + cred.token, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
                 body: JSON.stringify(body)
@@ -2946,7 +2975,13 @@
         }
         function cloudLoad() {
             var cred = getCloudCred();
-            fetch('https://api.github.com/repos/' + cred.repo + '/contents/' + CLOUD_FILE, {
+            var fname = getCloudFile();
+            if (!fname) {
+                showToast('请先登录QQ，才能按账号恢复');
+                showStatusBanner('下载失败：未检测到QQ登录账号');
+                return;
+            }
+            fetch('https://api.github.com/repos/' + cred.repo + '/contents/' + fname, {
                 headers: { 'Authorization': 'token ' + cred.token, 'Accept': 'application/vnd.github.v3+json' }
             }).then(function (res) {
                 if (res.status === 200) return res.json();
