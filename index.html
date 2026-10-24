@@ -1103,6 +1103,20 @@
             }
         }
 
+        function restartQNet() {
+            callNativeApi({ api: "stop_qnet" });
+            setTimeout(function () {
+                var cfg = getStartConfig();
+                cfg.api = "start_qnet";
+                callNativeApi(cfg);
+                isRunning = true;
+                updateBtnStatus();
+                callNativeApi({api:'set_float_icon', icon:1});
+                showToast('模板已切换');
+                setTimeout(function () { updateFloatWindow(); }, 500);
+            }, 600);
+        }
+
         function generateJitterArray(maxVal, probVal) {
             var arr = [];
             var max = parseInt(maxVal);
@@ -1316,11 +1330,7 @@
                                         selectScene(closeScene);
                                         callNativeApi({api:'set_float_icon', icon:1});
                                         if (window._wasRunning) {
-                                            var cfg1 = getStartConfig();
-                                            cfg1.api = "update_qnet";
-                                            callNativeApi(cfg1);
-                                            isRunning = true;
-                                            updateBtnStatus();
+                                            restartQNet();
                                         }
                                     }
                                 }
@@ -1330,11 +1340,7 @@
                                     selectScene(window._openScene);
                                     callNativeApi({api:'set_float_icon', icon:0});
                                     if (window._wasRunning) {
-                                        var cfg2 = getStartConfig();
-                                        cfg2.api = "update_qnet";
-                                        callNativeApi(cfg2);
-                                        isRunning = true;
-                                        updateBtnStatus();
+                                        restartQNet();
                                     }
                                 }
                             }
