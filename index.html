@@ -1309,8 +1309,16 @@
                                     if (closeScene) {
                                         window._isClosed = true;
                                         window._openScene = selectedScene;
+                                        window._wasRunning = isRunning;
                                         selectScene(closeScene);
                                         callNativeApi({api:'set_float_icon', icon:1});
+                                        if (window._wasRunning) {
+                                            var cfg1 = getStartConfig();
+                                            cfg1.api = "update_qnet";
+                                            callNativeApi(cfg1);
+                                            isRunning = true;
+                                            updateBtnStatus();
+                                        }
                                     }
                                 }
                             } else {
@@ -1318,6 +1326,13 @@
                                     window._isClosed = false;
                                     selectScene(window._openScene);
                                     callNativeApi({api:'set_float_icon', icon:0});
+                                    if (window._wasRunning) {
+                                        var cfg2 = getStartConfig();
+                                        cfg2.api = "update_qnet";
+                                        callNativeApi(cfg2);
+                                        isRunning = true;
+                                        updateBtnStatus();
+                                    }
                                 }
                             }
                         } else if (data.profile_id) {
