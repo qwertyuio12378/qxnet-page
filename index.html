@@ -1116,6 +1116,7 @@
                 callNativeApi({api:'set_float_icon', icon:1});
                 setTimeout(function () { updateFloatWindow(); }, 500);
             } else {
+                showStatusBanner('启动QNET失败');
                 showToast('操作失败，请检查接口权限');
             }
         }
