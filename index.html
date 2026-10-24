@@ -1186,8 +1186,7 @@
                         duration: cfg('duration', 'duration'),
                         protocol: getProtocolValue(),
                         ip_list: document.getElementById('ipList').value || "",
-                        loop: cfg('loop', 'loopEnable'),
-                        start_time: cfg('start_time', 'startTime'),
+                        // loop/start_time 不下发：原生会按 start_time 运行到时后自动停止弱网（loop==0时清空运行配置），导致"用几次就自动关闭"
                         close_template: closeParamValVar || "",
                         open_template: openParamValVar || ""
                     }]
