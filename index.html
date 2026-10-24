@@ -1745,8 +1745,6 @@
                 if (item.dataset.name === scene.name) item.classList.add('active');
             });
             loadConfigToForm(scene.config);
-            // 通知原生选中当前模板，悬浮窗下拉自动高亮
-            callNativeApi({api:'select_scene', scene_id: scene.id});
             if (isRunning) {
                 updateQNetConfig();
                 setTimeout(function () {
