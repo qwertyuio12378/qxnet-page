@@ -1326,7 +1326,7 @@
                             if (!hasCloseCfg) {
                                 window._isPaused = !window._isPaused;
                                 updateFloatWindow();
-                                showToast(window._isPaused ? '已暂停' : '已恢复');
+                                showToast('暂停:' + window._isPaused + ' 场景:' + (selectedScene ? selectedScene.name : '无'));
                                 break;
                             }
                             if (selectedScene && selectedScene.config && selectedScene.config.close_template) {
