@@ -328,19 +328,7 @@
     </div>
     <div style="background:#fff; margin-top:10px; padding:16px; padding-bottom:30px;">
      <div style="font-size:16px; font-weight:600; margin-bottom:12px;">云端模板备份</div>
-     <div style="font-size:13px; color:#666; line-height:1.6; margin-bottom:10px;">按QQ登录账号保存模板到GitHub仓库，每个账号独立备份，换设备也能恢复。</div>
-     <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
-      <span style="font-size:13px; color:#333; flex-shrink:0;">仓库名</span>
-      <input type="text" id="cloudRepo" value="qwertyuio12378/qxnet-page" style="flex:1; height:36px; border:1px solid #e5e5e5; border-radius:8px; padding:0 10px; font-size:13px;">
-     </div>
-     <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
-      <span style="font-size:13px; color:#333; flex-shrink:0;">GitHub Token</span>
-      <input type="password" id="cloudToken" placeholder="填写你的GitHub Token（只存本机）" style="flex:1; height:36px; border:1px solid #e5e5e5; border-radius:8px; padding:0 10px; font-size:13px;">
-     </div>
-     <div style="display:flex; gap:10px;">
-      <div style="flex:1; text-align:center; padding:10px 0; background:#00c8ff; color:#fff; border-radius:20px; font-size:14px;" onclick="cloudSave()">上传模板</div>
-      <div style="flex:1; text-align:center; padding:10px 0; background:#fff; color:#00c8ff; border:1px solid #00c8ff; border-radius:20px; font-size:14px;" onclick="cloudLoad()">下载模板</div>
-     </div>
+     <div style="font-size:13px; color:#666; line-height:1.6;">模板数据已开启自动备份，按QQ登录账号保存，换设备自动恢复。</div>
     </div>
     <div style="background:#fff; margin-top:10px; padding:16px; padding-bottom:30px;">
      <div style="font-size:16px; font-weight:600; margin-bottom:12px;">关于</div>
@@ -2782,6 +2770,7 @@
                     t: Date.now()
                 };
                 localStorage.setItem(SIMPLE_STORAGE_KEY, JSON.stringify(data));
+                cloudMarkDirty();
             } catch(e) {}
         }
 
@@ -2879,9 +2868,12 @@
             setInterval(tick, 1000);
         }
 
-        // ==================== 云端模板备份 (GitHub) ====================
+        // ==================== 云端模板备份 (npoint.io 自动) ====================
+        var NPOINT_BIN = 'bd5c8e06300f149704a9';
+        var cloudDirty = false;      // 数据是否有变化待上传
+        var cloudSyncing = false;    // 是否正在上传
+        var cloudLastPush = 0;       // 上次成功推送时间
         function getCloudAccountId() {
-            // 优先用QQ登录的openid，其次用本机存储的账号标识
             try {
                 if (window.qnetAndroidObj && qnetAndroidObj.getAccountInfo) {
                     var info = JSON.parse(qnetAndroidObj.getAccountInfo() || '{}');
@@ -2899,34 +2891,8 @@
             } catch(e) {}
             return null;
         }
-        function getCloudFile() {
-            var aid = getCloudAccountId();
-            if (!aid) return null;
-            return 'qnet_templates_' + aid + '.json';
-        }
-        function getCloudCred() {
-            var repo = (document.getElementById('cloudRepo') ? document.getElementById('cloudRepo').value : '').trim();
-            var token = (document.getElementById('cloudToken') ? document.getElementById('cloudToken').value : '').trim();
-            if (!token) token = localStorage.getItem('qnet_cloud_token') || '';
-            if (!repo) repo = 'qwertyuio12378/qxnet-page';
-            return { repo: repo, token: token };
-        }
-        function cloudSave() {
-            var cred = getCloudCred();
-            if (!cred.token) {
-                showToast('请先填写GitHub Token');
-                showStatusBanner('上传失败：请填写GitHub Token');
-                return;
-            }
-            var fname = getCloudFile();
-            if (!fname) {
-                showToast('请先登录QQ，才能按账号备份');
-                showStatusBanner('上传失败：未检测到QQ登录账号');
-                return;
-            }
-            localStorage.setItem('qnet_cloud_token', cred.token);
-            // 组装要保存的数据
-            var data = {
+        function cloudData() {
+            var d = {
                 scenes: customScenes,
                 settings: {
                     controlFw: document.getElementById('controlFw') ? document.getElementById('controlFw').checked : false,
@@ -2937,83 +2903,70 @@
                 },
                 t: Date.now()
             };
-            var content = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
-            // 先查现有文件拿sha
-            fetch('https://api.github.com/repos/' + cred.repo + '/contents/' + fname, {
-                headers: { 'Authorization': 'token ' + cred.token, 'Accept': 'application/vnd.github.v3+json' }
+            return d;
+        }
+        function cloudMarkDirty() {
+            cloudDirty = true;
+        }
+        // 读取云端整个文档（所有账号）
+        function cloudFetchDoc() {
+            return fetch('https://api.npoint.io/' + NPOINT_BIN, { cache: 'no-store' })
+                .then(function (res) { return res.json(); })
+                .catch(function () { return null; });
+        }
+        // 数据变化时由 simpleSaveAll 调用，节流推送（最多每5秒一次）
+        function cloudAutoPush() {
+            if (!cloudDirty || cloudSyncing) return;
+            var aid = getCloudAccountId();
+            if (!aid) return;
+            var now = Date.now();
+            if (now - cloudLastPush < 5000) return;
+            cloudDirty = false;
+            cloudSyncing = true;
+            cloudFetchDoc().then(function (doc) {
+                if (!doc || typeof doc !== 'object' || !doc.accounts) doc = { v: 1, accounts: {} };
+                doc.accounts[aid] = cloudData();
+                return fetch('https://api.npoint.io/' + NPOINT_BIN, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(doc)
+                });
             }).then(function (res) {
-                var sha = null;
-                if (res.status === 200) {
-                    return res.json().then(function (j) { sha = j.sha; return putCloud(cred, fname, content, sha); });
-                } else if (res.status === 404) {
-                    return putCloud(cred, fname, content, null);
-                } else {
-                    return res.json().then(function (j) { throw new Error('查询失败 ' + (j.message || res.status)); });
+                if (res && res.status === 200) {
+                    cloudLastPush = Date.now();
                 }
-            }).then(function (j) {
-                showToast('模板已上传到云端');
-                showStatusBanner('模板上传成功');
-            }).catch(function (e) {
-                showToast('上传失败');
-                showStatusBanner('上传失败：' + e.message);
-            });
+                cloudSyncing = false;
+            }).catch(function () { cloudSyncing = false; cloudDirty = true; });
         }
-        function putCloud(cred, fname, content, sha) {
-            var body = {
-                message: '更新QXNET模板备份',
-                content: content
-            };
-            if (sha) body.sha = sha;
-            return fetch('https://api.github.com/repos/' + cred.repo + '/contents/' + fname, {
-                method: 'PUT',
-                headers: { 'Authorization': 'token ' + cred.token, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
-                body: JSON.stringify(body)
-            }).then(function (res) {
-                if (res.status === 200 || res.status === 201) return res.json();
-                return res.json().then(function (j) { throw new Error(j.message || res.status); });
-            });
-        }
-        function cloudLoad() {
-            var cred = getCloudCred();
-            var fname = getCloudFile();
-            if (!fname) {
-                showToast('请先登录QQ，才能按账号恢复');
-                showStatusBanner('下载失败：未检测到QQ登录账号');
-                return;
-            }
-            fetch('https://api.github.com/repos/' + cred.repo + '/contents/' + fname, {
-                headers: { 'Authorization': 'token ' + cred.token, 'Accept': 'application/vnd.github.v3+json' }
-            }).then(function (res) {
-                if (res.status === 200) return res.json();
-                return res.json().then(function (j) { throw new Error(j.message || res.status); });
-            }).then(function (j) {
-                var json = decodeURIComponent(escape(atob(j.content)));
-                var d = JSON.parse(json);
+        // 启动时自动从云端恢复
+        function cloudAutoLoad() {
+            var aid = getCloudAccountId();
+            if (!aid) return;
+            cloudFetchDoc().then(function (doc) {
+                if (!doc || !doc.accounts || !doc.accounts[aid]) return;
+                var d = doc.accounts[aid];
                 if (d && d.scenes && d.scenes.length > 0) {
-                    customScenes = d.scenes;
-                    simpleSaveAll();
-                    initWorkbenchScenes();
-                    initRecommendScenes();
-                    showToast('已从云端恢复模板');
-                    showStatusBanner('模板下载成功');
-                } else {
-                    showToast('云端没有模板数据');
+                    // 只在本机没有模板或云端更新时恢复
+                    var local = null;
+                    try { local = JSON.parse(localStorage.getItem(SIMPLE_STORAGE_KEY) || 'null'); } catch(e) {}
+                    var localT = local && local.t ? local.t : 0;
+                    if (!local || localT < (d.t || 0)) {
+                        customScenes = d.scenes;
+                        simpleSaveAll();
+                        initWorkbenchScenes();
+                        initRecommendScenes();
+                    }
                 }
-            }).catch(function (e) {
-                showToast('下载失败');
-                showStatusBanner('下载失败：' + e.message);
-            });
+            }).catch(function () {});
         }
 
         window.onload = function () {
             isRunning = false;
             simpleLoadAll();
             updateAccountUI();
-            if (localStorage.getItem('qnet_cloud_token')) {
-                var tkEl = document.getElementById('cloudToken');
-                if (tkEl) tkEl.value = localStorage.getItem('qnet_cloud_token');
-            }
             setInterval(simpleSaveAll, 500);
+            setInterval(cloudAutoPush, 1000);
+            cloudAutoLoad();
             qst_init();
             callNativeApi({api:"init_web_finish"});
             setTimeout(function(){ callNativeApi({api:"init_web_finish"}); }, 300);
