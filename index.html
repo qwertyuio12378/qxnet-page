@@ -1068,7 +1068,6 @@
         }
         function toggleVPN(e) {
             e.stopPropagation();
-            _bannerEnabled = true;
             if (!appSelected) {
                 showToast('请先选择目标应用');
                 return;
@@ -1101,6 +1100,7 @@
             var success = callNativeApi(config);
             if (success) {
                 isRunning = true;
+                _bannerEnabled = true;
                 updateBtnStatus();
                 showToast('QNET已启动');
                 callNativeApi({api:'set_float_icon', icon:1});
