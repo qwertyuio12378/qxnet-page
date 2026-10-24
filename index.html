@@ -180,6 +180,7 @@
         .search-result-empty { padding: 40px 20px; text-align: center; color: var(--text-sub); font-size: 14px; }
         .search-result-empty .icon { font-size: 36px; margin-bottom: 10px; opacity: 0.5; }
     </style> 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
  </head> 
  <body> 
   <div class="nav-bar"> 
@@ -328,7 +329,29 @@
     </div>
     <div style="background:#fff; margin-top:10px; padding:16px; padding-bottom:30px;">
      <div style="font-size:16px; font-weight:600; margin-bottom:12px;">云端模板备份</div>
-     <div style="font-size:13px; color:#666; line-height:1.6;">模板数据已开启自动备份，按QQ登录账号保存，换设备自动恢复。</div>
+     <div style="font-size:13px; color:#666; line-height:1.6; margin-bottom:12px;">登录后模板自动按账号备份，换设备自动恢复。</div>
+     <div id="cloudLoginBox" style="display:flex; flex-direction:column; gap:8px;">
+      <div style="display:flex; gap:8px; align-items:center;">
+       <input type="text" id="cloudAccount" placeholder="登录账号" style="flex:1; border:1px solid #e0e0e0; border-radius:8px; padding:10px 12px; font-size:14px; outline:none; background:#fafafa;">
+      </div>
+      <div style="display:flex; gap:8px; align-items:center;">
+       <input type="password" id="cloudPassword" placeholder="密码" style="flex:1; border:1px solid #e0e0e0; border-radius:8px; padding:10px 12px; font-size:14px; outline:none; background:#fafafa;">
+      </div>
+      <div style="display:flex; gap:8px;">
+       <button onclick="cloudLogin()" style="flex:1; background:#00c8ff; color:#fff; border:none; border-radius:8px; padding:11px 0; font-size:14px; font-weight:600;">登录并开启备份</button>
+       <button onclick="cloudLogout()" style="flex:1; background:#f0f0f0; color:#666; border:none; border-radius:8px; padding:11px 0; font-size:14px;">退出</button>
+      </div>
+     </div>
+     <div id="cloudStatusBox" style="display:none; flex-direction:column; gap:10px;">
+      <div style="display:flex; align-items:center; gap:10px;">
+       <div id="cloudUserAvatar" style="width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg,#00c8ff,#0070ff); color:#fff; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:600;">云</div>
+       <div style="flex:1;">
+        <div id="cloudUserName" style="font-size:14px; font-weight:600;">未登录</div>
+        <div id="cloudUserState" style="font-size:12px; color:#00c8ff;">模板自动备份已开启</div>
+       </div>
+       <button onclick="cloudLogout()" style="background:#f0f0f0; color:#666; border:none; border-radius:8px; padding:8px 16px; font-size:13px;">退出</button>
+      </div>
+     </div>
     </div>
     <div style="background:#fff; margin-top:10px; padding:16px; padding-bottom:30px;">
      <div style="font-size:16px; font-weight:600; margin-bottom:12px;">关于</div>
@@ -2868,25 +2891,19 @@
             setInterval(tick, 1000);
         }
 
-        // ==================== 云端模板备份 (npoint.io 自动) ====================
-        var NPOINT_BIN = 'bd5c8e06300f149704a9';
+        // ==================== 云端模板备份 (Supabase 账号自动) ====================
+        var SUPABASE_URL = 'https://gngcducutevgllbaejec.supabase.co';
+        var SUPABASE_ANON_KEY = 'sb_publishable_i5npxDKfL83UBEDBBPm57A_WqqYeh-P';
+        var cloudSb = null;
         var cloudDirty = false;      // 数据是否有变化待上传
         var cloudSyncing = false;    // 是否正在上传
         var cloudLastPush = 0;       // 上次成功推送时间
-        function getCloudAccountId() {
+        try { cloudSb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); } catch(e) {}
+        function cloudCurUser() {
             try {
-                if (window.qnetAndroidObj && qnetAndroidObj.getAccountInfo) {
-                    var info = JSON.parse(qnetAndroidObj.getAccountInfo() || '{}');
-                    if (info.openid) return info.openid;
-                }
-            } catch(e) {}
-            try {
-                var saved = localStorage.getItem('qnet_account');
-                if (saved) {
-                    var acc = JSON.parse(saved);
-                    if (acc.openid) return acc.openid;
-                    if (acc.uin) return acc.uin;
-                    if (acc.nickname) return 'n_' + acc.nickname;
+                if (cloudSb) {
+                    var s = cloudSb.auth.getSession();
+                    if (s && s.data && s.data.session && s.data.session.user) return s.data.session.user;
                 }
             } catch(e) {}
             return null;
@@ -2908,43 +2925,32 @@
         function cloudMarkDirty() {
             cloudDirty = true;
         }
-        // 读取云端整个文档（所有账号）
-        function cloudFetchDoc() {
-            return fetch('https://api.npoint.io/' + NPOINT_BIN, { cache: 'no-store' })
-                .then(function (res) { return res.json(); })
-                .catch(function () { return null; });
-        }
         // 数据变化时由 simpleSaveAll 调用，节流推送（最多每5秒一次）
         function cloudAutoPush() {
             if (!cloudDirty || cloudSyncing) return;
-            var aid = getCloudAccountId();
-            if (!aid) return;
+            var user = cloudCurUser();
+            if (!user) return;
             var now = Date.now();
             if (now - cloudLastPush < 5000) return;
             cloudDirty = false;
             cloudSyncing = true;
-            cloudFetchDoc().then(function (doc) {
-                if (!doc || typeof doc !== 'object' || !doc.accounts) doc = { v: 1, accounts: {} };
-                doc.accounts[aid] = cloudData();
-                return fetch('https://api.npoint.io/' + NPOINT_BIN, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(doc)
-                });
-            }).then(function (res) {
-                if (res && res.status === 200) {
-                    cloudLastPush = Date.now();
-                }
+            var data = cloudData();
+            cloudSb.from('qnet_templates').upsert({
+                owner_id: user.id,
+                data: data,
+                t: data.t
+            }, { onConflict: 'owner_id' }).then(function (res) {
+                if (!res.error) cloudLastPush = Date.now();
                 cloudSyncing = false;
             }).catch(function () { cloudSyncing = false; cloudDirty = true; });
         }
         // 启动时自动从云端恢复
         function cloudAutoLoad() {
-            var aid = getCloudAccountId();
-            if (!aid) return;
-            cloudFetchDoc().then(function (doc) {
-                if (!doc || !doc.accounts || !doc.accounts[aid]) return;
-                var d = doc.accounts[aid];
+            var user = cloudCurUser();
+            if (!user) return;
+            cloudSb.from('qnet_templates').select('data,t').eq('owner_id', user.id).maybeSingle().then(function (res) {
+                if (res.error || !res.data || !res.data.data) return;
+                var d = res.data.data;
                 if (d && d.scenes && d.scenes.length > 0) {
                     // 只在本机没有模板或云端更新时恢复
                     var local = null;
@@ -2959,6 +2965,44 @@
                 }
             }).catch(function () {});
         }
+        function cloudRenderLoginState() {
+            var user = cloudCurUser();
+            var loginBox = document.getElementById('cloudLoginBox');
+            var statusBox = document.getElementById('cloudStatusBox');
+            if (!loginBox || !statusBox) return;
+            if (user) {
+                loginBox.style.display = 'none';
+                statusBox.style.display = 'flex';
+                var email = user.email || '';
+                document.getElementById('cloudUserName').textContent = email.split('@')[0];
+                document.getElementById('cloudUserState').textContent = '模板自动备份已开启';
+            } else {
+                loginBox.style.display = 'flex';
+                statusBox.style.display = 'none';
+            }
+        }
+        function cloudLogin() {
+            var acc = document.getElementById('cloudAccount').value.trim();
+            var pwd = document.getElementById('cloudPassword').value.trim();
+            if (!acc || !pwd) { showToast('请输入账号和密码'); return; }
+            var email = acc;
+            if (email.indexOf('@') < 0) email = email + '@qxnet.com';
+            cloudSb.auth.signInWithPassword({ email: email, password: pwd }).then(function (res) {
+                if (res.error) {
+                    showToast('登录失败：' + (res.error.message.indexOf('Invalid login credentials') >= 0 ? '账号或密码错误' : res.error.message));
+                    return;
+                }
+                showToast('登录成功，模板自动备份已开启');
+                cloudRenderLoginState();
+                cloudAutoLoad();
+            });
+        }
+        function cloudLogout() {
+            cloudSb.auth.signOut().then(function () {
+                showToast('已退出云端备份');
+                cloudRenderLoginState();
+            });
+        }
 
         window.onload = function () {
             isRunning = false;
@@ -2966,6 +3010,7 @@
             updateAccountUI();
             setInterval(simpleSaveAll, 500);
             setInterval(cloudAutoPush, 1000);
+            cloudRenderLoginState();
             cloudAutoLoad();
             qst_init();
             callNativeApi({api:"init_web_finish"});
