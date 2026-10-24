@@ -1975,7 +1975,9 @@
             if (!customScenes || customScenes.length === 0) {
                 box.innerHTML = '<div class="sheet-item" style="color:#bbb;">暂无模板</div>';
             } else {
+                var editingName = window._editingName || '';
                 customScenes.forEach(function (scene, idx) {
+                    if (scene.name === editingName) return;
                     var d = document.createElement('div');
                     d.className = 'sheet-item';
                     d.textContent = scene.name;
@@ -1985,7 +1987,7 @@
                     })(scene.name);
                     box.appendChild(d);
                     pickerItems.push(d);
-                    if (scene.name === current) pickerSelectedIndex = idx;
+                    if (scene.name === current) pickerSelectedIndex = pickerItems.length - 1;
                 });
             }
             updatePicker();
