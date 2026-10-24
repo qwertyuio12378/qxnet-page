@@ -1324,7 +1324,17 @@
                             }
                             var hasCloseCfg = selectedScene && selectedScene.config && selectedScene.config.close_template;
                             if (!hasCloseCfg) {
-                                // 没配close_template时，点▶/⏸无操作（原生逻辑）
+                                // 没配close_template：原生逻辑——启动/停止VPN
+                                if (!isRunning) {
+                                    var cfw = document.getElementById('controlFw').checked ? 1 : 0;
+                                    var ifw = document.getElementById('infoFw').checked ? 1 : 0;
+                                    callNativeApi({ api: "set_qnet_option", control_fw: cfw, info_fw: ifw, dump_pcap: 0 });
+                                    setTimeout(function () { startQNetInternal(); }, 300);
+                                } else {
+                                    callNativeApi({ api: "stop_qnet" });
+                                    isRunning = false;
+                                    updateBtnStatus();
+                                }
                                 break;
                             }
                             if (selectedScene && selectedScene.config && selectedScene.config.close_template) {
