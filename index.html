@@ -1324,21 +1324,7 @@
                             }
                             var hasCloseCfg = selectedScene && selectedScene.config && selectedScene.config.close_template;
                             if (!hasCloseCfg) {
-                                window._isPaused = !window._isPaused;
-                                var cfg = getStartConfig();
-                                cfg.api = "update_qnet";
-                                if (window._isPaused) {
-                                    cfg.in_delay = 0;
-                                    cfg.out_delay = 0;
-                                    cfg.in_loss = 0;
-                                    cfg.out_loss = 0;
-                                    cfg.in_burst = 0;
-                                    cfg.out_burst = 0;
-                                    cfg.jitter = 0;
-                                }
-                                callNativeApi(cfg);
-                                updateFloatWindow();
-                                showToast(window._isPaused ? '已暂停弱网' : '已恢复弱网');
+                                // 没配close_template时，点▶/⏸无操作（原生逻辑）
                                 break;
                             }
                             if (selectedScene && selectedScene.config && selectedScene.config.close_template) {
