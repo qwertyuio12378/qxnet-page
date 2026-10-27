@@ -2898,7 +2898,7 @@
         var cloudDirty = false;      // 数据是否有变化待上传
         var cloudSyncing = false;    // 是否正在上传
         var cloudLastPush = 0;       // 上次成功推送时间
-        try { cloudSb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); } catch(e) {}
+        try { cloudSb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { detectSessionInUrl: true, autoRefreshToken: true, persistSession: true } }); } catch(e) {}
         function cloudCurUser() {
             try {
                 if (cloudSb) {
@@ -3012,10 +3012,18 @@
             setInterval(cloudAutoPush, 1000);
             cloudRenderLoginState();
             cloudAutoLoad();
+            if (cloudSb && cloudSb.auth) {
+              cloudSb.auth.onAuthStateChange(function(event, session) {
+                if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+                  cloudRenderLoginState();
+                  cloudAutoLoad();
+                }
+              });
+            }
             qst_init();
             callNativeApi({api:"init_web_finish"});
             setTimeout(function(){ callNativeApi({api:"init_web_finish"}); }, 300);
-            setTimeout(function(){ callNativeApi({api:"init_web_finish"}); }, 1000);
+            setTimeout(function(){ callNativeApi({api:"init_web_finish"}); }, 300);
             loadDeletedGlobalConfigs();
             updateBtnStatus();
             initWorkbenchScenes();
