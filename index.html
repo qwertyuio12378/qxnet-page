@@ -2285,9 +2285,10 @@
                 var d = document.createElement('div');
                 d.className = 'sheet-item';
                 d.textContent = name;
-                d.onclick = function() {
+                d.onclick = function(e) {
+                    if (e) e.stopPropagation();
                     weakSceneSelectedIdx = idx;
-                    box.scrollTo({top: idx * 48, behavior: 'smooth'});
+                    updateWeakScenePicker();
                     setTimeout(function() { selectWeakScene(name); }, 200);
                 };
                 box.appendChild(d);
@@ -2322,12 +2323,18 @@
                     weakSceneSelectedIdx = idx;
                 }
             };
-            wrap.ontouchend = function() {
+            wrap.ontouchend = function(e) {
                 if (!isDragging) return;
                 isDragging = false;
                 box.style.transition = 'transform 0.2s ease';
                 box.style.transform = 'translateY(' + (76 - weakSceneSelectedIdx * 48) + 'px)';
                 updateWeakScenePicker();
+                var dy = e.changedTouches[0].clientY - startY;
+                if (Math.abs(dy) < 10) {
+                    var opts2 = ['电梯','地铁','高铁','视频网络标准','语音网络标准'];
+                    var name = opts2[weakSceneSelectedIdx];
+                    if (name) setTimeout(function() { selectWeakScene(name); }, 200);
+                }
             };
         }
         function updateWeakScenePicker() {
