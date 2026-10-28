@@ -405,7 +405,7 @@
       <div class="mod-section">
        <div class="mod-row" style="border-bottom:none; position:relative;" onclick="showWeakScenePicker()">
         <span class="mod-label">弱网场景</span>
-        <span id="weakSceneLabel" style="color:#333; font-size:14px;">正常网络 ›</span>
+        <span id="weakSceneLabel" style="color:#333; font-size:14px;">电梯 ›</span>
        </div>
        <div id="weakSceneDesc" style="padding:0 16px 12px; font-size:12px; color:#999; line-height:1.5; margin-top:-4px;"></div>
       </div>
@@ -2239,7 +2239,7 @@
             for (var i = 0; i < TEST_N; i++) testOne();
         }
         function fillWeakSceneOptions() {
-            var opts = ['正常网络','极差网络','连续丢包','100%丢包','断线重连(短)','断线重连(长)','上下行高延时高抖动','上下行低延时','上下行低丢包率','上下行高丢包率'];
+            var opts = ['电梯','地铁','高铁','视频网络标准','语音网络标准'];
             var box = document.getElementById('weakSceneItems');
             box.innerHTML = '';
             opts.forEach(function(name, idx) {
@@ -2258,7 +2258,7 @@
         function showWeakScenePicker() {
             fillWeakSceneOptions();
             var current = document.getElementById('weakSceneLabel').textContent.replace(' ›', '');
-            var opts = ['正常网络','极差网络','连续丢包','100%丢包','断线重连(短)','断线重连(长)','上下行高延时高抖动','上下行低延时','上下行低丢包率','上下行高丢包率'];
+            var opts = ['电梯','地铁','高铁','视频网络标准','语音网络标准'];
             weakSceneSelectedIdx = opts.indexOf(current);
             if (weakSceneSelectedIdx < 0) weakSceneSelectedIdx = 0;
             updateWeakScenePicker();
@@ -2377,16 +2377,11 @@
             document.getElementById('genericPickerSheet').classList.remove('show');
         }
         var weakSceneDescMap = {
-            '正常网络': '无网络限制，所有请求正常传输，用于测试基线场景',
-            '极差网络': '高延迟、高丢包、低带宽，模拟极端弱网环境，测试应用容错能力',
-            '连续丢包': '持续丢包，模拟网络不稳定导致的数据丢失场景',
-            '100%丢包': '完全断网状态，所有数据包都被丢弃，测试应用离线处理能力',
-            '断线重连(短)': '短暂断线后自动重连，模拟网络波动导致的短时间断连',
-            '断线重连(长)': '长时间断线后重连，模拟信号差导致的长时间断网恢复',
-            '上下行高延时高抖动': '高延迟加抖动，模拟移动网络下延迟不稳定的场景',
-            '上下行低延时': '低延迟网络，模拟WiFi或光纤等优质网络环境',
-            '上下行低丢包率': '低丢包率，模拟轻微丢包的普通移动网络',
-            '上下行高丢包率': '高丢包率，模拟信号差时大量数据包丢失的场景'
+            '电梯': '模拟电梯内信号屏蔽，高延迟高丢包，偶尔断网',
+            '地铁': '模拟地铁隧道内信号波动，延迟抖动大，随机丢包',
+            '高铁': '模拟高铁高速移动，基站频繁切换，延迟抖动明显',
+            '视频网络标准': '能够持续播放高清视频的最低网络标准',
+            '语音网络标准': '能够流畅进行语音通话的最低网络标准'
         };
         function updateWeakSceneDesc() {
             var descEl = document.getElementById('weakSceneDesc');
