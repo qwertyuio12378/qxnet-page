@@ -2306,8 +2306,23 @@
             document.getElementById('sheetMask').classList.remove('show');
             document.getElementById('weakSceneSheet').classList.remove('show');
         }
+        var weakSceneParams = {
+            '电梯': { outBandwidth: 200, inBandwidth: 500, outDelay: 400, inDelay: 400, outRate: 25, inRate: 25 },
+            '地铁': { outBandwidth: '', inBandwidth: '', outDelay: 300, inDelay: 300, outRate: 15, inRate: 15, outPassMs: 2000, outBurst: 500, inPassMs: 2000, inBurst: 500 },
+            '高铁': { outBandwidth: 300, inBandwidth: 800, outDelay: 200, inDelay: 200, outRate: 10, inRate: 10 },
+            '视频网络标准': { outBandwidth: 500, inBandwidth: 2000, outDelay: 100, inDelay: 100, outRate: '', inRate: '' },
+            '语音网络标准': { outBandwidth: 60, inBandwidth: 60, outDelay: 150, inDelay: 150, outRate: 3, inRate: 3 }
+        };
         function selectWeakScene(name) {
             document.getElementById('weakSceneLabel').textContent = name + ' ›';
+            var p = weakSceneParams[name] || {};
+            var fields = ['outBandwidth','inBandwidth','outDelay','inDelay','outRate','inRate','outPassMs','outBurst','inPassMs','inBurst'];
+            fields.forEach(function(fid) {
+                var el = document.getElementById(fid);
+                if (!el) return;
+                if (p[fid] === undefined || p[fid] === '') el.value = '';
+                else el.value = p[fid];
+            });
             updateWeakSceneDesc();
             updateNetStats();
             hideWeakScenePicker();
