@@ -3010,14 +3010,12 @@
             updateAccountUI();
             setInterval(simpleSaveAll, 500);
             setInterval(cloudAutoPush, 1000);
-            // 手动从 URL hash 恢复登录态（兼容 WebView）
+            // 从 URL 参数恢复登录态（兼容 WebView，不依赖 hash）
             (function(){
               try {
-                var h = window.location.hash || '';
-                if (h.indexOf('access_token') < 0) return;
-                var params = new URLSearchParams(h.substring(1));
-                var at = params.get('access_token');
-                var rt = params.get('refresh_token');
+                var params = new URLSearchParams(window.location.search || '');
+                var at = params.get('at');
+                var rt = params.get('rt');
                 if (!at || !rt || !cloudSb || !cloudSb.auth) return;
                 cloudSb.auth.setSession({ access_token: at, refresh_token: rt }).then(function(res){
                   if (!res.error) {
