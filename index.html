@@ -2335,6 +2335,12 @@
                 var d = document.createElement('div');
                 d.className = 'sheet-item';
                 d.textContent = name;
+                d.onclick = function() {
+                    genericSelectedIdx = idx;
+                    updateGenericPicker();
+                    if (genericPickerCallback) genericPickerCallback(name);
+                    hideGenericPicker();
+                };
                 box.appendChild(d);
             });
             genericSelectedIdx = options.indexOf(current);
@@ -2347,14 +2353,14 @@
             wrap.ontouchstart = function(e) {
                 isDragging = true;
                 startY = e.touches[0].clientY;
-                startTransform = 80 - genericSelectedIdx * 40;
+                startTransform = 76 - genericSelectedIdx * 48;
                 box.style.transition = 'none';
             };
             wrap.ontouchmove = function(e) {
                 if (!isDragging) return;
                 var dy = e.touches[0].clientY - startY;
                 box.style.transform = 'translateY(' + (startTransform + dy) + 'px)';
-                var idx = Math.round((80 - (startTransform + dy)) / 40);
+                var idx = Math.round((76 - (startTransform + dy)) / 48);
                 idx = Math.max(0, Math.min(options.length - 1, idx));
                 if (idx !== genericSelectedIdx) {
                     genericSelectedIdx = idx;
@@ -2364,13 +2370,13 @@
                 if (!isDragging) return;
                 isDragging = false;
                 box.style.transition = 'transform 0.2s ease';
-                box.style.transform = 'translateY(' + (80 - genericSelectedIdx * 40) + 'px)';
+                box.style.transform = 'translateY(' + (76 - genericSelectedIdx * 48) + 'px)';
                 updateGenericPicker();
             };
         }
         function updateGenericPicker() {
             var box = document.getElementById('genericPickerItems');
-            box.style.transform = 'translateY(' + (80 - genericSelectedIdx * 40) + 'px)';
+            box.style.transform = 'translateY(' + (76 - genericSelectedIdx * 48) + 'px)';
             var items = box.querySelectorAll('.sheet-item');
             items.forEach(function(item, idx) {
                 item.classList.remove('selected');
