@@ -970,69 +970,30 @@
         var currentApp = { name: '', package: '', icon: '' };
 
         var presetScenes = {
-            '连续丢包': {
-                desc: '模拟短时间内连续丢包的网络场景',
-                config: { out_loss: 10, out_pass: 3000, out_burst: 1000, in_loss: 10, in_pass: 3000, in_burst: 1000 }
+            '电梯': {
+                desc: '模拟电梯内信号屏蔽，高延迟高丢包，偶尔断网',
+                config: { out_delay: 400, in_delay: 400, out_rate: 25, in_rate: 25, out_bandwidth: 200, in_bandwidth: 500 }
             },
-            '正常网络': { desc: '未设置任何弱网参数的正常网络', config: {} },
-            '100%丢包': { desc: '上下行100%丢包的弱网场景', config: { out_loss: 100, in_loss: 100 } },
-            '极差网络': {
-                desc: '低带宽，高延迟，高概率随机丢包',
-                config: { out_bandwidth: 100, in_bandwidth: 100, out_delay: 500, in_delay: 500, out_rate: 30, in_rate: 30, out_loss: 30, in_loss: 30 }
+            '地铁': {
+                desc: '模拟地铁隧道内信号波动，延迟抖动大，随机丢包',
+                config: { out_delay: 300, in_delay: 300, out_rate: 15, in_rate: 15, out_pass: 2000, out_burst: 500, in_pass: 2000, in_burst: 500 }
             },
-            '断线重连(短)': {
-                sub: '北京市 - 上海<br>中国联通(WiFi)',
-                desc: '完全丢包7秒后恢复网络',
-                netProfile: {server: '上海', client: '北京市', isp: '中国联通', netType: 'WiFi'},
-                config: { out_loss: 100, out_pass: 3000, out_burst: 7000, in_loss: 100, in_pass: 3000, in_burst: 7000 }
+            '高铁': {
+                desc: '模拟高铁高速移动，基站频繁切换，延迟抖动明显',
+                config: { out_delay: 200, in_delay: 200, out_rate: 10, in_rate: 10, out_bandwidth: 300, in_bandwidth: 800 }
             },
-            '断线重连(长)': {
-                sub: '北京市 - 上海<br>中国联通(WiFi)',
-                desc: '完全丢包30秒后恢复网络',
-                netProfile: {server: '上海', client: '北京市', isp: '中国联通', netType: 'WiFi'},
-                config: { out_loss: 100, out_pass: 5000, out_burst: 30000, in_loss: 100, in_pass: 5000, in_burst: 30000 }
-            },
-            '上下行高延时高抖动': {
-                desc: '上下行延时为500ms，延时抖动分别为500ms，概率为100%',
-                config: { out_delay: 500, in_delay: 500, out_rate: 100, in_rate: 100 }
-            },
-            '上下行低延时': { desc: '上下行延时分别为100ms', config: { out_delay: 100, in_delay: 100 } },
-            '上下行低丢包率': { desc: '上下行随机丢包率分别为5%', config: { out_rate: 5, in_rate: 5 } },
-            '上下行高丢包率': { desc: '上下行随机丢包率分别为30%', config: { out_rate: 30, in_rate: 30 } },
-            'WiFi-4G网络切换': {
-                sub: '北京市 - 上海<br>中国联通(WiFi)',
-                desc: '模拟设备进入电梯后有WiFi切换到4G，模拟设备状态切换时，应用断线重连等',
-                netProfile: {server: '上海', client: '北京市', isp: '中国联通', netType: 'WiFi'},
-                config: { out_delay: 200, in_delay: 200, out_rate: 5, in_rate: 5 }
-            },
-            '新疆地区网络模拟': {
-                sub: '新疆乌鲁木齐',
-                desc: '由于新疆地区距离上海的物理距离较远，所以网络延迟也比较高，可以模拟这部分用户的网络环境',
-                netProfile: {server: '上海', client: '乌鲁木齐', isp: '中国电信', netType: '4G'},
-                config: { out_delay: 300, in_delay: 300, out_rate: 3, in_rate: 3 }
-            },
-            '全球弱网络模拟': {
-                sub: '韩国 - 首尔 (SKT/WiFi)',
-                desc: '模拟海外用户出国后仍需要连接国内服务，出现网络延迟和丢包',
-                netProfile: {server: '首尔', client: '北京市', isp: '韩国SKT', netType: 'WiFi'},
-                config: { out_delay: 500, in_delay: 500, out_rate: 10, in_rate: 10 }
-            },
-            '视频频标准': {
-                sub: '高清视频标准',
+            '视频网络标准': {
                 desc: '能够持续播放高清视频的最低网络标准',
                 config: { out_bandwidth: 500, in_bandwidth: 2000, out_delay: 100, in_delay: 100 }
             },
-            'UDP协议不可用': {
-                sub: 'UDP协议',
-                desc: '某些特殊网络出于安全考虑会禁用UDP协议，用此模板来验证UDP协议禁用时的工作情况',
-                config: { protocol: 15 }
+            '语音网络标准': {
+                desc: '能够流畅进行语音通话的最低网络标准',
+                config: { out_bandwidth: 60, in_bandwidth: 60, out_delay: 150, in_delay: 150, out_rate: 3, in_rate: 3 }
             }
         };
 
         var recommendScenes = [
-            '极差网络', '连续丢包', '断线重连(短)', '断线重连(长)',
-            '上下行高延时高抖动', '上下行低延时', '上下行低丢包率', '上下行高丢包率',
-            'WiFi-4G网络切换', '新疆地区网络模拟', '全球弱网络模拟', '视频频标准', 'UDP协议不可用'
+            '电梯', '地铁', '高铁', '视频网络标准', '语音网络标准'
         ];
 
         // ==================== 随机生成函数 ====================
