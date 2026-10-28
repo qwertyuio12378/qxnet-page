@@ -1662,6 +1662,11 @@
             document.getElementById('searchBarExpanded').style.display = 'none';
             document.getElementById('searchBarCollapsed').style.display = 'block';
         }
+        document.addEventListener('click', function(e) {
+            var exp = document.getElementById('searchBarExpanded');
+            if (!exp || exp.style.display === 'none') return;
+            if (!exp.contains(e.target)) collapseSearch();
+        });
         function filterScenes(kw) {
             kw = (kw || '').trim().toLowerCase();
             var items = document.querySelectorAll('#workbenchSceneList .scene-item');
