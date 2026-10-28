@@ -327,29 +327,15 @@
      <div style="font-size:16px; font-weight:600; margin-bottom:12px;">常见问题</div>
      <div style="font-size:13px; color:#666; line-height:1.6;" onclick="showToast('QNET常见问题')">点击查看QNET常见问题</div>
     </div>
-    <div style="background:#fff; margin-top:10px; padding:16px; padding-bottom:30px;">
+    <div id="cloudBackupSection" style="background:#fff; margin-top:10px; padding:16px; padding-bottom:30px; display:none;">
      <div style="font-size:16px; font-weight:600; margin-bottom:12px;">云端模板备份</div>
-     <div style="font-size:13px; color:#666; line-height:1.6; margin-bottom:12px;">登录后模板自动按账号备份，换设备自动恢复。</div>
-     <div id="cloudLoginBox" style="display:flex; flex-direction:column; gap:8px;">
-      <div style="display:flex; gap:8px; align-items:center;">
-       <input type="text" id="cloudAccount" placeholder="登录账号" style="flex:1; border:1px solid #e0e0e0; border-radius:8px; padding:10px 12px; font-size:14px; outline:none; background:#fafafa;">
-      </div>
-      <div style="display:flex; gap:8px; align-items:center;">
-       <input type="password" id="cloudPassword" placeholder="密码" style="flex:1; border:1px solid #e0e0e0; border-radius:8px; padding:10px 12px; font-size:14px; outline:none; background:#fafafa;">
-      </div>
-      <div style="display:flex; gap:8px;">
-       <button onclick="cloudLogin()" style="flex:1; background:#00c8ff; color:#fff; border:none; border-radius:8px; padding:11px 0; font-size:14px; font-weight:600;">登录并开启备份</button>
-       <button onclick="cloudLogout()" style="flex:1; background:#f0f0f0; color:#666; border:none; border-radius:8px; padding:11px 0; font-size:14px;">退出</button>
-      </div>
-     </div>
-     <div id="cloudStatusBox" style="display:none; flex-direction:column; gap:10px;">
+     <div id="cloudStatusBox" style="display:flex; flex-direction:column; gap:10px;">
       <div style="display:flex; align-items:center; gap:10px;">
        <div id="cloudUserAvatar" style="width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg,#00c8ff,#0070ff); color:#fff; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:600;">云</div>
        <div style="flex:1;">
-        <div id="cloudUserName" style="font-size:14px; font-weight:600;">未登录</div>
+        <div id="cloudUserName" style="font-size:14px; font-weight:600;">云端备份</div>
         <div id="cloudUserState" style="font-size:12px; color:#00c8ff;">模板自动备份已开启</div>
        </div>
-       <button onclick="cloudLogout()" style="background:#f0f0f0; color:#666; border:none; border-radius:8px; padding:8px 16px; font-size:13px;">退出</button>
       </div>
      </div>
     </div>
@@ -2967,18 +2953,15 @@
         }
         function cloudRenderLoginState() {
             var user = cloudCurUser();
-            var loginBox = document.getElementById('cloudLoginBox');
-            var statusBox = document.getElementById('cloudStatusBox');
-            if (!loginBox || !statusBox) return;
+            var section = document.getElementById('cloudBackupSection');
+            if (!section) return;
             if (user) {
-                loginBox.style.display = 'none';
-                statusBox.style.display = 'flex';
+                section.style.display = 'block';
                 var email = user.email || '';
-                document.getElementById('cloudUserName').textContent = email.split('@')[0];
-                document.getElementById('cloudUserState').textContent = '模板自动备份已开启';
+                document.getElementById('cloudUserName').textContent = '云端备份';
+                document.getElementById('cloudUserState').textContent = '已登录 ' + email.split('@')[0] + ' · 模板自动备份中';
             } else {
-                loginBox.style.display = 'flex';
-                statusBox.style.display = 'none';
+                section.style.display = 'none';
             }
         }
         function cloudLogin() {
