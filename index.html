@@ -2262,6 +2262,11 @@
                 '伦敦':180,'巴黎':180,'悉尼':170
             };
             var ok = 0, fail = 0, totalRtt = 0, minRtt = 99999, done = 0, TEST_N = 33;
+            var warm = new Image();
+            warm.src = url + '?warm=' + Date.now();
+            setTimeout(function() {
+                testOne();
+            }, 300);
             function testOne() {
                 var start = Date.now();
                 var settled = false;
@@ -2283,7 +2288,7 @@
                 img.src = url + '?t=' + Date.now() + '_' + Math.random();
             }
             function nextTest() {
-                if (done < TEST_N) setTimeout(testOne, 40);
+                if (done < TEST_N) setTimeout(testOne, 30);
             }
             function showResult() {
                 var rtt = minRtt < 99999 ? minRtt : 0;
