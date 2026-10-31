@@ -2284,18 +2284,18 @@
                 if (done < TEST_N) setTimeout(testOne, 100);
             }
             function showResult() {
-                var rtt = ok > 0 ? Math.round(totalRtt / ok) : 0;
+                var rtt = ok > 0 ? Math.round(totalRtt / ok * 100) / 100 : 0;
                 lastMeasuredLatency = rtt;
                 var total = ok + fail;
                 var loss = total > 0 ? Math.round(fail / total * 10000) / 100 : 0;
                 var jitter = Math.abs(rtt - lastRtt);
-                lastRtt = rtt;
+                if (jitter < 0) jitter = 0;
                 var d = new Date();
                 var ts = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
                 if (done >= TEST_N) {
-                    document.getElementById('netDelayVal').textContent = rtt + 'ms';
+                    document.getElementById('netDelayVal').textContent = rtt.toFixed(2) + 'ms';
                     document.getElementById('netLossVal').textContent = loss.toFixed(2) + '%';
-                    document.getElementById('netJitterVal').textContent = jitter;
+                    document.getElementById('netJitterVal').textContent = jitter.toFixed(2);
                     document.getElementById('netTimeVal').textContent = ts;
                 }
             }
