@@ -2234,12 +2234,20 @@
         function locateClientCity() {
             var el = document.getElementById('clientCityLabel');
             if (!el) return;
+            var cached = '';
+            try { cached = localStorage.getItem('qxnet_client_city') || ''; } catch (e) {}
+            if (cached) { locatedClientCity = cached; el.textContent = cached + ' ›'; }
             var settled = false;
             function finish(c) {
                 if (settled) return;
                 settled = true;
-                if (c) { locatedClientCity = c; el.textContent = c + ' ›'; }
-                else { el.textContent = '未知 ›'; }
+                if (c) {
+                    locatedClientCity = c;
+                    el.textContent = c + ' ›';
+                    try { localStorage.setItem('qxnet_client_city', c); } catch (e) {}
+                } else {
+                    el.textContent = cached ? cached + ' ›' : '未知 ›';
+                }
             }
             function parseLocation(loc) {
                 var part = String(loc || '').split(/\s+/)[0];
@@ -2250,7 +2258,7 @@
                 return part.replace(/市$/, '');
             }
             function queryBaidu(ip) {
-                if (!ip) { finish(''); return; }
+                if (!ip) { return; }
                 try {
                     var cb = 'qxnet_ipcb_' + Date.now();
                     window[cb] = function(data) {
@@ -2261,10 +2269,9 @@
                     };
                     var s = document.createElement('script');
                     s.src = 'https://opendata.baidu.com/api.php?query=' + encodeURIComponent(ip) + '&co=&resource_id=6006&oe=utf8&cb=' + cb;
-                    s.onerror = function() { try { delete window[cb]; } catch (e) {} finish(''); };
+                    s.onerror = function() { try { delete window[cb]; } catch (e) {} };
                     document.head.appendChild(s);
-                    setTimeout(function() { try { delete window[cb]; } catch (e) {} if (!settled) finish(''); }, 6000);
-                } catch (e) { finish(''); }
+                } catch (e) {}
             }
             function getIpViaSohu() {
                 try {
@@ -2277,14 +2284,14 @@
                                 var base = String(raw.cname).replace(/市$/, '');
                                 var mm = base.match(/(?:省|自治区|特别行政区)(.+)$/);
                                 finish(mm ? mm[1] : base);
-                            } else {
-                                queryBaidu(raw && raw.cip ? raw.cip : '');
+                            } else if (raw && raw.cip && raw.cip !== '127.0.0.1') {
+                                queryBaidu(raw.cip);
                             }
-                        } catch (e) { queryBaidu(''); }
+                        } catch (e) {}
                     };
-                    s.onerror = function() { queryBaidu(''); };
+                    s.onerror = function() {};
                     document.head.appendChild(s);
-                } catch (e) { queryBaidu(''); }
+                } catch (e) {}
             }
             function getIpViaCF() {
                 try {
@@ -2292,12 +2299,14 @@
                         .then(function(r) { return r.text(); })
                         .then(function(t) {
                             var m = String(t).match(/ip=([^\s]+)/);
-                            queryBaidu(m ? m[1] : '');
+                            if (m) queryBaidu(m[1]);
                         })
-                        .catch(function() { getIpViaSohu(); });
-                } catch (e) { getIpViaSohu(); }
+                        .catch(function() {});
+                } catch (e) {}
             }
             getIpViaCF();
+            getIpViaSohu();
+            setTimeout(function() { finish(''); }, 10000);
         }
         function updateNetStats() {
             window._skipAutoFill = false;
