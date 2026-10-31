@@ -2289,6 +2289,7 @@
                 var total = ok + fail;
                 var loss = total > 0 ? Math.round(fail / total * 10000) / 100 : 0;
                 var jitter = Math.abs(rtt - lastRtt);
+                lastRtt = rtt;
                 if (jitter < 0) jitter = 0;
                 var d = new Date();
                 var ts = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
