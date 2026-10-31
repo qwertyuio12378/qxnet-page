@@ -2234,11 +2234,6 @@
         function locateClientCity() {
             var el = document.getElementById('clientCityLabel');
             if (!el) return;
-            function parseCity(cname) {
-                var base = String(cname || '').replace(/市$/, '');
-                var m = base.match(/(?:省|自治区|特别行政区)(.+)$/);
-                return m ? m[1] : base;
-            }
             var settled = false;
             function finish(c) {
                 if (settled) return;
@@ -2246,47 +2241,63 @@
                 if (c) { locatedClientCity = c; el.textContent = c + ' ›'; }
                 else { el.textContent = '未知 ›'; }
             }
-            function trySohu() {
+            function parseLocation(loc) {
+                var part = String(loc || '').split(/\s+/)[0];
+                var m = part.match(/(?:省|自治区|特别行政区)([^\s]+?市)/);
+                if (m) return m[1].replace(/市$/, '');
+                var m2 = part.match(/^([^\s]+?市)/);
+                if (m2) return m2[1].replace(/市$/, '');
+                return part.replace(/市$/, '');
+            }
+            function queryBaidu(ip) {
+                if (!ip) { finish(''); return; }
+                try {
+                    var cb = 'qxnet_ipcb_' + Date.now();
+                    window[cb] = function(data) {
+                        try { delete window[cb]; } catch (e) {}
+                        var loc = '';
+                        try { loc = data.data[0].location; } catch (e) {}
+                        finish(parseLocation(loc));
+                    };
+                    var s = document.createElement('script');
+                    s.src = 'https://opendata.baidu.com/api.php?query=' + encodeURIComponent(ip) + '&co=&resource_id=6006&oe=utf8&cb=' + cb;
+                    s.onerror = function() { try { delete window[cb]; } catch (e) {} finish(''); };
+                    document.head.appendChild(s);
+                    setTimeout(function() { try { delete window[cb]; } catch (e) {} if (!settled) finish(''); }, 6000);
+                } catch (e) { finish(''); }
+            }
+            function getIpViaSohu() {
                 try {
                     var s = document.createElement('script');
                     s.src = 'https://pv.sohu.com/cityjson?ie=utf-8';
                     s.onload = function() {
                         try {
                             var raw = window.returnCitySN;
-                            var c = raw && raw.cname && raw.cname !== '未知' ? parseCity(raw.cname) : '';
-                            if (c) finish(c); else tryPconline();
-                        } catch (e) { tryPconline(); }
+                            if (raw && raw.cname && raw.cname !== '未知') {
+                                var base = String(raw.cname).replace(/市$/, '');
+                                var mm = base.match(/(?:省|自治区|特别行政区)(.+)$/);
+                                finish(mm ? mm[1] : base);
+                            } else {
+                                queryBaidu(raw && raw.cip ? raw.cip : '');
+                            }
+                        } catch (e) { queryBaidu(''); }
                     };
-                    s.onerror = function() { tryPconline(); };
+                    s.onerror = function() { queryBaidu(''); };
                     document.head.appendChild(s);
-                } catch (e) { tryPconline(); }
+                } catch (e) { queryBaidu(''); }
             }
-            function tryPconline() {
+            function getIpViaCF() {
                 try {
-                    var cb = 'qxnet_ipcb_' + Date.now();
-                    window[cb] = function(data) {
-                        try { delete window[cb]; } catch (e) {}
-                        var c = data && data.city ? String(data.city).replace(/市$/, '') : '';
-                        if (c) finish(c); else tryFetch();
-                    };
-                    var s = document.createElement('script');
-                    s.src = 'https://whois.pconline.com.cn/ipJson.jsp?json=true&jsoncallback=' + cb;
-                    s.charset = 'gbk';
-                    s.onerror = function() { try { delete window[cb]; } catch (e) {} tryFetch(); };
-                    document.head.appendChild(s);
-                    setTimeout(function() { try { delete window[cb]; } catch (e) {} tryFetch(); }, 4000);
-                } catch (e) { tryFetch(); }
+                    fetch('https://www.cloudflare.com/cdn-cgi/trace', {mode: 'cors'})
+                        .then(function(r) { return r.text(); })
+                        .then(function(t) {
+                            var m = String(t).match(/ip=([^\s]+)/);
+                            queryBaidu(m ? m[1] : '');
+                        })
+                        .catch(function() { getIpViaSohu(); });
+                } catch (e) { getIpViaSohu(); }
             }
-            function tryFetch() {
-                if (settled) return;
-                try {
-                    fetch('https://qifu-api.baidubce.com/ip/local/geo/v1/district', {mode: 'cors'})
-                        .then(function(r) { return r.json(); })
-                        .then(function(d) { finish(d && d.data && d.data.city ? String(d.data.city).replace(/市$/, '') : ''); })
-                        .catch(function() { finish(''); });
-                } catch (e) { finish(''); }
-            }
-            trySohu();
+            getIpViaCF();
         }
         function updateNetStats() {
             window._skipAutoFill = false;
