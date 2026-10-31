@@ -2234,21 +2234,32 @@
         function locateClientCity() {
             var el = document.getElementById('clientCityLabel');
             if (!el) return;
-            try {
-                fetch('https://ip-api.com/json?lang=zh-CN', {mode: 'cors'})
-                    .then(function(r) { return r.json(); })
-                    .then(function(d) {
-                        if (d && d.city) {
-                            locatedClientCity = String(d.city).replace(/市$/, '');
-                            el.textContent = locatedClientCity + ' ›';
-                        } else {
-                            el.textContent = '未知 ›';
-                        }
-                    })
-                    .catch(function() { el.textContent = '未知 ›'; });
-            } catch (e) {
+            function setCity(c) {
+                locatedClientCity = String(c).replace(/市$/, '').replace(/壮族自治区|回族自治区|维吾尔自治区|自治区/g, '');
+                el.textContent = locatedClientCity + ' ›';
+            }
+            function fail() {
                 el.textContent = '未知 ›';
             }
+            try {
+                fetch('https://qifu-api.baidubce.com/ip/local/geo/v1/district', {mode: 'cors'})
+                    .then(function(r) { return r.json(); })
+                    .then(function(d) {
+                        if (d && d.data && d.data.city) setCity(d.data.city);
+                        else fail();
+                    })
+                    .catch(function() {
+                        try {
+                            fetch('https://ip-api.com/json?lang=zh-CN', {mode: 'cors'})
+                                .then(function(r) { return r.json(); })
+                                .then(function(d) {
+                                    if (d && d.city) setCity(d.city);
+                                    else fail();
+                                })
+                                .catch(fail);
+                        } catch (e) { fail(); }
+                    });
+            } catch (e) { fail(); }
         }
         function updateNetStats() {
             window._skipAutoFill = false;
