@@ -395,8 +395,8 @@
        </div>
       </div>
       <div style="padding:10px 16px; font-size:12px; color:#999; line-height:1.6;">
-       <div id="netStatsLine1">网络延迟&nbsp;&nbsp;<span style="color:#07c160;">70ms</span>&nbsp;&nbsp;丢包率&nbsp;&nbsp;<span style="color:#07c160;">0.17%</span></div>
-       <div id="netStatsLine2">抖动方差&nbsp;&nbsp;<span style="color:#07c160;">805</span>&nbsp;&nbsp;数据时间&nbsp;&nbsp;<span style="color:#07c160;">2020-11-14 13:58</span></div>
+       <div id="netStatsLine1">正在测试网络...</div>
+       <div id="netStatsLine2">&nbsp;</div>
        网络数据由腾讯公司TEG网络平台提供
       </div>
       <div class="mod-title">
@@ -2232,27 +2232,22 @@
             var ok = 0, fail = 0, totalRtt = 0, done = 0, TEST_N = 10;
             function testOne() {
                 var start = Date.now();
-                var settled = false;
-                var timer = setTimeout(function(){ if(!settled){ settled=true; fail++; done++; showResult(); } }, 2000);
-                var img = new Image();
-                img.onload = function() {
-                    if(settled) return; settled=true; clearTimeout(timer);
+                var timeout = new Promise(function(_, reject) {
+                    setTimeout(function() { reject(new Error('timeout')); }, 2000);
+                });
+                Promise.race([
+                    fetch(url + '?t=' + Date.now() + '_' + Math.random(), {cache: 'no-store', mode: 'no-cors'}),
+                    timeout
+                ]).then(function() {
                     totalRtt += Date.now() - start;
                     ok++; done++; showResult();
-                };
-                img.onerror = function() {
-                    if(settled) return; settled=true; clearTimeout(timer);
-                    var elapsed = Date.now() - start;
-                    if (elapsed < 1800) { totalRtt += elapsed; ok++; } else { fail++; }
-                    done++; showResult();
-                };
-                img.src = url + '?t=' + Date.now() + '_' + Math.random();
+                }).catch(function() {
+                    fail++; done++; showResult();
+                });
             }
             function showResult() {
                 var base = ok > 0 ? Math.round(totalRtt / ok) : 999;
-                var off = cityOffset[s] || 0;
-                var netType = document.getElementById('netTypeLabel') ? document.getElementById('netTypeLabel').textContent.replace(' ›', '') : 'WiFi';
-                var rtt = base + off;
+                var rtt = base;
                 if (base >= 999) rtt = 999;
                 lastMeasuredLatency = rtt;
                 var total = ok + fail;
@@ -2263,16 +2258,8 @@
                 var d = new Date();
                 var ts = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+':'+String(d.getSeconds()).padStart(2,'0');
                 if (done >= TEST_N) {
-                    document.getElementById('netStatsLine1').innerHTML = '网络延迟&nbsp;&nbsp;<span style="color:#07c160;">'+rtt+'ms</span>&nbsp;&nbsp;丢包率&nbsp;&nbsp;<span style="color:#07c160;">'+loss+'%</span>';
-                    document.getElementById('netStatsLine2').innerHTML = '抖动方差&nbsp;&nbsp;<span style="color:#07c160;">'+jitter+'</span>&nbsp;&nbsp;数据时间&nbsp;&nbsp;<span style="color:#07c160;">'+ts+'</span>';
-                    var outD = document.getElementById('outDelay');
-                    var inD = document.getElementById('inDelay');
-                    var outR = document.getElementById('outRate');
-                    var inR = document.getElementById('inRate');
-                    if (outD && !window._skipAutoFill) outD.value = rtt;
-                    if (inD && !window._skipAutoFill) inD.value = Math.round(rtt * 0.9);
-                    if (outR && !window._skipAutoFill) outR.value = loss;
-                    if (inR && !window._skipAutoFill) inR.value = loss;
+                    document.getElementById('netStatsLine1').innerHTML = '当前真实网络&nbsp;&nbsp;<span style="color:#07c160;">'+rtt+'ms</span>&nbsp;&nbsp;丢包率&nbsp;&nbsp;<span style="color:#07c160;">'+loss+'%</span>';
+                    document.getElementById('netStatsLine2').innerHTML = '抖动&nbsp;&nbsp;<span style="color:#07c160;">'+jitter+'ms</span>&nbsp;&nbsp;更新时间&nbsp;&nbsp;<span style="color:#07c160;">'+ts+'</span>';
                 }
             }
             for (var i = 0; i < TEST_N; i++) testOne();
