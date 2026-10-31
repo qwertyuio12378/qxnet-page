@@ -2261,7 +2261,7 @@
                 '香港':30,'台湾':50,'首尔':60,'东京':60,'新加坡':80,'纽约':150,'洛杉矶':150,
                 '伦敦':180,'巴黎':180,'悉尼':170
             };
-            var ok = 0, fail = 0, totalRtt = 0, minRtt = 99999, done = 0, TEST_N = 33;
+            var ok = 0, fail = 0, totalRtt = 0, minRtt = 99999, done = 0, TEST_N = 60;
             var prevRtt = -1, jitterSum = 0, jitterCount = 0;
             var warm = new Image();
             warm.src = url + '?warm=' + Date.now();
@@ -2296,14 +2296,13 @@
                 img.src = url + '?t=' + Date.now() + '_' + Math.random();
             }
             function nextTest() {
-                if (done < TEST_N) setTimeout(testOne, 30);
+                if (done < TEST_N) setTimeout(testOne, 20);
             }
             function showResult() {
                 var rtt = minRtt < 99999 ? minRtt : 0;
                 lastMeasuredLatency = rtt;
                 var total = ok + fail;
                 var loss = total > 0 ? Math.round(fail / total * 10000) / 100 : 0;
-                if (loss < 0.05) loss = Math.round((0.05 + Math.random() * 0.30) * 100) / 100;
                 var jitter = jitterCount > 0 ? Math.round(jitterSum / jitterCount * 100) / 100 : 0;
                 var d = new Date();
                 var ts = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
