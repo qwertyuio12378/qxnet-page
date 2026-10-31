@@ -2234,10 +2234,6 @@
         function locateClientCity() {
             var el = document.getElementById('clientCityLabel');
             if (!el) return;
-            function setCity(c) {
-                locatedClientCity = c;
-                el.textContent = c + ' ›';
-            }
             function parseCity(cname) {
                 var base = String(cname || '').replace(/市$/, '');
                 var m = base.match(/(?:省|自治区|特别行政区)(.+)$/);
@@ -2247,29 +2243,50 @@
             function finish(c) {
                 if (settled) return;
                 settled = true;
-                if (c) setCity(c); else el.textContent = '未知 ›';
+                if (c) { locatedClientCity = c; el.textContent = c + ' ›'; }
+                else { el.textContent = '未知 ›'; }
             }
-            try {
-                var s = document.createElement('script');
-                s.src = 'https://pv.sohu.com/cityjson?ie=utf-8';
-                s.onload = function() {
-                    try {
-                        var raw = window.returnCitySN;
-                        finish(raw && raw.cname ? parseCity(raw.cname) : null);
-                    } catch (e) { finish(null); }
-                };
-                s.onerror = function() { finish(null); };
-                document.head.appendChild(s);
-            } catch (e) { finish(null); }
-            setTimeout(function() {
+            function trySohu() {
+                try {
+                    var s = document.createElement('script');
+                    s.src = 'https://pv.sohu.com/cityjson?ie=utf-8';
+                    s.onload = function() {
+                        try {
+                            var raw = window.returnCitySN;
+                            var c = raw && raw.cname && raw.cname !== '未知' ? parseCity(raw.cname) : '';
+                            if (c) finish(c); else tryPconline();
+                        } catch (e) { tryPconline(); }
+                    };
+                    s.onerror = function() { tryPconline(); };
+                    document.head.appendChild(s);
+                } catch (e) { tryPconline(); }
+            }
+            function tryPconline() {
+                try {
+                    var cb = 'qxnet_ipcb_' + Date.now();
+                    window[cb] = function(data) {
+                        try { delete window[cb]; } catch (e) {}
+                        var c = data && data.city ? String(data.city).replace(/市$/, '') : '';
+                        if (c) finish(c); else tryFetch();
+                    };
+                    var s = document.createElement('script');
+                    s.src = 'https://whois.pconline.com.cn/ipJson.jsp?json=true&jsoncallback=' + cb;
+                    s.charset = 'gbk';
+                    s.onerror = function() { try { delete window[cb]; } catch (e) {} tryFetch(); };
+                    document.head.appendChild(s);
+                    setTimeout(function() { try { delete window[cb]; } catch (e) {} tryFetch(); }, 4000);
+                } catch (e) { tryFetch(); }
+            }
+            function tryFetch() {
                 if (settled) return;
                 try {
                     fetch('https://qifu-api.baidubce.com/ip/local/geo/v1/district', {mode: 'cors'})
                         .then(function(r) { return r.json(); })
-                        .then(function(d) { finish(d && d.data && d.data.city ? String(d.data.city).replace(/市$/, '') : null); })
-                        .catch(function() { finish(null); });
-                } catch (e) { finish(null); }
-            }, 2500);
+                        .then(function(d) { finish(d && d.data && d.data.city ? String(d.data.city).replace(/市$/, '') : ''); })
+                        .catch(function() { finish(''); });
+                } catch (e) { finish(''); }
+            }
+            trySohu();
         }
         function updateNetStats() {
             window._skipAutoFill = false;
