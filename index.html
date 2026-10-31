@@ -2232,18 +2232,24 @@
             window._skipAutoFill = false;
             var s = document.getElementById('serverCityLabel').textContent.replace(' ›', '');
             var cityMap = {
-                '上海':'https://www.shanghai.gov.cn/favicon.ico','北京':'https://www.beijing.gov.cn/favicon.ico','广州':'https://www.gz.gov.cn/favicon.ico','深圳':'https://www.sz.gov.cn/favicon.ico',
-                '成都':'https://www.chengdu.gov.cn/favicon.ico','杭州':'https://www.hangzhou.gov.cn/favicon.ico','武汉':'https://www.wuhan.gov.cn/favicon.ico','西安':'https://www.xa.gov.cn/favicon.ico',
-                '重庆':'https://www.cq.gov.cn/favicon.ico','南京':'https://www.nanjing.gov.cn/favicon.ico','天津':'https://www.tj.gov.cn/favicon.ico','沈阳':'https://www.shenyang.gov.cn/favicon.ico',
-                '济南':'https://www.jinan.gov.cn/favicon.ico','郑州':'https://www.zhengzhou.gov.cn/favicon.ico','长沙':'https://www.changsha.gov.cn/favicon.ico','福州':'https://www.fuzhou.gov.cn/favicon.ico',
-                '合肥':'https://www.hefei.gov.cn/favicon.ico','南昌':'https://www.nc.gov.cn/favicon.ico','南宁':'https://www.nanning.gov.cn/favicon.ico','昆明':'https://www.km.gov.cn/favicon.ico',
-                '贵阳':'https://www.guiyang.gov.cn/favicon.ico','兰州':'https://www.lanzhou.gov.cn/favicon.ico','乌鲁木齐':'https://www.urumqi.gov.cn/favicon.ico','哈尔滨':'https://www.harbin.gov.cn/favicon.ico',
-                '长春':'https://www.changchun.gov.cn/favicon.ico','石家庄':'https://www.sjz.gov.cn/favicon.ico','太原':'https://www.shanxi.gov.cn/favicon.ico','呼和浩特':'https://www.huhhot.gov.cn/favicon.ico',
-                '银川':'https://www.yinchuan.gov.cn/favicon.ico','西宁':'https://www.xining.gov.cn/favicon.ico','拉萨':'https://www.lasa.gov.cn/favicon.ico','海口':'https://www.haikou.gov.cn/favicon.ico',
-                '厦门':'https://www.xm.gov.cn/favicon.ico','青岛':'https://www.qingdao.gov.cn/favicon.ico','大连':'https://www.dl.gov.cn/favicon.ico',
-                '香港':'https://www.lagou.com/favicon.ico','台湾':'https://www.pchome.com/favicon.ico','首尔':'https://www.naver.com/favicon.ico','东京':'https://www.cloudflare.com/favicon.ico',
-                '新加坡':'https://www.cloudflare.com/favicon.ico','纽约':'https://www.cloudflare.com/favicon.ico','洛杉矶':'https://www.cloudflare.com/favicon.ico',
-                '伦敦':'https://www.cloudflare.com/favicon.ico','巴黎':'https://www.cloudflare.com/favicon.ico','悉尼':'https://www.cloudflare.com/favicon.ico'
+                '上海':'https://www.shanghai.gov.cn/favicon.ico',
+                '北京':'https://www.beijing.gov.cn/favicon.ico',
+                '广州':'https://www.gz.gov.cn/favicon.ico',
+                '深圳':'https://www.sz.gov.cn/favicon.ico',
+                '成都':'https://www.chengdu.gov.cn/favicon.ico',
+                '杭州':'https://www.hangzhou.gov.cn/favicon.ico',
+                '武汉':'https://www.wuhan.gov.cn/favicon.ico',
+                '西安':'https://www.xa.gov.cn/favicon.ico',
+                '重庆':'https://www.cq.gov.cn/favicon.ico',
+                '香港':'https://www.hk.gov/favicon.ico',
+                '首尔':'https://www.naver.com/favicon.ico',
+                '东京':'https://www.yahoo.co.jp/favicon.ico',
+                '新加坡':'https://www.yahoo.com.sg/favicon.ico',
+                '纽约':'https://www.ny.gov/favicon.ico',
+                '洛杉矶':'https://www.lacity.gov/favicon.ico',
+                '伦敦':'https://www.london.gov.uk/favicon.ico',
+                '巴黎':'https://www.paris.fr/favicon.ico',
+                '悉尼':'https://www.sydney.gov.au/favicon.ico'
             };
             var url = cityMap[s] || 'https://www.baidu.com/favicon.ico';
             var cityOffset = {
@@ -2391,7 +2397,7 @@
             hideWeakScenePicker();
         }
 
-        var serverCityOptions = ['北京','上海','广州','深圳','成都','杭州','武汉','西安','重庆','香港','首尔','东京','新加坡','纽约','洛杉矶','伦敦','巴黎','悉尼'];
+        var serverCityOptions = ['上海','北京','广州','深圳','成都','杭州','武汉','西安','重庆','香港','首尔','东京','新加坡','纽约','洛杉矶','伦敦','巴黎','悉尼'];
         var clientCityOptions = ['北京市','上海市','广州市','深圳市','成都市','杭州市','武汉市','西安市','重庆市','香港','首尔','东京','新加坡','纽约','洛杉矶','伦敦','巴黎','悉尼'];
         var ispOptions = ['中国电信','中国联通','中国移动'];
         var netTypeOptions = ['WiFi','4G','5G','3G','2G'];
