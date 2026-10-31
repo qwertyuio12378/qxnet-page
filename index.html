@@ -2258,18 +2258,21 @@
             var ok = 0, fail = 0, totalRtt = 0, done = 0, TEST_N = 10;
             function testOne() {
                 var start = Date.now();
-                var timeout = new Promise(function(_, reject) {
-                    setTimeout(function() { reject(new Error('timeout')); }, 2000);
-                });
-                Promise.race([
-                    fetch(url + '?t=' + Date.now() + '_' + Math.random(), {cache: 'no-store', mode: 'no-cors'}),
-                    timeout
-                ]).then(function() {
+                var settled = false;
+                var timer = setTimeout(function(){ if(!settled){ settled=true; fail++; done++; showResult(); } }, 2000);
+                var img = new Image();
+                img.onload = function() {
+                    if(settled) return; settled=true; clearTimeout(timer);
                     totalRtt += Date.now() - start;
                     ok++; done++; showResult();
-                }).catch(function() {
-                    fail++; done++; showResult();
-                });
+                };
+                img.onerror = function() {
+                    if(settled) return; settled=true; clearTimeout(timer);
+                    var elapsed = Date.now() - start;
+                    if (elapsed < 1800) { totalRtt += elapsed; ok++; } else { fail++; }
+                    done++; showResult();
+                };
+                img.src = url + '?t=' + Date.now() + '_' + Math.random();
             }
             function showResult() {
                 var base = ok > 0 ? Math.round(totalRtt / ok) : 999;
