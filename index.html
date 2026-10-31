@@ -377,12 +377,12 @@
        <span class="mod-tag">网络选择</span>
       </div>
       <div class="mod-section" style="padding:0 16px;">
-       <div style="display:flex; justify-content:space-between; align-items:center; padding:14px 0; border-bottom:1px solid var(--border);" onclick="showGenericPicker('clientCity', '客户端', clientCityOptions, document.getElementById('clientCityLabel').textContent.replace(' ›', ''), function(name){ document.getElementById('clientCityLabel').textContent = name + ' ›'; updateNetStats(); })">
+       <div style="display:flex; justify-content:space-between; align-items:center; padding:14px 0; border-bottom:1px solid var(--border);">
         <div style="white-space:nowrap;">
           <div style="font-size:17px; color:#333; font-weight:500;">客服端</div>
-          <div style="font-size:12px; color:#999; margin-top:4px;">选择客户端所在地</div>
+          <div style="font-size:12px; color:#999; margin-top:4px;">已自动定位，无需切换</div>
         </div>
-        <span id="clientCityLabel" style="color:#999; font-size:15px; white-space:nowrap; margin-left:16px;">北京市 ›</span>
+        <span id="clientCityLabel" style="color:#999; font-size:15px; white-space:nowrap; margin-left:16px;">定位中... ›</span>
        </div>
        <div style="display:flex; justify-content:space-between; align-items:center; padding:14px 0; border-bottom:1px solid var(--border);" onclick="showGenericPicker('serverCity', '服务端', serverCityOptions, document.getElementById('serverCityLabel').textContent.replace(' ›', ''), function(name){ document.getElementById('serverCityLabel').textContent = name + ' ›'; updateNetStats(); })">
         <div style="white-space:nowrap;">
@@ -1857,6 +1857,8 @@
             document.querySelectorAll('.page').forEach(function (p) { p.classList.remove('active'); });
             document.getElementById('page-template-edit').classList.add('active');
             updateNavBar('template-edit');
+            locateClientCity();
+            updateNetStats();
         }
 
         function addScene(name) {
@@ -2228,6 +2230,26 @@
 
         var lastRtt = 0;
         var lastMeasuredLatency = 0;
+        var locatedClientCity = '';
+        function locateClientCity() {
+            var el = document.getElementById('clientCityLabel');
+            if (!el) return;
+            try {
+                fetch('https://ip-api.com/json?lang=zh-CN', {mode: 'cors'})
+                    .then(function(r) { return r.json(); })
+                    .then(function(d) {
+                        if (d && d.city) {
+                            locatedClientCity = String(d.city).replace(/市$/, '');
+                            el.textContent = locatedClientCity + ' ›';
+                        } else {
+                            el.textContent = '未知 ›';
+                        }
+                    })
+                    .catch(function() { el.textContent = '未知 ›'; });
+            } catch (e) {
+                el.textContent = '未知 ›';
+            }
+        }
         function updateNetStats() {
             window._skipAutoFill = false;
             var s = document.getElementById('serverCityLabel').textContent.replace(' ›', '');
