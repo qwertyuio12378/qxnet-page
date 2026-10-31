@@ -2262,6 +2262,7 @@
                 '伦敦':180,'巴黎':180,'悉尼':170
             };
             var ok = 0, fail = 0, totalRtt = 0, minRtt = 99999, done = 0, TEST_N = 33;
+            var prevRtt = -1, jitterSum = 0, jitterCount = 0;
             var warm = new Image();
             warm.src = url + '?warm=' + Date.now();
             setTimeout(function() {
@@ -2277,12 +2278,19 @@
                     var rt = Date.now() - start;
                     totalRtt += rt;
                     if (rt < minRtt) minRtt = rt;
+                    if (prevRtt >= 0) { jitterSum += Math.abs(rt - prevRtt); jitterCount++; }
+                    prevRtt = rt;
                     ok++; done++; showResult(); nextTest();
                 };
                 img.onerror = function() {
                     if(settled) return; settled=true; clearTimeout(timer);
                     var elapsed = Date.now() - start;
-                    if (elapsed < 500) { totalRtt += elapsed; if (elapsed < minRtt) minRtt = elapsed; ok++; } else { fail++; }
+                    if (elapsed < 500) {
+                        totalRtt += elapsed; if (elapsed < minRtt) minRtt = elapsed;
+                        if (prevRtt >= 0) { jitterSum += Math.abs(elapsed - prevRtt); jitterCount++; }
+                        prevRtt = elapsed;
+                        ok++;
+                    } else { fail++; }
                     done++; showResult(); nextTest();
                 };
                 img.src = url + '?t=' + Date.now() + '_' + Math.random();
@@ -2295,9 +2303,7 @@
                 lastMeasuredLatency = rtt;
                 var total = ok + fail;
                 var loss = total > 0 ? Math.round(fail / total * 10000) / 100 : 0;
-                var jitter = Math.abs(rtt - lastRtt);
-                lastRtt = rtt;
-                if (jitter < 0) jitter = 0;
+                var jitter = jitterCount > 0 ? Math.round(jitterSum / jitterCount * 100) / 100 : 0;
                 var d = new Date();
                 var ts = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
                 if (done >= TEST_N) {
