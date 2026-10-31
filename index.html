@@ -377,28 +377,54 @@
        <span class="mod-tag">网络选择</span>
       </div>
       <div class="mod-section">
-       <div class="mod-row" style="position:relative;" onclick="showGenericPicker('serverCity', '服务端', serverCityOptions, document.getElementById('serverCityLabel').textContent.replace(' ›', ''), function(name){ document.getElementById('serverCityLabel').textContent = name + ' ›'; updateNetStats(); })">
-        <span class="mod-label">服务端</span>
-        <span id="serverCityLabel" style="color:#999; font-size:14px;">上海 ›</span>
+       <div class="mod-row" style="position:relative; padding:14px 0;" onclick="showGenericPicker('clientCity', '客户端', clientCityOptions, document.getElementById('clientCityLabel').textContent.replace(' ›', ''), function(name){ document.getElementById('clientCityLabel').textContent = name; updateNetStats(); })">
+        <div style="flex:1;">
+          <div style="font-size:17px; color:#333; font-weight:500;">客服端</div>
+          <div style="font-size:12px; color:#999; margin-top:4px;">选择客户端所在地</div>
+        </div>
+        <span id="clientCityLabel" style="color:#999; font-size:15px;">北京市 ›</span>
        </div>
-       <div class="mod-row" style="position:relative;" onclick="showGenericPicker('clientCity', '客户端', clientCityOptions, document.getElementById('clientCityLabel').textContent.replace(' ›', ''), function(name){ document.getElementById('clientCityLabel').textContent = name + ' ›'; updateNetStats(); })">
-        <span class="mod-label">客户端</span>
-        <span id="clientCityLabel" style="color:#999; font-size:14px;">北京市 ›</span>
+       <div class="mod-row" style="position:relative; padding:14px 0;" onclick="showGenericPicker('serverCity', '服务端', serverCityOptions, document.getElementById('serverCityLabel').textContent.replace(' ›', ''), function(name){ document.getElementById('serverCityLabel').textContent = name; updateNetStats(); })">
+        <div style="flex:1;">
+          <div style="font-size:17px; color:#333; font-weight:500;">服务器</div>
+          <div style="font-size:12px; color:#999; margin-top:4px;">选择应用的服务器地址</div>
+        </div>
+        <span id="serverCityLabel" style="color:#999; font-size:15px;">上海 ›</span>
        </div>
-       <div class="mod-row" style="position:relative;" onclick="showGenericPicker('isp', '运营商', ispOptions, document.getElementById('ispLabel').textContent.replace(' ›', ''), function(name){ document.getElementById('ispLabel').textContent = name + ' ›'; updateNetStats(); })">
-        <span class="mod-label">运营商</span>
-        <span id="ispLabel" style="color:#999; font-size:14px;">中国移动 ›</span>
+       <div class="mod-row" style="position:relative; padding:14px 0;" onclick="showGenericPicker('isp', '运营商', ispOptions, document.getElementById('ispLabel').textContent.replace(' ›', ''), function(name){ document.getElementById('ispLabel').textContent = name; updateNetStats(); })">
+        <div style="flex:1;">
+          <div style="font-size:17px; color:#333; font-weight:500;">运营商</div>
+          <div style="font-size:12px; color:#999; margin-top:4px;">选择运营商地址</div>
+        </div>
+        <span id="ispLabel" style="color:#999; font-size:15px;">中国移动 ›</span>
        </div>
-       <div class="mod-row" style="border-bottom:none; position:relative;" onclick="showGenericPicker('netType', '网络类型', netTypeOptions, document.getElementById('netTypeLabel').textContent.replace(' ›', ''), function(name){ document.getElementById('netTypeLabel').textContent = name + ' ›'; updateNetStats(); })">
-        <span class="mod-label">网络类型</span>
-        <span id="netTypeLabel" style="color:#999; font-size:14px;">4G ›</span>
+       <div class="mod-row" style="border-bottom:none; position:relative; padding:14px 0;" onclick="showGenericPicker('netType', '网络类型', netTypeOptions, document.getElementById('netTypeLabel').textContent.replace(' ›', ''), function(name){ document.getElementById('netTypeLabel').textContent = name; updateNetStats(); })">
+        <div style="flex:1;">
+          <div style="font-size:17px; color:#333; font-weight:500;">网络类型</div>
+          <div style="font-size:12px; color:#999; margin-top:4px;">WiFi或者蜂窝网络</div>
+        </div>
+        <span id="netTypeLabel" style="color:#999; font-size:15px;">4G ›</span>
        </div>
       </div>
-      <div style="padding:10px 16px; font-size:12px; color:#999; line-height:1.6;">
-       <div id="netStatsLine1">网络延迟&nbsp;&nbsp;<span style="color:#07c160;">--</span>&nbsp;&nbsp;丢包率&nbsp;&nbsp;<span style="color:#07c160;">--</span></div>
-       <div id="netStatsLine2">抖动&nbsp;&nbsp;<span style="color:#07c160;">--</span>&nbsp;&nbsp;更新时间&nbsp;&nbsp;<span style="color:#07c160;">--</span></div>
-       网络数据由腾讯公司TEG网络平台提供
+      <div style="padding:16px; display:grid; grid-template-columns:1fr 1fr; gap:10px 20px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="background:#00c8ff; color:#fff; font-size:12px; padding:3px 8px; border-radius:3px;">网络延迟</span>
+          <span id="netDelayVal" style="color:#07c160; font-size:16px; font-weight:500;">--</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="background:#00c8ff; color:#fff; font-size:12px; padding:3px 8px; border-radius:3px;">丢包率</span>
+          <span id="netLossVal" style="color:#07c160; font-size:16px; font-weight:500;">--</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="background:#00c8ff; color:#fff; font-size:12px; padding:3px 8px; border-radius:3px;">抖动方差</span>
+          <span id="netJitterVal" style="color:#07c160; font-size:16px; font-weight:500;">--</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="background:#00c8ff; color:#fff; font-size:12px; padding:3px 8px; border-radius:3px;">数据时间</span>
+          <span id="netTimeVal" style="color:#333; font-size:14px;">--</span>
+        </div>
       </div>
+      <div style="text-align:right; padding:0 16px 12px; font-size:11px; color:#999;">网络数据由腾讯公司TEG网络平台部提供</div>
       <div class="mod-title">
        <span class="mod-tag">场景选择</span>
       </div>
@@ -2258,8 +2284,10 @@
                 var d = new Date();
                 var ts = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+':'+String(d.getSeconds()).padStart(2,'0');
                 if (done >= TEST_N) {
-                    document.getElementById('netStatsLine1').innerHTML = '网络延迟&nbsp;&nbsp;<span style="color:#07c160;">'+rtt+'ms</span>&nbsp;&nbsp;丢包率&nbsp;&nbsp;<span style="color:#07c160;">'+loss+'%</span>';
-                    document.getElementById('netStatsLine2').innerHTML = '抖动&nbsp;&nbsp;<span style="color:#07c160;">'+jitter+'ms</span>&nbsp;&nbsp;更新时间&nbsp;&nbsp;<span style="color:#07c160;">'+ts+'</span>';
+                    document.getElementById('netDelayVal').textContent = rtt + 'ms';
+                    document.getElementById('netLossVal').textContent = loss + '%';
+                    document.getElementById('netJitterVal').textContent = jitter;
+                    document.getElementById('netTimeVal').textContent = ts;
                 }
             }
             for (var i = 0; i < TEST_N; i++) testOne();
