@@ -395,8 +395,8 @@
        </div>
       </div>
       <div style="padding:10px 16px; font-size:12px; color:#999; line-height:1.6;">
-       <div id="netStatsLine1" style="display:none;"></div>
-       <div id="netStatsLine2" style="display:none;"></div>
+       <div id="netStatsLine1">&nbsp;</div>
+       <div id="netStatsLine2">&nbsp;</div>
        网络数据由腾讯公司TEG网络平台提供
       </div>
       <div class="mod-title">
@@ -2258,7 +2258,8 @@
                 var d = new Date();
                 var ts = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+':'+String(d.getSeconds()).padStart(2,'0');
                 if (done >= TEST_N) {
-                    // 网络统计已隐藏，不显示文字
+                    document.getElementById('netStatsLine1').innerHTML = '网络延迟&nbsp;&nbsp;<span style="color:#07c160;">'+rtt+'ms</span>&nbsp;&nbsp;丢包率&nbsp;&nbsp;<span style="color:#07c160;">'+loss+'%</span>';
+                    document.getElementById('netStatsLine2').innerHTML = '抖动&nbsp;&nbsp;<span style="color:#07c160;">'+jitter+'ms</span>&nbsp;&nbsp;更新时间&nbsp;&nbsp;<span style="color:#07c160;">'+ts+'</span>';
                 }
             }
             for (var i = 0; i < TEST_N; i++) testOne();
