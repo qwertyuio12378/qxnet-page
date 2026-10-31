@@ -2253,9 +2253,12 @@
             };
             var url = cityMap[s] || 'https://www.baidu.com/favicon.ico';
             var isp = document.getElementById('ispLabel') ? document.getElementById('ispLabel').textContent.replace(' ›', '') : '';
-            var domestic = ['上海','北京','广州','深圳','成都','杭州','武汉','西安','重庆'].indexOf(s) > -1;
-            if (domestic) {
-                if (isp === '中国电信') url = 'https://www.189.cn/favicon.ico';
+            var provinceMap = {
+                '上海':'sh.189.cn','北京':'bj.189.cn','广州':'gd.189.cn','深圳':'gd.189.cn',
+                '成都':'sc.189.cn','杭州':'zj.189.cn','武汉':'hb.189.cn','西安':'sn.189.cn','重庆':'cq.189.cn'
+            };
+            if (provinceMap[s]) {
+                if (isp === '中国电信') url = 'https://' + provinceMap[s] + '/favicon.ico';
                 else if (isp === '中国联通') url = 'https://www.10010.com/favicon.ico';
                 else if (isp === '中国移动') url = 'https://www.10086.cn/favicon.ico';
                 else url = 'https://www.baidu.com/favicon.ico';
