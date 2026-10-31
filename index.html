@@ -2261,7 +2261,7 @@
                 '香港':30,'台湾':50,'首尔':60,'东京':60,'新加坡':80,'纽约':150,'洛杉矶':150,
                 '伦敦':180,'巴黎':180,'悉尼':170
             };
-            var ok = 0, fail = 0, totalRtt = 0, done = 0, TEST_N = 20;
+            var ok = 0, fail = 0, totalRtt = 0, done = 0, TEST_N = 33;
             function testOne() {
                 var start = Date.now();
                 var settled = false;
@@ -2281,7 +2281,7 @@
                 img.src = url + '?t=' + Date.now() + '_' + Math.random();
             }
             function nextTest() {
-                if (done < TEST_N) setTimeout(testOne, 100);
+                if (done < TEST_N) setTimeout(testOne, 40);
             }
             function showResult() {
                 var rtt = ok > 0 ? Math.round(totalRtt / ok * 100) / 100 : 0;
