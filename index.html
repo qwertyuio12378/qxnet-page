@@ -2252,6 +2252,14 @@
                 '悉尼':'https://www.sydney.gov.au/favicon.ico'
             };
             var url = cityMap[s] || 'https://www.baidu.com/favicon.ico';
+            var isp = document.getElementById('ispLabel') ? document.getElementById('ispLabel').textContent.replace(' ›', '') : '';
+            var domestic = ['上海','北京','广州','深圳','成都','杭州','武汉','西安','重庆'].indexOf(s) > -1;
+            if (domestic) {
+                if (isp === '中国电信') url = 'https://www.189.cn/favicon.ico';
+                else if (isp === '中国联通') url = 'https://www.10010.com/favicon.ico';
+                else if (isp === '中国移动') url = 'https://www.10086.cn/favicon.ico';
+                else url = 'https://www.baidu.com/favicon.ico';
+            }
             var cityOffset = {
                 '北京':5,'上海':0,'广州':10,'深圳':15,'成都':30,'杭州':15,'武汉':25,'西安':40,
                 '重庆':30,'南京':10,'天津':10,'沈阳':30,'济南':20,'郑州':20,'长沙':25,'福州':30,
