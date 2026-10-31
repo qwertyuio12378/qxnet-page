@@ -2261,11 +2261,11 @@
                 '香港':30,'台湾':50,'首尔':60,'东京':60,'新加坡':80,'纽约':150,'洛杉矶':150,
                 '伦敦':180,'巴黎':180,'悉尼':170
             };
-            var ok = 0, fail = 0, totalRtt = 0, done = 0, TEST_N = 10;
+            var ok = 0, fail = 0, totalRtt = 0, done = 0, TEST_N = 30;
             function testOne() {
                 var start = Date.now();
                 var settled = false;
-                var timer = setTimeout(function(){ if(!settled){ settled=true; fail++; done++; showResult(); } }, 2000);
+                var timer = setTimeout(function(){ if(!settled){ settled=true; fail++; done++; showResult(); } }, 1500);
                 var img = new Image();
                 img.onload = function() {
                     if(settled) return; settled=true; clearTimeout(timer);
