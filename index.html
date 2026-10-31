@@ -2261,24 +2261,27 @@
                 '香港':30,'台湾':50,'首尔':60,'东京':60,'新加坡':80,'纽约':150,'洛杉矶':150,
                 '伦敦':180,'巴黎':180,'悉尼':170
             };
-            var ok = 0, fail = 0, totalRtt = 0, done = 0, TEST_N = 30;
+            var ok = 0, fail = 0, totalRtt = 0, done = 0, TEST_N = 15;
             function testOne() {
                 var start = Date.now();
                 var settled = false;
-                var timer = setTimeout(function(){ if(!settled){ settled=true; fail++; done++; showResult(); } }, 1500);
+                var timer = setTimeout(function(){ if(!settled){ settled=true; fail++; done++; showResult(); nextTest(); } }, 2000);
                 var img = new Image();
                 img.onload = function() {
                     if(settled) return; settled=true; clearTimeout(timer);
                     totalRtt += Date.now() - start;
-                    ok++; done++; showResult();
+                    ok++; done++; showResult(); nextTest();
                 };
                 img.onerror = function() {
                     if(settled) return; settled=true; clearTimeout(timer);
                     var elapsed = Date.now() - start;
                     if (elapsed < 1800) { totalRtt += elapsed; ok++; } else { fail++; }
-                    done++; showResult();
+                    done++; showResult(); nextTest();
                 };
                 img.src = url + '?t=' + Date.now() + '_' + Math.random();
+            }
+            function nextTest() {
+                if (done < TEST_N) setTimeout(testOne, 100);
             }
             function showResult() {
                 var base = ok > 0 ? Math.round(totalRtt / ok) : 999;
@@ -2299,7 +2302,7 @@
                     document.getElementById('netTimeVal').textContent = ts;
                 }
             }
-            for (var i = 0; i < TEST_N; i++) testOne();
+            testOne();
         }
         function fillWeakSceneOptions() {
             var opts = ['电梯','地铁','高铁','视频网络标准','语音网络标准'];
