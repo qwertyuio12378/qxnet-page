@@ -107,6 +107,12 @@
         .mod-unit { color: #999; font-size: 13px; margin-left: 4px; flex-shrink: 0; }
         .mod-sublabel { color: #999; font-size: 13px; margin-left: 8px; flex-shrink: 0; }
         .mod-sublabel + .mod-input { margin-left: 6px; }
+        .cycle-grid { display: grid; grid-template-columns: 56px 1fr 1fr; gap: 8px 12px; background: #fff; padding: 10px 16px 12px; }
+        .cycle-head { color: #999; font-size: 13px; text-align: center; padding: 2px 0 0; }
+        .cycle-label { color: #333; font-size: 15px; font-weight: 500; display: flex; align-items: center; }
+        .cycle-input { border: none; outline: none; font-size: 14px; color: #333; background: #f2f5f8; border-radius: 6px; padding: 8px 6px; text-align: center; min-width: 0; }
+        .cycle-input:focus { background: #e6f4ff; color: var(--primary-dark); }
+        .cycle-input::placeholder { color: #bbb; }
         .multi-field { flex: 1; display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 2px; }
         .multi-field .sub-label { color: #999; font-size: 12px; margin: 0 2px 0 8px; white-space: nowrap; }
         .multi-field .sub-label:first-child { margin-left: 0; }
@@ -518,19 +524,16 @@
       </select>
      </div>
      <div class="mod-section">
-      <div class="mod-row">
-       <span class="mod-label">上行</span>
-       <span class="mod-sublabel">放行</span>
-       <input class="mod-input" id="outPassMs" placeholder="ms"> 
-       <span class="mod-sublabel">丢包</span>
-       <input class="mod-input" id="outBurst" placeholder="ms"> 
-      </div> 
-      <div class="mod-row" style="border-bottom: none;"> 
-       <span class="mod-label">下行</span>
-       <span class="mod-sublabel">放行</span>
-       <input class="mod-input" id="inPassMs" placeholder="ms"> 
-       <span class="mod-sublabel">丢包</span>
-       <input class="mod-input" id="inBurst" placeholder="ms"> 
+      <div class="cycle-grid">
+       <div class="cycle-head"></div>
+       <div class="cycle-head">放行</div>
+       <div class="cycle-head">丢包</div>
+       <div class="cycle-label">上行</div>
+       <input class="cycle-input" id="outPassMs" placeholder="ms"> 
+       <input class="cycle-input" id="outBurst" placeholder="ms"> 
+       <div class="cycle-label">下行</div>
+       <input class="cycle-input" id="inPassMs" placeholder="ms"> 
+       <input class="cycle-input" id="inBurst" placeholder="ms"> 
       </div> 
      </div> 
      <div class="mod-title">
@@ -1905,7 +1908,7 @@
 
         // ==================== 模板编辑 ====================
         function resetForm() {
-            var inputs = document.querySelectorAll('#page-template-edit .mod-input, #page-template-edit .f-input');
+            var inputs = document.querySelectorAll('#page-template-edit .mod-input, #page-template-edit .f-input, #page-template-edit .cycle-input');
             inputs.forEach(function (input) { input.value = ''; });
             document.getElementById('configSceneDesc').value = '';
             protocolType = DEFAULT_PROTOCOL;
