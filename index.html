@@ -520,6 +520,16 @@
        </select>
       </div>
       <div class="mod-row">
+       <span class="mod-label">上行丢包率</span>
+       <input class="mod-input" id="outCycleLoss" placeholder="默认为空不生效"> 
+       <span class="mod-unit">%</span> 
+      </div> 
+      <div class="mod-row">
+       <span class="mod-label">下行丢包率</span>
+       <input class="mod-input" id="inCycleLoss" placeholder="默认为空不生效"> 
+       <span class="mod-unit">%</span> 
+      </div> 
+      <div class="mod-row">
        <span class="mod-label">上行放行时长</span>
        <input class="mod-input" id="outPassMs" placeholder="默认为空不生效"> 
        <span class="mod-unit">ms</span> 
@@ -1185,9 +1195,11 @@
             var arr = [];
             var max = parseInt(maxVal);
             var prob = parseInt(probVal);
-            if (isNaN(max) || max === -1 || max < 0 || isNaN(prob) || prob === -1) {
+            if (isNaN(max) || max === -1 || max < 0) {
                 for (var i = 0; i < 10; i++) arr.push([-1, -1, -1]);
             } else {
+                if (isNaN(prob) || prob === -1 || prob < 0) prob = 100;
+                if (prob > 100) prob = 100;
                 arr.push([0, max, prob]);
                 for (var i = 1; i < 10; i++) arr.push([-1, -1, -1]);
             }
@@ -1234,7 +1246,7 @@
                         out_bandwidth: cfg('out_bandwidth', 'outBandwidth'),
                         out_delay: cfg('out_delay', 'outDelay'),
                         out_rate: cfg('out_rate', 'outRate'),
-                        out_loss: cfg('out_loss', 'outRate'),
+                        out_loss: cfg('out_loss', 'outCycleLoss'),
                         out_pass: cfg('out_pass', 'outPassMs'),
                         out_burst: cfg('out_burst', 'outBurst'),
                         out_delaybiasarray: (sceneCfg.out_delaybiasarray && sceneCfg.out_delaybiasarray.length > 0 && sceneCfg.out_delaybiasarray[0] && sceneCfg.out_delaybiasarray[0][0] != -1) ? sceneCfg.out_delaybiasarray : generateJitterArray(getInputValueAsInt('outJitterMax'), getInputValueAsInt('outJitterProb')),
@@ -1242,7 +1254,7 @@
                         in_bandwidth: cfg('in_bandwidth', 'inBandwidth'),
                         in_delay: cfg('in_delay', 'inDelay'),
                         in_rate: cfg('in_rate', 'inRate'),
-                        in_loss: cfg('in_loss', 'inRate'),
+                        in_loss: cfg('in_loss', 'inCycleLoss'),
                         in_pass: cfg('in_pass', 'inPassMs'),
                         in_burst: cfg('in_burst', 'inBurst'),
                         in_delaybiasarray: (sceneCfg.in_delaybiasarray && sceneCfg.in_delaybiasarray.length > 0 && sceneCfg.in_delaybiasarray[0] && sceneCfg.in_delaybiasarray[0][0] != -1) ? sceneCfg.in_delaybiasarray : generateJitterArray(getInputValueAsInt('inJitterMax'), getInputValueAsInt('inJitterProb')),
@@ -1940,8 +1952,8 @@
             if (config.in_bandwidth !== undefined && config.in_bandwidth !== DEFAULT_VALUE) document.getElementById('inBandwidth').value = config.in_bandwidth;
             if (config.out_delay !== undefined && config.out_delay !== DEFAULT_VALUE) document.getElementById('outDelay').value = config.out_delay;
             if (config.in_delay !== undefined && config.in_delay !== DEFAULT_VALUE) document.getElementById('inDelay').value = config.in_delay;
-            if (config.out_loss !== undefined && config.out_loss !== DEFAULT_VALUE) document.getElementById('outRate').value = config.out_loss;
-            if (config.in_loss !== undefined && config.in_loss !== DEFAULT_VALUE) document.getElementById('inRate').value = config.in_loss;
+            if (config.out_loss !== undefined && config.out_loss !== DEFAULT_VALUE) document.getElementById('outCycleLoss').value = config.out_loss;
+            if (config.in_loss !== undefined && config.in_loss !== DEFAULT_VALUE) document.getElementById('inCycleLoss').value = config.in_loss;
             if (config.out_pass !== undefined && config.out_pass !== DEFAULT_VALUE) document.getElementById('outPassMs').value = config.out_pass;
             if (config.in_pass !== undefined && config.in_pass !== DEFAULT_VALUE) document.getElementById('inPassMs').value = config.in_pass;
             if (config.out_burst !== undefined && config.out_burst !== DEFAULT_VALUE) document.getElementById('outBurst').value = config.out_burst;
@@ -2005,8 +2017,8 @@
             config.in_bandwidth = getInputValueAsInt('inBandwidth');
             config.out_delay = getInputValueAsInt('outDelay');
             config.in_delay = getInputValueAsInt('inDelay');
-            config.out_loss = getInputValueAsInt('outRate');
-            config.in_loss = getInputValueAsInt('inRate');
+            config.out_loss = getInputValueAsInt('outCycleLoss');
+            config.in_loss = getInputValueAsInt('inCycleLoss');
             config.out_pass = getInputValueAsInt('outPassMs');
             config.in_pass = getInputValueAsInt('inPassMs');
             config.out_burst = getInputValueAsInt('outBurst');
