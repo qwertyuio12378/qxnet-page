@@ -105,6 +105,8 @@
         .mod-input:focus { color: var(--primary-dark); }
         .mod-input::placeholder { color: #ccc; }
         .mod-unit { color: #999; font-size: 13px; margin-left: 4px; flex-shrink: 0; }
+        .mod-sublabel { color: #999; font-size: 13px; margin-left: 8px; flex-shrink: 0; }
+        .mod-sublabel + .mod-input { margin-left: 6px; }
         .multi-field { flex: 1; display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 2px; }
         .multi-field .sub-label { color: #999; font-size: 12px; margin: 0 2px 0 8px; white-space: nowrap; }
         .multi-field .sub-label:first-child { margin-left: 0; }
@@ -507,37 +509,28 @@
        <span class="mod-unit">%</span>
       </div>
      </div>
-     <div class="mod-title">
+     <div class="mod-title" style="position:relative; display:flex; align-items:center; justify-content:space-between; padding:12px 16px 4px;">
       <span class="mod-tag">周期丢包</span>
+      <span id="weakTypeLabel" style="color:#00c8ff; font-size:15px;">完全弱网 ›</span>
+      <select id="weakType" style="position:absolute; left:0; top:0; width:100%; height:100%; opacity:0;" onchange="document.getElementById('weakTypeLabel').textContent=this.options[this.selectedIndex].text+' ›'">
+       <option value="all">完全弱网</option>
+       <option value="burst">Burst</option>
+      </select>
      </div>
      <div class="mod-section">
-      <div class="mod-row" style="align-items: center; position:relative;">
-       <span class="mod-label">弱网类型</span>
-       <span id="weakTypeLabel" style="color:#00c8ff; font-size:16px;">完全弱网 ›</span>
-       <select id="weakType" style="position:absolute; left:0; top:0; width:100%; height:100%; opacity:0;" onchange="document.getElementById('weakTypeLabel').textContent=this.options[this.selectedIndex].text+' ›'">
-        <option value="all">完全弱网</option>
-        <option value="burst">Burst</option>
-       </select>
-      </div>
       <div class="mod-row">
-       <span class="mod-label">上行放行时长</span>
-       <input class="mod-input" id="outPassMs" placeholder="默认为空不生效"> 
-       <span class="mod-unit">ms</span> 
-      </div> 
-      <div class="mod-row">
-       <span class="mod-label">上行丢包时长</span>
-       <input class="mod-input" id="outBurst" placeholder="默认为空不生效"> 
-       <span class="mod-unit">ms</span> 
-      </div> 
-      <div class="mod-row">
-       <span class="mod-label">下行放行时长</span>
-       <input class="mod-input" id="inPassMs" placeholder="默认为空不生效"> 
-       <span class="mod-unit">ms</span> 
+       <span class="mod-label">上行</span>
+       <span class="mod-sublabel">放行</span>
+       <input class="mod-input" id="outPassMs" placeholder="ms"> 
+       <span class="mod-sublabel">丢包</span>
+       <input class="mod-input" id="outBurst" placeholder="ms"> 
       </div> 
       <div class="mod-row" style="border-bottom: none;"> 
-       <span class="mod-label">下行丢包时长</span>
-       <input class="mod-input" id="inBurst" placeholder="默认为空不生效"> 
-       <span class="mod-unit">ms</span> 
+       <span class="mod-label">下行</span>
+       <span class="mod-sublabel">放行</span>
+       <input class="mod-input" id="inPassMs" placeholder="ms"> 
+       <span class="mod-sublabel">丢包</span>
+       <input class="mod-input" id="inBurst" placeholder="ms"> 
       </div> 
      </div> 
      <div class="mod-title">
