@@ -1414,27 +1414,7 @@
                             var hasCloseCfg = selectedScene && selectedScene.config && selectedScene.config.close_template;
                             if (!hasCloseCfg) {
                                 window._isPaused = !window._isPaused;
-                                var cfg = getStartConfig();
-                                cfg.api = "update_qnet";
-                                var pm = cfg.profile.params[0];
-                                if (window._isPaused) {
-                                    var emptyArr = [[-1,-1,-1],[-1,-1,-1],[-1,-1,-1],[-1,-1,-1],[-1,-1,-1],[-1,-1,-1],[-1,-1,-1],[-1,-1,-1],[-1,-1,-1],[-1,-1,-1]];
-                                    pm.out_delay = 0; pm.in_delay = 0;
-                                    pm.out_rate = 0; pm.in_rate = 0;
-                                    pm.out_loss = 0; pm.in_loss = 0;
-                                    pm.out_burst = 0; pm.in_burst = 0;
-                                    pm.out_pass = 0; pm.in_pass = 0;
-                                    pm.out_delaybiasarray = emptyArr;
-                                    pm.in_delaybiasarray = emptyArr;
-                                }
-                                callNativeApi(cfg);
-                                // 强制更新信息悬浮窗文字
-                                var _sceneName = selectedScene ? selectedScene.name : '未选择';
-                                var _statusText = window._isPaused ? '未生效' : '生效中';
-                                callNativeApi({ api: "update_float_text", scene_name: _sceneName, status_text: _sceneName + ' ' + _statusText });
-                                if (window.SecureJsInterface && window.SecureJsInterface.updateFloatText) {
-                                    window.SecureJsInterface.updateFloatText(_sceneName + ' ' + _statusText);
-                                }
+                                // 只切状态，不下发参数（信息面板参数保持模板配置值不变）
                                 updateFloatWindow();
                                 showToast(window._isPaused ? '已暂停弱网' : '已恢复弱网');
                                 break;
