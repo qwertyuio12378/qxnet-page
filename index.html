@@ -1414,26 +1414,9 @@
                             }
                             var hasCloseCfg = selectedScene && selectedScene.config && selectedScene.config.close_template;
                             if (!hasCloseCfg) {
+                                // 原版2.1.5：▶/⏸ 是原生按钮，直接切 qnetRunningStatus 0↔4
+                                // HTML 不发 stop/start/update_qnet，不断 VPN、不改参数
                                 window._isPaused = !window._isPaused;
-                                if (window._isPaused) {
-                                    // 暂停：热更空参数（弱网不生效，VPN 不断），记住原参数
-                                    window._pauseOrigin = getStartConfig();
-                                    var cfg = getStartConfig();
-                                    cfg.api = "update_qnet";
-                                    var pm = cfg.profile.params[0];
-                                    pm.out_delay = -1; pm.in_delay = -1;
-                                    pm.out_rate = -1; pm.in_rate = -1;
-                                    pm.out_loss = -1; pm.in_loss = -1;
-                                    pm.out_burst = -1; pm.in_burst = -1;
-                                    pm.out_pass = -1; pm.in_pass = -1;
-                                    callNativeApi(cfg);
-                                } else if (window._pauseOrigin) {
-                                    // 恢复：热更回原参数
-                                    var cfg2 = window._pauseOrigin;
-                                    cfg2.api = "update_qnet";
-                                    callNativeApi(cfg2);
-                                    window._pauseOrigin = null;
-                                }
                                 updateFloatWindow();
                                 showToast(window._isPaused ? '已暂停弱网' : '已恢复弱网');
                                 break;
