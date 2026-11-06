@@ -1823,6 +1823,8 @@
                 callNativeApi({api:'set_float_icon', icon:1});
             }
             syncUserProfilesToNative();
+            // 把当前场景的关闭模板同步给原生，悬浮窗按钮才能判断走模板还是切状态
+            callNativeApi({ api: 'set_close_template', name: (scene.config && scene.config.close_template) || '' });
             initWorkbenchScenes();
         }
 
@@ -2054,6 +2056,7 @@
             }
             switchTab('workbench');
             window.scrollTo(0, 0);
+            callNativeApi({ api: 'set_close_template', name: (selectedScene && selectedScene.config && selectedScene.config.close_template) || '' });
         }
 
         function generateSceneDesc(config) {
