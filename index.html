@@ -1411,14 +1411,16 @@
                                 window._isPaused = !window._isPaused;
                                 var cfg = getStartConfig();
                                 cfg.api = "update_qnet";
+                                var pm = cfg.profile.params[0];
                                 if (window._isPaused) {
-                                    cfg.in_delay = 0;
-                                    cfg.out_delay = 0;
-                                    cfg.in_loss = 0;
-                                    cfg.out_loss = 0;
-                                    cfg.in_burst = 0;
-                                    cfg.out_burst = 0;
-                                    cfg.jitter = 0;
+                                    var emptyArr = [[-1,-1,-1],[-1,-1,-1],[-1,-1,-1],[-1,-1,-1],[-1,-1,-1],[-1,-1,-1],[-1,-1,-1],[-1,-1,-1],[-1,-1,-1],[-1,-1,-1]];
+                                    pm.out_delay = 0; pm.in_delay = 0;
+                                    pm.out_rate = 0; pm.in_rate = 0;
+                                    pm.out_loss = 0; pm.in_loss = 0;
+                                    pm.out_burst = 0; pm.in_burst = 0;
+                                    pm.out_pass = 0; pm.in_pass = 0;
+                                    pm.out_delaybiasarray = emptyArr;
+                                    pm.in_delaybiasarray = emptyArr;
                                 }
                                 callNativeApi(cfg);
                                 // 强制更新信息悬浮窗文字
