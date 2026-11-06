@@ -1423,6 +1423,12 @@
                             if (selectedScene && selectedScene.config && selectedScene.config.close_template) {
                                 var closeName = selectedScene.config.close_template;
                                 var closeScene = customScenes.find(function(s){ return s.name === closeName; });
+                                if (!closeScene) {
+                                    window._isPaused = !window._isPaused;
+                                    callNativeApi({api:'set_qnet_pause', paused: window._isPaused});
+                                    showToast(window._isPaused ? '已暂停弱网' : '已恢复弱网');
+                                    break;
+                                }
                                 if (closeScene) {
                                     var prevScene = selectedScene;
                                     var wasRunning = isRunning;
