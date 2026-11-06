@@ -1157,7 +1157,8 @@
                 _bannerEnabled = true;
                 updateBtnStatus();
                 showToast('正在启动QNET...');
-                callNativeApi({api:'set_float_icon', icon:-1});
+                window._isPaused = false;
+                callNativeApi({api:'set_qnet_pause', paused:false});
                 setTimeout(function () { updateFloatWindow(); }, 500);
             } else {
                 showStatusBanner('启动QNET失败');
