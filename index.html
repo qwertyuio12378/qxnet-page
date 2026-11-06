@@ -1140,7 +1140,7 @@
                     updateBtnStatus();
                     showStatusBanner('停止QNET成功');
                     showToast('QNET已停止');
-                    callNativeApi({api:'set_float_icon', icon:0});
+                    callNativeApi({api:'set_float_icon', icon:-1});
                     setTimeout(function () {
                         var cfw = document.getElementById('controlFw').checked ? 1 : 0;
                         var ifw = document.getElementById('infoFw').checked ? 1 : 0;
@@ -1157,7 +1157,7 @@
                 _bannerEnabled = true;
                 updateBtnStatus();
                 showToast('正在启动QNET...');
-                callNativeApi({api:'set_float_icon', icon:1});
+                callNativeApi({api:'set_float_icon', icon:-1});
                 setTimeout(function () { updateFloatWindow(); }, 500);
             } else {
                 showStatusBanner('启动QNET失败');
@@ -1173,7 +1173,7 @@
                 callNativeApi(cfg);
                 isRunning = true;
                 updateBtnStatus();
-                callNativeApi({api:'set_float_icon', icon:1});
+                callNativeApi({api:'set_float_icon', icon:-1});
                 showToast('模板已切换');
                 setTimeout(function () { updateFloatWindow(); }, 500);
             }, 600);
@@ -1377,8 +1377,7 @@
                     window.SecureJsInterface.setSceneDisplayText(displayText);
                 }
                 callNativeApi({ api: "update_float_text", scene_name: sceneName, status_text: displayText });
-                var _useSwitchIcon = window._isClosed || (selectedScene && selectedScene.config && selectedScene.config.close_template);
-                var _icon = _useSwitchIcon ? (window._isClosed ? 1 : 0) : (window._isPaused ? 0 : (isRunning ? 1 : 0));
+                var _icon = window._isClosed ? 1 : -1;
                 callNativeApi({api:'set_float_icon', icon: _icon});
             } catch (e) { console.log("悬浮窗更新失败", e); }
         }
@@ -1826,10 +1825,10 @@
             updateFloatWindow();
             // 刚选场景时就根据close_template配置直接设置图标，避免刚启动时闪▶
             var _hasCloseCfg = scene.config && scene.config.close_template;
-            if (_hasCloseCfg && !window._isClosed) {
-                callNativeApi({api:'set_float_icon', icon:0});
-            } else if (_hasCloseCfg && window._isClosed) {
+            if (window._isClosed) {
                 callNativeApi({api:'set_float_icon', icon:1});
+            } else {
+                callNativeApi({api:'set_float_icon', icon:-1});
             }
             syncUserProfilesToNative();
             // 把当前场景的关闭模板同步给原生，悬浮窗按钮才能判断走模板还是切状态
