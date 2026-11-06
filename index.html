@@ -373,7 +373,7 @@
       <div style="border-top: 1px solid #f0f0f0; padding-top: 10px;"> 
        <div style="display: flex; justify-content: space-between; align-items: center; line-height: 1.4; cursor:pointer;" onclick="showTemplateTypePicker()">
         <span style="font-size: 15px; font-weight: 500; color: #333;">模板类型</span>
-        <span id="templateTypeLabel" style="color:#999; font-size:14px;">自定义模板 ›</span>
+        <span id="templateTypeLabel" style="color:#999; font-size:14px; position:relative; top:9px;">自定义模板 ›</span>
         <input type="hidden" id="templateTypeVal" value="自定义模板">
        </div>
        <div style="font-size: 12px; color: #999; margin-top: 4px;">场景模板/自定义模板</div>
@@ -2289,8 +2289,6 @@
             var box = document.getElementById('paramSheetItems');
             box.innerHTML = '';
             document.getElementById('paramSheetTitle').textContent = '选择模板类型';
-            document.getElementById('sheetMask').style.display = 'block';
-            document.getElementById('paramSheet').style.display = 'block';
             items.forEach(function(name) {
                 var d = document.createElement('div');
                 d.className = 'sheet-item' + (name === current ? ' selected' : '');
@@ -2303,6 +2301,8 @@
                 };
                 box.appendChild(d);
             });
+            document.getElementById('paramSheet').classList.add('show');
+            document.getElementById('sheetMask').classList.add('show');
         }
         function switchTemplateMode() {
             var t = document.getElementById('templateTypeVal').value;
