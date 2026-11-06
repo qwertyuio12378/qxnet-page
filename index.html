@@ -1415,7 +1415,17 @@
                             var hasCloseCfg = selectedScene && selectedScene.config && selectedScene.config.close_template;
                             if (!hasCloseCfg) {
                                 window._isPaused = !window._isPaused;
-                                // 只切状态和图标，不动弱网参数、不重启 VPN
+                                if (window._isPaused) {
+                                    // 暂停：停弱网让面板切"未生效"；标记为暂停忽略停止回调，工作台按钮保持
+                                    window._pausing = true;
+                                    callNativeApi({ api: "stop_qnet" });
+                                } else {
+                                    // 恢复：用当前模板参数重新启动，面板切回"生效中"
+                                    window._pausing = false;
+                                    var cfg = getStartConfig();
+                                    cfg.api = "start_qnet";
+                                    callNativeApi(cfg);
+                                }
                                 updateFloatWindow();
                                 showToast(window._isPaused ? '已暂停弱网' : '已恢复弱网');
                                 break;
@@ -1565,6 +1575,11 @@
             showStatusBanner('启动QNET成功');
         }
         function handleStopQnet(data) {
+            if (window._pausing) {
+                // 暂停触发的停止：保持运行 UI，工作台按钮不变，不弹横幅
+                window._pausing = false;
+                return;
+            }
             isRunning = false;
             updateBtnStatus();
         }
