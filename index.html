@@ -1659,9 +1659,9 @@
         }
 
         function goToTemplateEdit() {
-            window._editingName = '';
             window._skipAutoFill = true;
             if (currentPage === 'workbench') {
+                window._editingName = '';
                 resetForm();
                 var ttv = document.getElementById('templateTypeVal');
                 if (ttv) {
@@ -2045,9 +2045,7 @@
         function saveTemplate() {
             var name = document.getElementById('configSceneName').value.trim();
             if (!name) { showToast('请输入模板名称'); return; }
-            var _dbg_names = [];
-            for (var _di = 0; _di < customScenes.length; _di++) _dbg_names.push(customScenes[_di].name);
-            alert('v22调试\neditingName=[' + (window._editingName || '') + ']\nname=[' + name + ']\nselectedScene=' + (selectedScene ? selectedScene.name : 'null') + '\ncustomScenes=' + JSON.stringify(_dbg_names));
+            showToast('保存:[' + (window._editingName || '新') + '→' + name + ']');
             var desc = document.getElementById('configSceneDesc').value.trim();
             var config = getFormConfig();
             var finalDesc = desc || generateSceneDesc(config);
