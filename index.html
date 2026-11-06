@@ -1378,7 +1378,8 @@
                 }
                 callNativeApi({ api: "update_float_text", scene_name: sceneName, status_text: displayText });
                 var _useSwitchIcon = window._isClosed || (selectedScene && selectedScene.config && selectedScene.config.close_template);
-                callNativeApi({api:'set_float_icon', icon: _useSwitchIcon ? (window._isClosed ? 1 : 0) : (isRunning ? 1 : 0)});
+                var _icon = _useSwitchIcon ? (window._isClosed ? 1 : 0) : (window._isPaused ? 0 : (isRunning ? 1 : 0));
+                callNativeApi({api:'set_float_icon', icon: _icon});
             } catch (e) { console.log("悬浮窗更新失败", e); }
         }
         // ==================== Android回调入口 ====================
@@ -1414,18 +1415,7 @@
                             var hasCloseCfg = selectedScene && selectedScene.config && selectedScene.config.close_template;
                             if (!hasCloseCfg) {
                                 window._isPaused = !window._isPaused;
-                                if (window._isPaused) {
-                                    // 暂停：停弱网，面板切"未生效"；currentProfile 保留，参数显示不变
-                                    callNativeApi({ api: "stop_qnet" });
-                                    isRunning = false;
-                                } else {
-                                    // 恢复：用当前模板参数重新启动，面板切回"生效中"
-                                    var cfg = getStartConfig();
-                                    cfg.api = "start_qnet";
-                                    callNativeApi(cfg);
-                                    isRunning = true;
-                                }
-                                updateBtnStatus();
+                                // 只切状态和图标，不动弱网参数、不重启 VPN
                                 updateFloatWindow();
                                 showToast(window._isPaused ? '已暂停弱网' : '已恢复弱网');
                                 break;
