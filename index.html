@@ -1401,8 +1401,9 @@
                             if (window._isClosed && window._openScene) {
                                 // 当前在关闭模板上，切回开启模板
                                 window._isClosed = false;
-                                selectScene(window._openScene);
-                                callNativeApi({api:'set_float_icon', icon:0});
+                                var _backScene = window._openScene;
+                                window._openScene = null;
+                                selectScene(_backScene);
                                 if (window._wasRunning) {
                                     var cfgBack = getStartConfig();
                                     cfgBack.api = "update_qnet";
@@ -1437,6 +1438,7 @@
                                     window._openScene = prevScene;
                                     window._wasRunning = wasRunning;
                                     window._hasCloseSwitch = true;
+                                    callNativeApi({api:'set_close_template', name: closeName});
                                     if (wasRunning) {
                                         var cfg1 = getStartConfig();
                                         cfg1.api = "update_qnet";
@@ -1829,7 +1831,8 @@
             }
             syncUserProfilesToNative();
             // 把当前场景的关闭模板同步给原生，悬浮窗按钮才能判断走模板还是切状态
-            callNativeApi({ api: 'set_close_template', name: (scene.config && scene.config.close_template) || '' });
+            var _tplBase = (window._isClosed && window._openScene) ? window._openScene : scene;
+            callNativeApi({ api: 'set_close_template', name: (_tplBase.config && _tplBase.config.close_template) || '' });
             initWorkbenchScenes();
         }
 
