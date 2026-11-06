@@ -1404,6 +1404,7 @@
                                 var _backScene = window._openScene;
                                 window._openScene = null;
                                 selectScene(_backScene);
+                                callNativeApi({ api: 'set_close_template', name: (_backScene.config && _backScene.config.close_template) || '' });
                                 if (window._wasRunning) {
                                     var cfgBack = getStartConfig();
                                     cfgBack.api = "update_qnet";
@@ -1832,8 +1833,9 @@
             }
             syncUserProfilesToNative();
             // 把当前场景的关闭模板同步给原生，悬浮窗按钮才能判断走模板还是切状态
-            var _tplBase = (window._isClosed && window._openScene) ? window._openScene : scene;
-            callNativeApi({ api: 'set_close_template', name: (_tplBase.config && _tplBase.config.close_template) || '' });
+            if (!window._isClosed) {
+                callNativeApi({ api: 'set_close_template', name: (scene.config && scene.config.close_template) || '' });
+            }
             initWorkbenchScenes();
         }
 
@@ -2065,7 +2067,7 @@
             }
             switchTab('workbench');
             window.scrollTo(0, 0);
-            callNativeApi({ api: 'set_close_template', name: (selectedScene && selectedScene.config && selectedScene.config.close_template) || '' });
+            if (!window._isClosed) { callNativeApi({ api: 'set_close_template', name: (selectedScene && selectedScene.config && selectedScene.config.close_template) || '' }); }
         }
 
         function generateSceneDesc(config) {
@@ -3208,7 +3210,7 @@
             updateBtnStatus();
             initWorkbenchScenes();
             setTimeout(function () {
-                callNativeApi({ api: 'set_close_template', name: (selectedScene && selectedScene.config && selectedScene.config.close_template) || '' });
+                if (!window._isClosed) { callNativeApi({ api: 'set_close_template', name: (selectedScene && selectedScene.config && selectedScene.config.close_template) || '' }); }
             }, 600);
             initRecommendScenes();
             setInterval(function(){
