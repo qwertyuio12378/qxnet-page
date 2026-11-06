@@ -1354,10 +1354,15 @@
                     var nameEl = document.getElementById('configSceneName');
                     if (nameEl && nameEl.value) sceneName = nameEl.value;
                 }
-                var inDelay = getInputValueAsInt('inDelay');
-                var outDelay = getInputValueAsInt('outDelay');
-                var inLoss = getInputValueAsInt('inBurst');
-                var outLoss = getInputValueAsInt('outBurst');
+                var sceneCfgShow = (selectedScene && selectedScene.config) ? selectedScene.config : {};
+                function dvShow(cfgKey, fbId) {
+                    if (sceneCfgShow[cfgKey] !== undefined && sceneCfgShow[cfgKey] !== DEFAULT_VALUE) return sceneCfgShow[cfgKey];
+                    return getInputValueAsInt(fbId);
+                }
+                var inDelay = dvShow('in_delay', 'inDelay');
+                var outDelay = dvShow('out_delay', 'outDelay');
+                var inLoss = dvShow('in_loss', 'inBurst');
+                var outLoss = dvShow('out_loss', 'outBurst');
                 var _hasCloseCfg = selectedScene && selectedScene.config && selectedScene.config.close_template;
                 var status;
                 if (_hasCloseCfg || window._isClosed) {
