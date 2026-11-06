@@ -2048,13 +2048,47 @@
             var config = getFormConfig();
             var finalDesc = desc || generateSceneDesc(config);
             
+            var editingName = window._editingName || '';
             var existingIndex = -1;
-            if (window._editingName && window._editingName !== name) {
-                customScenes = customScenes.filter(function(s) { return s.name !== window._editingName; });
-                existingIndex = -1;
-            } else {
-                for (var j = 0; j < customScenes.length; j++) {
+            var j;
+            // 1) 编辑中优先按原名字定位，改名就是原地改，不新建
+            if (editingName) {
+                for (j = 0; j < customScenes.length; j++) {
+                    if (customScenes[j].name === editingName) { existingIndex = j; break; }
+                }
+            }
+            // 2) 找不到再按当前名字定位
+            if (existingIndex < 0) {
+                for (j = 0; j < customScenes.length; j++) {
                     if (customScenes[j].name === name) { existingIndex = j; break; }
+                }
+            }
+            // 3) 名字被别的模板占用时自动加序号，避免覆盖或重名
+            var nameClash = false;
+            for (j = 0; j < customScenes.length; j++) {
+                if (j !== existingIndex && customScenes[j].name === name) { nameClash = true; break; }
+            }
+            if (nameClash) {
+                var base = name, n = 1, taken;
+                do {
+                    taken = false;
+                    for (j = 0; j < customScenes.length; j++) {
+                        if (j !== existingIndex && customScenes[j].name === (base + n)) { taken = true; break; }
+                    }
+                    if (taken) n++;
+                } while (taken);
+                name = base + n;
+                showToast('名称重复，已改为 ' + name);
+            }
+            // 改名后，其它模板里引用旧名字的关闭/开启模板同步更新
+            if (editingName && editingName !== name) {
+                for (var k = 0; k < customScenes.length; k++) {
+                    if (k === existingIndex) continue;
+                    var cf = customScenes[k].config;
+                    if (cf) {
+                        if (cf.close_template === editingName) cf.close_template = name;
+                        if (cf.open_template === editingName) cf.open_template = name;
+                    }
                 }
             }
             var tType = document.getElementById('templateTypeVal').value;
