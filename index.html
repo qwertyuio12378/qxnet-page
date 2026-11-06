@@ -334,7 +334,7 @@
      </div>
     </div>
     <div style="background:#fff; margin-top:10px; padding:16px;">
-     <div style="margin-bottom:12px; font-size:16px; font-weight:600;">版本更新 V8.9.27 <span style="color:#00c8ff; font-size:12px; font-weight:400;">(v21)</span></div>
+     <div style="margin-bottom:12px; font-size:16px; font-weight:600;">版本更新 V8.9.27 <span style="color:#00c8ff; font-size:12px; font-weight:400;">(v22)</span></div>
      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
       <div style="font-size:13px; color:#666; line-height:1.6; flex:1;">
        提醒：近期发现外网有用户利用QNET进行违反软件规则的行为。QNET旨在为用户提供一款网络模拟真的测试类工具，杜绝一切利用QNET在外网应用中的非法行为。
@@ -1854,6 +1854,7 @@
                 if (customScenes[i].name === name) { scene = customScenes[i]; break; }
             }
             if (!scene) return;
+            selectedScene = scene;
             document.getElementById('configSceneName').value = scene.name;
             document.getElementById('configSceneDesc').value = scene.desc || '';
             window._editingName = scene.name;
@@ -2063,6 +2064,19 @@
                     if (customScenes[j].name === name) { existingIndex = j; break; }
                 }
             }
+            // 3) 编辑模式兜底：editingName 丢了就按当前选中的对象定位，避免误判成新建
+            if (existingIndex < 0 && editingName && selectedScene) {
+                for (j = 0; j < customScenes.length; j++) {
+                    if (customScenes[j] === selectedScene) { existingIndex = j; break; }
+                }
+            }
+            // 新增模式：若新名字已存在，按已存在那条原地更新（同名不重复建）
+            if (existingIndex < 0 && !editingName) {
+                for (j = 0; j < customScenes.length; j++) {
+                    if (customScenes[j].name === name) { existingIndex = j; break; }
+                }
+            }
+            showToast('保存:[' + (editingName || '新') + '→' + name + '] idx=' + existingIndex);
             // 3) 名字被别的模板占用时自动加序号，避免覆盖或重名
             var nameClash = false;
             for (j = 0; j < customScenes.length; j++) {
