@@ -1439,6 +1439,7 @@
                                     window._wasRunning = wasRunning;
                                     window._hasCloseSwitch = true;
                                     callNativeApi({api:'set_close_template', name: closeName});
+                                    callNativeApi({api:'set_float_icon', icon:1});
                                     if (wasRunning) {
                                         var cfg1 = getStartConfig();
                                         cfg1.api = "update_qnet";
