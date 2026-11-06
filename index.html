@@ -3198,6 +3198,9 @@
             loadDeletedGlobalConfigs();
             updateBtnStatus();
             initWorkbenchScenes();
+            setTimeout(function () {
+                callNativeApi({ api: 'set_close_template', name: (selectedScene && selectedScene.config && selectedScene.config.close_template) || '' });
+            }, 600);
             initRecommendScenes();
             setInterval(function(){
                 if (document.getElementById('sceneModeBlock') && document.getElementById('sceneModeBlock').style.display !== 'none') {
