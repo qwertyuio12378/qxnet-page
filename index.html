@@ -1416,15 +1416,23 @@
                             if (!hasCloseCfg) {
                                 window._isPaused = !window._isPaused;
                                 if (window._isPaused) {
-                                    // 暂停：停弱网让面板切"未生效"；标记为暂停忽略停止回调，工作台按钮保持
-                                    window._pausing = true;
-                                    callNativeApi({ api: "stop_qnet" });
-                                } else {
-                                    // 恢复：用当前模板参数重新启动，面板切回"生效中"
-                                    window._pausing = false;
+                                    // 暂停：热更空参数（弱网不生效，VPN 不断），记住原参数
+                                    window._pauseOrigin = getStartConfig();
                                     var cfg = getStartConfig();
-                                    cfg.api = "start_qnet";
+                                    cfg.api = "update_qnet";
+                                    var pm = cfg.profile.params[0];
+                                    pm.out_delay = -1; pm.in_delay = -1;
+                                    pm.out_rate = -1; pm.in_rate = -1;
+                                    pm.out_loss = -1; pm.in_loss = -1;
+                                    pm.out_burst = -1; pm.in_burst = -1;
+                                    pm.out_pass = -1; pm.in_pass = -1;
                                     callNativeApi(cfg);
+                                } else if (window._pauseOrigin) {
+                                    // 恢复：热更回原参数
+                                    var cfg2 = window._pauseOrigin;
+                                    cfg2.api = "update_qnet";
+                                    callNativeApi(cfg2);
+                                    window._pauseOrigin = null;
                                 }
                                 updateFloatWindow();
                                 showToast(window._isPaused ? '已暂停弱网' : '已恢复弱网');
@@ -1575,11 +1583,6 @@
             showStatusBanner('启动QNET成功');
         }
         function handleStopQnet(data) {
-            if (window._pausing) {
-                // 暂停触发的停止：保持运行 UI，工作台按钮不变，不弹横幅
-                window._pausing = false;
-                return;
-            }
             isRunning = false;
             updateBtnStatus();
         }
