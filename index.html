@@ -1414,7 +1414,18 @@
                             var hasCloseCfg = selectedScene && selectedScene.config && selectedScene.config.close_template;
                             if (!hasCloseCfg) {
                                 window._isPaused = !window._isPaused;
-                                // 只切状态，不下发参数（信息面板参数保持模板配置值不变）
+                                if (window._isPaused) {
+                                    // 暂停：停弱网，面板切"未生效"；currentProfile 保留，参数显示不变
+                                    callNativeApi({ api: "stop_qnet" });
+                                    isRunning = false;
+                                } else {
+                                    // 恢复：用当前模板参数重新启动，面板切回"生效中"
+                                    var cfg = getStartConfig();
+                                    cfg.api = "start_qnet";
+                                    callNativeApi(cfg);
+                                    isRunning = true;
+                                }
+                                updateBtnStatus();
                                 updateFloatWindow();
                                 showToast(window._isPaused ? '已暂停弱网' : '已恢复弱网');
                                 break;
