@@ -1649,6 +1649,15 @@
             if (currentPage === 'template-edit') switchTab('workbench');
         }
 
+        function nextSceneName(base) {
+            var taken = {};
+            for (var i = 0; i < customScenes.length; i++) { taken[customScenes[i].name] = true; }
+            if (!taken[base]) return base;
+            var n = 1;
+            while (taken[base + n]) { n++; }
+            return base + n;
+        }
+
         function goToTemplateEdit() {
             window._editingName = '';
             window._skipAutoFill = true;
@@ -1661,7 +1670,7 @@
                     switchTemplateMode();
                 }
                 var nameEl = document.getElementById('configSceneName');
-                nameEl.value = '未命名';
+                nameEl.value = nextSceneName('未命名');
                 
                 currentPage = 'template-edit';
                 document.querySelectorAll('.page').forEach(function (p) { p.classList.remove('active'); });
