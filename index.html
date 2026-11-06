@@ -1600,17 +1600,26 @@
             pages.forEach(function (p) { p.classList.remove('active'); });
             document.getElementById('page-' + tab).classList.add('active');
             updateNavBar(tab);
-            // 延迟到下一帧再滚动，确保页面渲染完成，避免有时保留之前的滚动位置
-            requestAnimationFrame(function() {
+            // 双保险：先下一帧，再延迟一小段，确保页面完全渲染后再滚回顶部
+            var resetScroll = function() {
                 window.scrollTo(0, 0);
-                document.body.scrollTop = 0;
-                document.documentElement.scrollTop = 0;
+                if (document.body) document.body.scrollTop = 0;
+                if (document.documentElement) document.documentElement.scrollTop = 0;
                 if (tab === 'workbench') {
                     var page = document.getElementById('page-workbench');
                     if (page) page.scrollTop = 0;
-                    var list = page && page.querySelector('.scene-list, .scene-item');
-                    if (list && list.parentElement) list.parentElement.scrollTop = 0;
+                    // 遍历工作台里所有可能滚动的容器
+                    if (page) {
+                        var all = page.querySelectorAll('*');
+                        for (var i = 0; i < all.length; i++) {
+                            all[i].scrollTop = 0;
+                        }
+                    }
                 }
+            };
+            requestAnimationFrame(function() {
+                resetScroll();
+                setTimeout(resetScroll, 50);
             });
         }
 
