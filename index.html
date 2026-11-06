@@ -1603,13 +1603,18 @@
             pages.forEach(function (p) { p.classList.remove('active'); });
             document.getElementById('page-' + tab).classList.add('active');
             updateNavBar(tab);
-            window.scrollTo(0, 0);
-            document.body.scrollTop = 0;
-            document.documentElement.scrollTop = 0;
-            if (tab === 'workbench') {
-                var list = document.querySelector('#page-workbench .scene-list, #page-workbench .scene-item');
-                if (list && list.parentElement) list.parentElement.scrollTop = 0;
-            }
+            // 延迟到下一帧再滚动，确保页面渲染完成，避免有时保留之前的滚动位置
+            requestAnimationFrame(function() {
+                window.scrollTo(0, 0);
+                document.body.scrollTop = 0;
+                document.documentElement.scrollTop = 0;
+                if (tab === 'workbench') {
+                    var page = document.getElementById('page-workbench');
+                    if (page) page.scrollTop = 0;
+                    var list = page && page.querySelector('.scene-list, .scene-item');
+                    if (list && list.parentElement) list.parentElement.scrollTop = 0;
+                }
+            });
         }
 
         function updateNavBar(page) {
