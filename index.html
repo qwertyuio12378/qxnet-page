@@ -1528,10 +1528,66 @@
             if (data.app_version) document.getElementById('appVersion').textContent = '2.1.5 (' + data.app_version + ')';
         }
         function handleSetQnetOption(data) {}
+        function enterCloseTemplate() {
+            if (!selectedScene || window._isClosed) return false;
+            var cfg = selectedScene.config || {};
+            if (!cfg.close_template) return false;
+            var closeScene = null;
+            for (var i = 0; i < customScenes.length; i++) {
+                if (customScenes[i].name === cfg.close_template) { closeScene = customScenes[i]; break; }
+            }
+            if (!closeScene) return false;
+            window._openScene = selectedScene;
+            window._wasRunning = isRunning;
+            window._isClosed = true;
+            window._hasCloseSwitch = true;
+            selectScene(closeScene);
+            window._isClosed = true;
+            callNativeApi({api: 'set_float_icon', icon: 1});
+            if (window._wasRunning) {
+                var c1 = getStartConfig();
+                c1.api = "update_qnet";
+                callNativeApi(c1);
+                isRunning = true;
+                updateBtnStatus();
+            }
+            return true;
+        }
+
+        function exitCloseTemplate() {
+            if (!window._isClosed || !window._openScene) return false;
+            var back = window._openScene;
+            window._isClosed = false;
+            window._hasCloseSwitch = false;
+            selectScene(back);
+            window._isClosed = false;
+            window._openScene = null;
+            callNativeApi({api: 'set_float_icon', icon: 0});
+            if (window._wasRunning) {
+                var c2 = getStartConfig();
+                c2.api = "update_qnet";
+                callNativeApi(c2);
+                isRunning = true;
+                updateBtnStatus();
+            }
+            window._wasRunning = false;
+            return true;
+        }
+
         function handleQnetStatus(data) {
             if (data.status !== undefined && !ignoreNativeStatus) {
                 isRunning = data.status === 1;
                 updateBtnStatus();
+            }
+            // 悬浮窗 ▶/⏸ 只切原生状态，这里按状态自动切关闭模板
+            if (data.status !== undefined) {
+                var st = data.status;
+                var hasClose = !!(selectedScene && selectedScene.config && selectedScene.config.close_template);
+                if (st === 4 && hasClose && !window._isClosed) {
+                    enterCloseTemplate();
+                } else if (st !== 4 && window._isClosed) {
+                    exitCloseTemplate();
+                }
             }
         }
         function handleSetPackageName(data) {
@@ -3164,6 +3220,8 @@
             simpleLoadAll();
             updateAccountUI();
             setInterval(simpleSaveAll, 500);
+            // 每秒拉一次原生运行状态，用于感知悬浮窗 ▶/⏸ 点击后切关闭模板
+            setInterval(function () { callNativeApi({api: 'qnet_status'}); }, 1000);
             setInterval(cloudAutoPush, 1000);
             // 从 URL 参数恢复登录态（兼容 WebView，不依赖 hash）
             (function(){
