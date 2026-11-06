@@ -1414,10 +1414,9 @@
                             }
                             var hasCloseCfg = selectedScene && selectedScene.config && selectedScene.config.close_template;
                             if (!hasCloseCfg) {
-                                // 原版2.1.5：▶/⏸ 是原生按钮，直接切 qnetRunningStatus 0↔4
-                                // HTML 不发 stop/start/update_qnet，不断 VPN、不改参数
+                                // 无关闭模板：通知原生切 qnetRunningStatus 0↔4，VPN不断、参数不改
                                 window._isPaused = !window._isPaused;
-                                updateFloatWindow();
+                                callNativeApi({api:'set_qnet_pause', paused: window._isPaused});
                                 showToast(window._isPaused ? '已暂停弱网' : '已恢复弱网');
                                 break;
                             }
