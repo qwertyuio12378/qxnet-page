@@ -1707,20 +1707,20 @@
             }
         }
 
-        // 泡泡可拖出 tab 栏，全屏跟随手指，松手平滑吸附
+        // 在 tabBar 上水平拖动切 tab
         (function(){
-            var ind=document.getElementById('tabIndicator');
             var bar=document.getElementById('tabBar');
+            if(!bar) return;
+            var ind=document.getElementById('tabIndicator');
             var items=bar.querySelectorAll('.tab-item');
-            var sx=0, sy=0, tracking=false, startIdx=0;
+            var sx=0, tracking=false, startIdx=0, gestureLocked=false;
             var order=['workbench','scene','settings'];
             var lefts=[];
             function cache(){lefts=[];for(var i=0;i<items.length;i++)lefts.push(items[i].offsetLeft);}
             ind.style.willChange='transform';
-            document.addEventListener('touchstart', function(e){
+            bar.addEventListener('touchstart', function(e){
                 if(e.touches.length>1) return;
-                if(e.target.closest && e.target.closest('.scene-item')) return;
-                sx=e.touches[0].clientX; sy=e.touches[0].clientY; tracking=true;
+                sx=e.touches[0].clientX; tracking=true; gestureLocked=false;
                 cache();
                 startIdx=order.indexOf(currentPage); if(startIdx<0) startIdx=0;
                 ind.style.transition='none';
@@ -1729,20 +1729,18 @@
                 bar.classList.add('dragging');
                 ind.classList.add('dragging');
             }, {passive:true});
-            var gestureLocked=false;
-            document.addEventListener('touchmove', function(e){
+            bar.addEventListener('touchmove', function(e){
                 if(!tracking) return;
                 var dx=e.touches[0].clientX-sx;
-                var dy=e.touches[0].clientY-sy;
                 if(!gestureLocked){
-                    if(Math.abs(dx)<10 && Math.abs(dy)<10) return;
+                    if(Math.abs(dx)<10) return;
                     gestureLocked=true;
                 }
                 e.preventDefault();
                 ind.classList.add('dragging');
-                ind.style.transform='translate('+dx+'px, '+dy+'px)';
+                ind.style.transform='translateX('+dx+'px)';
             }, {passive:false});
-            document.addEventListener('touchend', function(e){
+            bar.addEventListener('touchend', function(e){
                 if(!tracking && !gestureLocked) return;
                 tracking=false; gestureLocked=false;
                 var dx=e.changedTouches[0].clientX-sx;
@@ -1753,24 +1751,20 @@
                 else targetIdx=Math.round(idx+dx/tabW);
                 if(targetIdx<0) targetIdx=0;
                 if(targetIdx>order.length-1) targetIdx=order.length-1;
-                // 保持 left=lefts[startIdx]，用 transform 滑到目标 tab，动画结束再更新 left
                 var targetTx = lefts[targetIdx] - lefts[startIdx];
-                // 切页面但不更新泡泡位置（临时屏蔽 updateTabIndicator）
                 var savedUpdate = updateTabIndicator;
                 window.updateTabIndicator = function(){};
                 if(targetIdx!==idx) switchTab(order[targetIdx]);
                 window.updateTabIndicator = savedUpdate;
-                // 平滑过渡到目标位置
-                ind.style.transition='transform 0.3s cubic-bezier(0.22,1,0.36,1)';
-                ind.style.transform='translate('+targetTx+'px, 0px)';
-                // 动画结束后：更新 left、清 transform、移除 dragging
+                ind.style.transition='transform 0.25s cubic-bezier(0.22,1,0.36,1)';
+                ind.style.transform='translateX('+targetTx+'px)';
                 setTimeout(function(){
                     ind.style.transition='none';
                     ind.style.transform='none';
                     updateTabIndicator();
                     ind.classList.remove('dragging');
                     bar.classList.remove('dragging');
-                }, 300);
+                }, 250);
             }, {passive:true});
         })();
 
