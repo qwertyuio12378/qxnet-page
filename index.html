@@ -1713,13 +1713,16 @@
             var items=bar.querySelectorAll('.tab-item');
             var sx=0, tracking=false;
             var order=['workbench','scene','settings'];
-            function tabRect(i){var it=items[i];return it?{left:it.offsetLeft,width:it.offsetWidth}:null;}
+            var rects=[];
+            function cacheRects(){rects=[];for(var i=0;i<items.length;i++){rects.push({left:items[i].offsetLeft,width:items[i].offsetWidth});}}
             function setBubble(l,w){ind.style.transition='none';ind.style.left=l+'px';ind.style.width=w+'px';}
-            function snapTo(i){var r=tabRect(i);if(!r)return;ind.style.transition='';ind.style.left=r.left+'px';ind.style.width=r.width+'px';}
+            function snapTo(i){if(!rects[i])return;ind.style.transition='';ind.style.left=rects[i].left+'px';ind.style.width=rects[i].width+'px';}
             bar.style.touchAction='pan-y';
+            ind.style.willChange='left,width';
             bar.addEventListener('touchstart', function(e){
                 if(e.touches.length>1) return;
                 sx=e.touches[0].clientX; tracking=true;
+                cacheRects();
             }, {passive:true});
             bar.addEventListener('touchmove', function(e){
                 if(!tracking) return;
@@ -1728,16 +1731,15 @@
                 if(Math.abs(dx)<8) return;
                 e.preventDefault();
                 var idx=order.indexOf(currentPage); if(idx<0) return;
-                var r0=tabRect(idx); if(!r0) return;
-                var tabW=r0.width;
-                // 连续位置：当前 idx + 拖动距离/每个 tab 宽度
-                var pos = idx + dx/tabW;
+                if(!rects[idx]) return;
+                var tabW=rects[idx].width;
+                var pos=idx+dx/tabW;
                 if(pos<0) pos=0;
                 if(pos>order.length-1) pos=order.length-1;
-                var i0 = Math.floor(pos);
-                var i1 = Math.min(order.length-1, i0+1);
-                var frac = pos - i0;
-                var ra=tabRect(i0), rb=tabRect(i1);
+                var i0=Math.floor(pos);
+                var i1=Math.min(order.length-1,i0+1);
+                var frac=pos-i0;
+                var ra=rects[i0], rb=rects[i1];
                 if(!ra||!rb) return;
                 setBubble(ra.left+(rb.left-ra.left)*frac, ra.width+(rb.width-ra.width)*frac);
             }, {passive:false});
@@ -1747,8 +1749,8 @@
                 var t=e.changedTouches[0];
                 var dx=t.clientX-sx;
                 var idx=order.indexOf(currentPage); if(idx<0) return;
-                var r0=tabRect(idx); if(!r0) return;
-                var tabW=r0.width;
+                if(!rects[idx]) return;
+                var tabW=rects[idx].width;
                 var targetIdx;
                 if(Math.abs(dx)<20) targetIdx=idx;
                 else targetIdx=Math.round(idx+dx/tabW);
