@@ -1264,6 +1264,7 @@
                     showStatusBanner('停止QNET成功');
                     showToast('QNET已停止');
                     callNativeApi({api:'set_float_icon', icon:-1});
+                    if (_reportStart > 0) { showTestReport(_reportStart, Date.now()); _reportStart = 0; }
                     setTimeout(function () {
                         var cfw = document.getElementById('controlFw').checked ? 1 : 0;
                         var ifw = document.getElementById('infoFw').checked ? 1 : 0;
@@ -1273,6 +1274,7 @@
             }
         }
 
+        var _reportStart = 0;
         function startQNetInternal() {
             var config = getStartConfig();
             var success = callNativeApi(config);
@@ -1282,6 +1284,9 @@
                 showToast('正在启动QNET...');
                 window._isPaused = false;
                 callNativeApi({api:'set_qnet_pause', paused:false});
+                if (document.getElementById('reportSwitch') && document.getElementById('reportSwitch').checked) {
+                    _reportStart = Date.now();
+                }
                 setTimeout(function () { updateFloatWindow(); }, 500);
             } else {
                 showStatusBanner('启动QNET失败');
@@ -2988,6 +2993,38 @@
         }
 
         // ==================== 工具函数 ====================
+        function showTestReport(start, end) {
+            try {
+                var dur = Math.round((end - start) / 1000);
+                var min = Math.floor(dur / 60);
+                var sec = dur % 60;
+                var durStr = min + '分' + sec + '秒';
+                var sceneName = selectedScene ? selectedScene.name : '未选择';
+                var params = [];
+                if (selectedScene && selectedScene.config) {
+                    var c = selectedScene.config;
+                    if (c.out_bandwidth) params.push('上行带宽: ' + c.out_bandwidth + 'kbps');
+                    if (c.in_bandwidth) params.push('下行带宽: ' + c.in_bandwidth + 'kbps');
+                    if (c.out_delay) params.push('上行延迟: ' + c.out_delay + 'ms');
+                    if (c.in_delay) params.push('下行延迟: ' + c.in_delay + 'ms');
+                    if (c.out_loss) params.push('上行丢包: ' + c.out_loss + '%');
+                    if (c.in_loss) params.push('下行丢包: ' + c.in_loss + '%');
+                }
+                var html = '<div style="padding:20px;">'
+                    + '<div style="font-size:18px;font-weight:600;margin-bottom:12px;">测试报告</div>'
+                    + '<div style="font-size:14px;color:#333;line-height:2;">'
+                    + '测试场景: ' + sceneName + '<br>'
+                    + '开始时间: ' + new Date(start).toLocaleString() + '<br>'
+                    + '结束时间: ' + new Date(end).toLocaleString() + '<br>'
+                    + '持续时长: ' + durStr + '<br>'
+                    + '</div>'
+                    + '<div style="font-size:14px;color:#666;margin-top:10px;line-height:1.8;">'
+                    + params.join('<br>')
+                    + '</div>'
+                    + '</div>';
+                showToast('测试报告已生成: ' + sceneName + ' (' + durStr + ')');
+            } catch(e) {}
+        }
         function showToast(msg) {
             var toast = document.getElementById('toast');
             toast.textContent = msg;
