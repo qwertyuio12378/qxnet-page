@@ -1707,7 +1707,7 @@
             }
         }
 
-        // 泡泡可拖出 tab 栏，全屏跟随手指
+        // 泡泡可拖出 tab 栏，全屏跟随手指，松手平滑吸附
         (function(){
             var ind=document.getElementById('tabIndicator');
             var bar=document.getElementById('tabBar');
@@ -1729,14 +1729,13 @@
                 bar.classList.add('dragging');
                 ind.classList.add('dragging');
             }, {passive:true});
-            var rafPending=false;
-            var gestureLocked=false;
+            var rafPending=false, lastDx=0, lastDy=0, gestureLocked=false;
             document.addEventListener('touchmove', function(e){
                 if(!tracking) return;
-                var dx=e.touches[0].clientX-sx;
-                var dy=e.touches[0].clientY-sy;
+                lastDx=e.touches[0].clientX-sx;
+                lastDy=e.touches[0].clientY-sy;
                 if(!gestureLocked){
-                    if(Math.abs(dx)<10 && Math.abs(dy)<10) return;
+                    if(Math.abs(lastDx)<10 && Math.abs(lastDy)<10) return;
                     gestureLocked=true;
                 }
                 e.preventDefault();
@@ -1745,8 +1744,7 @@
                 rafPending=true;
                 requestAnimationFrame(function(){
                     rafPending=false;
-                    // X 直接跟随手指偏移量，Y 也跟随，完全跟手
-                    ind.style.transform='translate('+dx+'px, '+dy+'px) scale(1.08)';
+                    ind.style.transform='translate('+lastDx+'px, '+lastDy+'px) scale(1.08)';
                 });
             }, {passive:false});
             document.addEventListener('touchend', function(e){
@@ -1760,17 +1758,21 @@
                 else targetIdx=Math.round(idx+dx/tabW);
                 if(targetIdx<0) targetIdx=0;
                 if(targetIdx>order.length-1) targetIdx=order.length-1;
+                // 计算目标 transform：从当前 left 位置移到目标 tab
+                var targetTx = lefts[targetIdx] - lefts[startIdx];
+                // 先切页面
                 if(targetIdx!==idx) switchTab(order[targetIdx]);
-                else updateTabIndicator();
-                ind.style.transition='none';
-                ind.style.transform='none';
-                ind.style.webkitTransform='none';
-                ind.classList.remove('dragging');
-                bar.classList.remove('dragging');
-                // 兜底：下一帧再清一次
-                requestAnimationFrame(function(){
+                // 平滑过渡：从当前拖动位置 → 目标 tab 位置（Y归零、scale归1）
+                ind.style.transition='transform 0.3s cubic-bezier(0.22,1,0.36,1)';
+                ind.style.transform='translate('+targetTx+'px, 0px) scale(1)';
+                // 动画结束后更新 left 并移除 dragging
+                setTimeout(function(){
+                    updateTabIndicator();
+                    ind.style.transition='none';
                     ind.style.transform='none';
-                });
+                    ind.classList.remove('dragging');
+                    bar.classList.remove('dragging');
+                }, 300);
             }, {passive:true});
         })();
 
