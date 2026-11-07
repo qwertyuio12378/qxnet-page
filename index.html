@@ -3201,6 +3201,9 @@
                             document.getElementById('avatarBox').innerHTML = '<img src="'+info.avatar+'" style="width:44px;height:44px;border-radius:50%;object-fit:cover;">';
                         }
                         localStorage.setItem('qnet_account', JSON.stringify(info));
+                        // 用原生 QQ 账号自动登录 Supabase 云端，清除数据后重登 QQ 即可恢复模板
+                        var qqId = info.uin || info.id || info.openid || info.nickname || 'default';
+                        autoCloudLogin(qqId);
                     }
                 }
             } catch(e) {}
@@ -3385,6 +3388,27 @@
             cloudSb.auth.signOut().then(function () {
                 showToast('已退出云端备份');
                 cloudRenderLoginState();
+            });
+        }
+        // 用 QQ 账号自动登录云端（不需要用户手动输密码）
+        function autoCloudLogin(qqId) {
+            if (!cloudSb) return;
+            if (cloudCurUser()) { cloudAutoLoad(); return; }
+            var email = 'qq_' + String(qqId).replace(/[^a-zA-Z0-9]/g,'') + '@qxnet.com';
+            var pwd = 'qxnet_' + String(qqId).replace(/[^a-zA-Z0-9]/g,'');
+            cloudSb.auth.signInWithPassword({ email: email, password: pwd }).then(function (res) {
+                if (res.error) {
+                    // 账号不存在则自动注册
+                    cloudSb.auth.signUp({ email: email, password: pwd }).then(function (supRes) {
+                        if (!supRes.error) {
+                            cloudRenderLoginState();
+                            cloudAutoLoad();
+                        }
+                    });
+                } else {
+                    cloudRenderLoginState();
+                    cloudAutoLoad();
+                }
             });
         }
 
