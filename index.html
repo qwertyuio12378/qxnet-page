@@ -1007,8 +1007,8 @@
                 config: { out_delay: 500, in_delay: 500, out_rate: 100, in_rate: 100 }
             },
             '上下行低延时': { desc: '上下行延时分别为100ms', config: { out_delay: 100, in_delay: 100 } },
-            '上下行低丢包率': { desc: '上下行随机丢包率分别为5%', config: { out_rate: 5, in_rate: 5 } },
-            '上下行高丢包率': { desc: '上下行随机丢包率分别为30%', config: { out_rate: 30, in_rate: 30 } },
+            '上下行低丢包率': { desc: '上下行随机丢包率分别为5%', config: { out_loss: 5, in_loss: 5 } },
+            '上下行高丢包率': { desc: '上下行随机丢包率分别为30%', config: { out_loss: 30, in_loss: 30 } },
             'WiFi-4G网络切换': {
                 sub: '北京市 - 上海<br>中国联通(WiFi)',
                 desc: '模拟设备进入电梯后有WiFi切换到4G，模拟设备状态切换时，应用断线重连等',
@@ -1243,7 +1243,7 @@
                     params: [{
                         out_bandwidth: cfg('out_bandwidth', 'outBandwidth'),
                         out_delay: cfg('out_delay', 'outDelay'),
-                        out_rate: cfg('out_rate', 'outRate'),
+                        out_rate: sceneCfg.out_rate !== undefined ? sceneCfg.out_rate : -1,
                         out_loss: cfg('out_loss', 'outRate'),
                         out_pass: cfg('out_pass', 'outPassMs'),
                         out_burst: cfg('out_burst', 'outBurst'),
@@ -1251,7 +1251,7 @@
 
                         in_bandwidth: cfg('in_bandwidth', 'inBandwidth'),
                         in_delay: cfg('in_delay', 'inDelay'),
-                        in_rate: cfg('in_rate', 'inRate'),
+                        in_rate: sceneCfg.in_rate !== undefined ? sceneCfg.in_rate : -1,
                         in_loss: cfg('in_loss', 'inRate'),
                         in_pass: cfg('in_pass', 'inPassMs'),
                         in_burst: cfg('in_burst', 'inBurst'),
@@ -2008,8 +2008,7 @@
             if (config.net_type) { document.getElementById('netTypeLabel').textContent = config.net_type + ' ›'; }
             if (config.weak_scene) { document.getElementById('weakSceneLabel').textContent = config.weak_scene + ' ›'; }
             updateWeakSceneDesc();
-            if (config.out_rate !== undefined && config.out_rate !== DEFAULT_VALUE) document.getElementById('outRate').value = config.out_rate;
-            if (config.in_rate !== undefined && config.in_rate !== DEFAULT_VALUE) document.getElementById('inRate').value = config.in_rate;
+            // out_rate/in_rate 是原生速率字段，UI 不暴露，不回填到丢包率输入框
             if (config.duration !== undefined && config.duration !== DEFAULT_VALUE) document.getElementById('duration').value = config.duration;
             closeParamValVar = config.close_template || '';
             openParamValVar = config.open_template || '';
@@ -2065,8 +2064,7 @@
             config.isp = document.getElementById('ispLabel').textContent.replace(' ›', '');
             config.net_type = document.getElementById('netTypeLabel').textContent.replace(' ›', '');
             config.weak_scene = document.getElementById('weakSceneLabel').textContent.replace(' ›', '');
-            config.out_rate = getInputValueAsInt('outRate');
-            config.in_rate = getInputValueAsInt('inRate');
+            // out_rate/in_rate 保留 sceneCfg 值，不从表单重复读
             config.duration = getInputValueAsInt('duration');
             config.protocol = protocolType;
             config.ip_list = document.getElementById('ipList').value;
