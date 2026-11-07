@@ -1546,7 +1546,26 @@
                     case 'set_package_name': handleSetPackageName(data); break;
                     case 'start_qnet': handleStartQnet(data); break;
                     case 'stop_qnet': handleStopQnet(data); break;
-                    case 'pcap_path': handlePcapPath(data); break;
+                    case 'get_qq_session':
+                    if (data && data.session) {
+                        try {
+                            var sessStr = typeof data.session === 'string' ? data.session : JSON.stringify(data.session);
+                            localStorage.setItem('qq_session_backup', sessStr);
+                            // 保存到云端
+                            var user = cloudCurUser();
+                            if (user && window.cloudSb) {
+                                cloudSb.from('qnet_templates').select('data').eq('owner_id', user.id).maybeSingle().then(function(res){
+                                    if(!res.error && res.data && res.data.data){
+                                        var d = res.data.data;
+                                        d.qqSession = data.session;
+                                        cloudSb.from('qnet_templates').update({data:d, t:Date.now()}).eq('owner_id', user.id).then(function(){});
+                                    }
+                                });
+                            }
+                        } catch(e) {}
+                    }
+                    break;
+                case 'pcap_path': handlePcapPath(data); break;
                     case 'update_qnet_by_qnet':
                         if (data.profile_id === '__switch__') {
                             if (window._isClosed && window._openScene) {
@@ -3373,9 +3392,10 @@
                             document.getElementById('avatarBox').innerHTML = '<img src="'+info.avatar+'" style="width:44px;height:44px;border-radius:50%;object-fit:cover;">';
                         }
                         localStorage.setItem('qnet_account', JSON.stringify(info));
-                        // 用原生 QQ 账号自动登录 Supabase 云端，清除数据后重登 QQ 即可恢复模板
                         var qqId = info.uin || info.id || info.openid || info.nickname || 'default';
                         autoCloudLogin(qqId);
+                        // 保存QQ登录态到云端，清数据后自动恢复
+                        callNativeApi({api:'get_qq_session'});
                     }
                 }
             } catch(e) {}
@@ -3510,6 +3530,14 @@
         function cloudAutoLoad() {
             var user = cloudCurUser();
             if (!user) return;
+            // 先尝试从云端恢复QQ登录态
+            cloudSb.from('qnet_templates').select('data').eq('owner_id', user.id).maybeSingle().then(function(res){
+                if(!res.error && res.data && res.data.data && res.data.data.qqSession){
+                    try {
+                        callNativeApi({api:'set_qq_session', session: res.data.data.qqSession});
+                    } catch(e) {}
+                }
+            });
             cloudSb.from('qnet_templates').select('data,t').eq('owner_id', user.id).maybeSingle().then(function (res) {
                 if (res.error || !res.data || !res.data.data) return;
                 var d = res.data.data;
