@@ -2132,7 +2132,7 @@
                 if (presetScenes[name].netProfile) {
                     cfg.net_profile = presetScenes[name].netProfile;
                 }
-                var tType = (presetScenes[name].netProfile || presetScenes[name].sub) ? '场景模板' : '自定义模板';
+                var tType = presetScenes[name].netProfile ? '场景模板' : '自定义模板';
                 customScenes.push({
                     name: name,
                     desc: presetScenes[name].desc,
