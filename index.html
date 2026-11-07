@@ -1705,6 +1705,31 @@
             }
         }
 
+        // 左右滑动切换 tab
+        (function(){
+            var startX=0, startY=0, tracking=false;
+            document.addEventListener('touchstart', function(e){
+                if (currentPage !== 'workbench' && currentPage !== 'scene' && currentPage !== 'settings') return;
+                if (e.touches.length > 1) return;
+                var t = e.touches[0];
+                startX = t.clientX; startY = t.clientY; tracking = true;
+            }, {passive:true});
+            document.addEventListener('touchend', function(e){
+                if (!tracking) return;
+                tracking = false;
+                if (currentPage !== 'workbench' && currentPage !== 'scene' && currentPage !== 'settings') return;
+                var t = e.changedTouches[0];
+                var dx = t.clientX - startX;
+                var dy = t.clientY - startY;
+                if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy)*1.5) return;
+                var order = ['workbench','scene','settings'];
+                var idx = order.indexOf(currentPage);
+                if (idx < 0) return;
+                if (dx < 0 && idx < order.length-1) switchTab(order[idx+1]);
+                else if (dx > 0 && idx > 0) switchTab(order[idx-1]);
+            }, {passive:true});
+        })();
+
         function goBack() {
             if (pageStack.length > 1) {
                 history.back();
