@@ -1192,6 +1192,18 @@
             return arr;
         }
 
+        function currentSceneProfileId() {
+            var name = (selectedScene && selectedScene.name) ? selectedScene.name : '';
+            if (!name) {
+                var el = document.getElementById('configSceneName');
+                name = (el && el.value) ? el.value : '自定义配置';
+            }
+            for (var i = 0; i < customScenes.length; i++) {
+                if (customScenes[i].name === name) return "scene_" + i + "_" + name;
+            }
+            return "scene_current_" + name;
+        }
+
         function getStartConfig() {
             var dumpPcapEl = document.getElementById('dumpPcap');
             var controlFwEl = document.getElementById('controlFw');
@@ -1221,7 +1233,7 @@
                 info_fw: infoFwEl && infoFwEl.checked ? 1 : 0,
                 anti_block: antiBlockEl && antiBlockEl.checked ? 1 : 0,
                 profile: {
-                    profile_id: "local_" + Date.now(),
+                    profile_id: currentSceneProfileId(),
                     name: sceneName,
                     profieName: sceneName,
                     profileName: sceneName,
