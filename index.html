@@ -1368,9 +1368,11 @@
                 return getInputValueAsInt(inputId);
             }
 
+            var reportEl = document.getElementById('reportSwitch');
+            var needPcap = (dumpPcapEl && dumpPcapEl.checked) || (reportEl && reportEl.checked);
             return {
                 api: "start_qnet",
-                dump_pcap: dumpPcapEl && dumpPcapEl.checked ? 1 : 0,
+                dump_pcap: needPcap ? 1 : 0,
                 control_fw: controlFwEl && controlFwEl.checked ? 1 : 0,
                 info_fw: infoFwEl && infoFwEl.checked ? 1 : 0,
                 anti_block: antiBlockEl && antiBlockEl.checked ? 1 : 0,
