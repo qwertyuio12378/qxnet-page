@@ -1769,20 +1769,13 @@
                 else targetIdx=Math.round(idx+dx/tabW);
                 if(targetIdx<0) targetIdx=0;
                 if(targetIdx>order.length-1) targetIdx=order.length-1;
-                // 先无动画地把泡泡定位到目标，再缩回
+                // 松手：切页，泡泡瞬间缩回正常大小
                 ind.style.transition='none';
-                if(targetIdx!==idx){
-                    switchTab(order[targetIdx]);
-                } else {
-                    snapTo(idx);
-                }
-                // 下一帧再移除 dragging，让缩回动画平滑
-                requestAnimationFrame(function(){
-                    ind.style.transition='height 0.2s ease, top 0.2s ease, border-radius 0.2s ease, left 0.3s ease, width 0.3s ease';
-                    ind.classList.remove('dragging');
-                    bar.classList.remove('dragging');
-                    for(var k=0;k<items.length;k++) items[k].classList.remove('bubble-blur');
-                });
+                ind.classList.remove('dragging');
+                bar.classList.remove('dragging');
+                for(var k=0;k<items.length;k++) items[k].classList.remove('bubble-blur');
+                if(targetIdx!==idx) switchTab(order[targetIdx]);
+                else snapTo(idx);
             }, {passive:true});
         })();
 
