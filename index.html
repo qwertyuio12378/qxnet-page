@@ -1733,7 +1733,6 @@
                 var t=e.touches[0];
                 lastDx=t.clientX-sx;
                 if(Math.abs(lastDx)<8) return;
-                e.preventDefault();
                 ind.classList.add('dragging');
                 if(rafPending) return;
                 rafPending=true;
