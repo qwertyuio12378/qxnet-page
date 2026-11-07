@@ -1712,9 +1712,9 @@
             var ind=document.getElementById('tabIndicator');
             var bar=document.getElementById('tabBar');
             var items=bar.querySelectorAll('.tab-item');
-            var sx=0, sy=0, tracking=false;
+            var sx=0, sy=0, tracking=false, startIdx=0;
             var order=['workbench','scene','settings'];
-            var lefts=[], baseBottom=0;
+            var lefts=[];
             function cache(){lefts=[];for(var i=0;i<items.length;i++)lefts.push(items[i].offsetLeft);}
             ind.style.willChange='transform';
             document.addEventListener('touchstart', function(e){
@@ -1722,9 +1722,10 @@
                 if(e.target.closest && e.target.closest('.scene-item')) return;
                 sx=e.touches[0].clientX; sy=e.touches[0].clientY; tracking=true;
                 cache();
+                startIdx=order.indexOf(currentPage); if(startIdx<0) startIdx=0;
                 ind.style.transition='none';
-                ind.style.left=lefts[0]+'px';
-                ind.style.width=items[0].offsetWidth+'px';
+                ind.style.left=lefts[startIdx]+'px';
+                ind.style.width=items[startIdx].offsetWidth+'px';
                 bar.classList.add('dragging');
                 ind.classList.add('dragging');
             }, {passive:true});
@@ -1749,8 +1750,8 @@
                     var pos=idx+dx/tabW;
                     if(pos<0) pos=0;
                     if(pos>order.length-1) pos=order.length-1;
-                    var tx=lefts[0]+(lefts[lefts.length-1]-lefts[0])*(pos/(order.length-1))-lefts[0];
-                    // Y 方向完全跟随手指
+                    var targetLeft=lefts[0]+(lefts[lefts.length-1]-lefts[0])*(pos/(order.length-1));
+                    var tx=targetLeft-lefts[startIdx];
                     ind.style.transform='translate('+tx+'px, '+dy+'px) scale(1.08)';
                 });
             }, {passive:false});
