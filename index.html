@@ -1754,9 +1754,6 @@
             bar.addEventListener('touchend', function(e){
                 if(!tracking) return;
                 tracking=false;
-                ind.classList.remove('dragging');
-                bar.classList.remove('dragging');
-                for(var k=0;k<items.length;k++) items[k].classList.remove('bubble-blur');
                 var t=e.changedTouches[0];
                 var dx=t.clientX-sx;
                 var idx=order.indexOf(currentPage); if(idx<0) return;
@@ -1767,8 +1764,20 @@
                 else targetIdx=Math.round(idx+dx/tabW);
                 if(targetIdx<0) targetIdx=0;
                 if(targetIdx>order.length-1) targetIdx=order.length-1;
-                if(targetIdx!==idx) switchTab(order[targetIdx]);
-                else snapTo(idx);
+                if(targetIdx!==idx){
+                    switchTab(order[targetIdx]);
+                    // 切换后保持泡泡放大一会再缩回
+                    setTimeout(function(){
+                        ind.classList.remove('dragging');
+                        bar.classList.remove('dragging');
+                        for(var k=0;k<items.length;k++) items[k].classList.remove('bubble-blur');
+                    }, 180);
+                } else {
+                    ind.classList.remove('dragging');
+                    bar.classList.remove('dragging');
+                    for(var k=0;k<items.length;k++) items[k].classList.remove('bubble-blur');
+                    snapTo(idx);
+                }
             }, {passive:true});
         })();
 
