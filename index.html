@@ -1192,16 +1192,27 @@
             return arr;
         }
 
+        function sceneNameFromProfileId(pid) {
+            if (!pid) return '';
+            var s = String(pid);
+            if (s.indexOf('scene_') === 0) {
+                s = s.substring(6);
+                if (s.indexOf('current_') === 0) s = s.substring(8);
+                var m = s.match(/^(\d+)_(.*)$/);
+                if (m && m[2]) s = m[2];
+            } else if (s.indexOf('local_') === 0) {
+                return '';
+            }
+            return s;
+        }
+
         function currentSceneProfileId() {
             var name = (selectedScene && selectedScene.name) ? selectedScene.name : '';
             if (!name) {
                 var el = document.getElementById('configSceneName');
                 name = (el && el.value) ? el.value : '自定义配置';
             }
-            for (var i = 0; i < customScenes.length; i++) {
-                if (customScenes[i].name === name) return "scene_" + i + "_" + name;
-            }
-            return "scene_current_" + name;
+            return "scene_" + name;
         }
 
         function getStartConfig() {
@@ -1339,14 +1350,14 @@
         function syncUserProfilesToNative() {
             try {
                 var userProfiles = customScenes.map(function (scene, index) {
-                    return { profile_id: "scene_" + index + "_" + scene.name, name: scene.name };
+                    return { profile_id: "scene_" + scene.name, name: scene.name };
                 });
                 if (selectedScene) {
                     var found = false;
                     for (var i = 0; i < userProfiles.length; i++) {
                         if (userProfiles[i].name === selectedScene.name) { found = true; break; }
                     }
-                    if (!found) userProfiles.unshift({ profile_id: "scene_current_" + selectedScene.name, name: selectedScene.name });
+                    if (!found) userProfiles.unshift({ profile_id: "scene_" + selectedScene.name, name: selectedScene.name });
                 }
                 if (userProfiles.length === 0) userProfiles.push({ profile_id: "scene_default", name: "自定义配置" });
                 callNativeApi({ api: "get_user_profiles", user_profiles: userProfiles });
@@ -1461,20 +1472,22 @@
                             }
                         } else if (data.profile_id) {
                             var pid = data.profile_id;
-                            showToast('收到模板:' + pid);
+                            var pname = sceneNameFromProfileId(pid);
                             var matched = null;
                             for (var i = 0; i < customScenes.length; i++) {
-                                if (customScenes[i].name === pid || pid.indexOf(customScenes[i].name) !== -1) {
-                                    matched = customScenes[i];
-                                    break;
-                                }
+                                if (customScenes[i].name === pname) { matched = customScenes[i]; break; }
                             }
                             if (matched) {
                                 window._isClosed = false;
+                                window._hasCloseSwitch = false;
                                 window._openScene = null;
                                 selectScene(matched);
+                                var cfgPick = getStartConfig();
+                                cfgPick.api = "update_qnet";
+                                callNativeApi(cfgPick);
+                                showToast('已切换到「' + matched.name + '」');
                             } else {
-                                showToast('未找到匹配模板');
+                                showToast('未找到模板「' + pname + '」');
                             }
                         }
                         break;
