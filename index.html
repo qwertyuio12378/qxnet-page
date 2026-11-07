@@ -3032,16 +3032,9 @@
                     + '<table>'+tableRows+'</table>'
                     + '<div class="footer">由 newQXNET 自动生成 · '+new Date(end).toLocaleString()+'</div>'
                     + '</body></html>';
-                var blob = new Blob([reportHtml], {type: 'text/html'});
-                var url = URL.createObjectURL(blob);
-                var a = document.createElement('a');
-                a.href = url;
-                a.download = 'qnet_report_' + new Date(end).toISOString().slice(0,10) + '_' + sceneName + '.html';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
-                showToast('测试报告已保存: ' + a.download);
+                var fname = 'qnet_report_' + new Date(end).toISOString().slice(0,10) + '_' + sceneName + '.html';
+                callNativeApi({ api: 'save_report', filename: fname, content: reportHtml });
+                showToast('测试报告已保存到 /sdcard/qnet_save/report/' + fname);
             } catch(e) { console.log('report error', e); }
         }
         function showToast(msg) {
