@@ -1727,27 +1727,32 @@
                 cacheRects();
                 bar.classList.add('dragging');
             }, {passive:true});
+            var rafPending=false, lastDx=0;
             bar.addEventListener('touchmove', function(e){
                 if(!tracking) return;
                 var t=e.touches[0];
-                var dx=t.clientX-sx;
-                if(Math.abs(dx)<8) return;
+                lastDx=t.clientX-sx;
+                if(Math.abs(lastDx)<8) return;
                 e.preventDefault();
                 ind.classList.add('dragging');
-                var idx=order.indexOf(currentPage); if(idx<0) return;
-                if(!rects[idx]) return;
-                var tabW=rects[idx].width;
-                var pos=idx+dx/tabW;
-                if(pos<0) pos=0;
-                if(pos>order.length-1) pos=order.length-1;
-                var i0=Math.floor(pos);
-                var i1=Math.min(order.length-1,i0+1);
-                var frac=pos-i0;
-                var ra=rects[i0], rb=rects[i1];
-                if(!ra||!rb) return;
-                setBubble(ra.left+(rb.left-ra.left)*frac, ra.width+(rb.width-ra.width)*frac);
-                // 模糊暂时关闭，测试卡顿源
-                for(var k=0;k<items.length;k++) items[k].classList.remove('bubble-blur');
+                if(rafPending) return;
+                rafPending=true;
+                requestAnimationFrame(function(){
+                    rafPending=false;
+                    var dx=lastDx;
+                    var idx=order.indexOf(currentPage); if(idx<0) return;
+                    if(!rects[idx]) return;
+                    var tabW=rects[idx].width;
+                    var pos=idx+dx/tabW;
+                    if(pos<0) pos=0;
+                    if(pos>order.length-1) pos=order.length-1;
+                    var i0=Math.floor(pos);
+                    var i1=Math.min(order.length-1,i0+1);
+                    var frac=pos-i0;
+                    var ra=rects[i0], rb=rects[i1];
+                    if(!ra||!rb) return;
+                    setBubble(ra.left+(rb.left-ra.left)*frac, ra.width+(rb.width-ra.width)*frac);
+                });
             }, {passive:false});
             bar.addEventListener('touchend', function(e){
                 if(!tracking) return;
