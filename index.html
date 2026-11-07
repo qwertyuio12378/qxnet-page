@@ -1753,18 +1753,21 @@
                 else targetIdx=Math.round(idx+dx/tabW);
                 if(targetIdx<0) targetIdx=0;
                 if(targetIdx>order.length-1) targetIdx=order.length-1;
-                // 计算目标 transform：从当前 left 位置移到目标 tab
+                // 保持 left=lefts[startIdx]，用 transform 滑到目标 tab，动画结束再更新 left
                 var targetTx = lefts[targetIdx] - lefts[startIdx];
-                // 先切页面
+                // 切页面但不更新泡泡位置（临时屏蔽 updateTabIndicator）
+                var savedUpdate = updateTabIndicator;
+                window.updateTabIndicator = function(){};
                 if(targetIdx!==idx) switchTab(order[targetIdx]);
-                // 平滑过渡：从当前拖动位置 → 目标 tab 位置（Y归零、scale归1）
+                window.updateTabIndicator = savedUpdate;
+                // 平滑过渡到目标位置
                 ind.style.transition='transform 0.3s cubic-bezier(0.22,1,0.36,1)';
                 ind.style.transform='translate('+targetTx+'px, 0px)';
-                // 动画结束后更新 left 并移除 dragging
+                // 动画结束后：更新 left、清 transform、移除 dragging
                 setTimeout(function(){
-                    updateTabIndicator();
                     ind.style.transition='none';
                     ind.style.transform='none';
+                    updateTabIndicator();
                     ind.classList.remove('dragging');
                     bar.classList.remove('dragging');
                 }, 300);
