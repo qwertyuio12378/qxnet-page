@@ -1984,6 +1984,11 @@
 
         function loadConfigToForm(config) {
             resetForm();
+            // 强制清空周期丢包四个输入框，防止云同步残留值被当成用户输入
+            ['outPassMs','outBurst','inPassMs','inBurst'].forEach(function(id){
+                var el = document.getElementById(id);
+                if (el) el.value = '';
+            });
             if (config.out_bandwidth !== undefined && config.out_bandwidth !== DEFAULT_VALUE) document.getElementById('outBandwidth').value = config.out_bandwidth;
             if (config.in_bandwidth !== undefined && config.in_bandwidth !== DEFAULT_VALUE) document.getElementById('inBandwidth').value = config.in_bandwidth;
             if (config.out_delay !== undefined && config.out_delay !== DEFAULT_VALUE) document.getElementById('outDelay').value = config.out_delay;
