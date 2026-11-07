@@ -1759,7 +1759,7 @@
                 if(targetIdx!==idx) switchTab(order[targetIdx]);
                 // 平滑过渡：从当前拖动位置 → 目标 tab 位置（Y归零、scale归1）
                 ind.style.transition='transform 0.3s cubic-bezier(0.22,1,0.36,1)';
-                ind.style.transform='translate('+targetTx+'px, 0px) scale(1)';
+                ind.style.transform='translate('+targetTx+'px, 0px)';
                 // 动画结束后更新 left 并移除 dragging
                 setTimeout(function(){
                     updateTabIndicator();
