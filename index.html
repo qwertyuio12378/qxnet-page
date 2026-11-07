@@ -1253,7 +1253,7 @@
                 var controlFw = document.getElementById('controlFw').checked ? 1 : 0;
                 var infoFw = document.getElementById('infoFw').checked ? 1 : 0;
                 var dumpPcap = document.getElementById('dumpPcap').checked ? 1 : 0;
-                callNativeApi({ api: "set_qnet_option", control_fw: controlFw, info_fw: infoFw, dump_pcap: 0 });
+                callNativeApi({ api: "set_qnet_option", control_fw: controlFw, info_fw: infoFw, dump_pcap: dumpPcap });
                 setTimeout(function () { startQNetInternal(); }, 300);
             } else {
                 var config = { api: "stop_qnet" };
@@ -1267,7 +1267,7 @@
                     setTimeout(function () {
                         var cfw = document.getElementById('controlFw').checked ? 1 : 0;
                         var ifw = document.getElementById('infoFw').checked ? 1 : 0;
-                        callNativeApi({ api: "set_qnet_option", control_fw: cfw, info_fw: ifw, dump_pcap: 0 });
+                        callNativeApi({ api: "set_qnet_option", control_fw: cfw, info_fw: ifw, dump_pcap: document.getElementById('dumpPcap').checked ? 1 : 0 });
                     }, 500);
                 }
             }
@@ -1365,7 +1365,7 @@
 
             return {
                 api: "start_qnet",
-                dump_pcap: 0,
+                dump_pcap: dumpPcapEl && dumpPcapEl.checked ? 1 : 0,
                 control_fw: controlFwEl && controlFwEl.checked ? 1 : 0,
                 info_fw: infoFwEl && infoFwEl.checked ? 1 : 0,
                 anti_block: antiBlockEl && antiBlockEl.checked ? 1 : 0,
@@ -1488,7 +1488,7 @@
                 if (userProfiles.length === 0) userProfiles.push({ profile_id: "scene_default", name: "自定义配置" });
                 callNativeApi({ api: "get_user_profiles", user_profiles: userProfiles });
                 setTimeout(function () {
-                    callNativeApi({ api: "set_qnet_option", control_fw: 0, info_fw: 0, dump_pcap: 0 });
+                    callNativeApi({ api: "set_qnet_option", control_fw: 0, info_fw: 0, dump_pcap: document.getElementById('dumpPcap').checked ? 1 : 0 });
                 }, 100);
             } catch (e) { console.error('syncUserProfilesToNative error:', e); }
         }
@@ -2074,7 +2074,7 @@
                     var cfw = document.getElementById('controlFw').checked ? 1 : 0;
                     var ifw = document.getElementById('infoFw').checked ? 1 : 0;
                     var dp = document.getElementById('dumpPcap').checked ? 1 : 0;
-                    callNativeApi({ api: "set_qnet_option", control_fw: cfw, info_fw: ifw, dump_pcap: 0 });
+                    callNativeApi({ api: "set_qnet_option", control_fw: cfw, info_fw: ifw, dump_pcap: document.getElementById('dumpPcap').checked ? 1 : 0 });
                 }, 200);
             }
             updateFloatWindow();
@@ -2403,7 +2403,7 @@
                 var cfw = document.getElementById('controlFw').checked ? 1 : 0;
                 var ifw = document.getElementById('infoFw').checked ? 1 : 0;
                 var dp = document.getElementById('dumpPcap').checked ? 1 : 0;
-                callNativeApi({ api: "set_qnet_option", control_fw: cfw, info_fw: ifw, dump_pcap: 0 });
+                callNativeApi({ api: "set_qnet_option", control_fw: cfw, info_fw: ifw, dump_pcap: document.getElementById('dumpPcap').checked ? 1 : 0 });
             }, 100);
         }
 
@@ -2982,7 +2982,7 @@
                 var cfw = document.getElementById('controlFw').checked ? 1 : 0;
                 var ifw = document.getElementById('infoFw').checked ? 1 : 0;
                 var dp = document.getElementById('dumpPcap').checked ? 1 : 0;
-                callNativeApi({ api: "set_qnet_option", control_fw: cfw, info_fw: ifw, dump_pcap: 0 });
+                callNativeApi({ api: "set_qnet_option", control_fw: cfw, info_fw: ifw, dump_pcap: document.getElementById('dumpPcap').checked ? 1 : 0 });
             }
             updateFloatWindow();
         }
