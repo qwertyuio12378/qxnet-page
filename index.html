@@ -1716,7 +1716,8 @@
             document.addEventListener('touchend', function(e){
                 var t=e.changedTouches[0];
                 var dx=t.clientX-sx, dy=t.clientY-sy;
-                if(Math.abs(dx)<60 || Math.abs(dx)<Math.abs(dy)*1.5) return;
+                showToast('dx=' + Math.round(dx) + ' cur=' + currentPage);
+                if(Math.abs(dx)<40 || Math.abs(dx)<Math.abs(dy)*1.2) return;
                 var idx=order.indexOf(currentPage);
                 if(idx<0) return;
                 if(dx<0 && idx<order.length-1) switchTab(order[idx+1]);
