@@ -1745,9 +1745,9 @@
                     if(pos<0) pos=0;
                     if(pos>order.length-1) pos=order.length-1;
                     var tx=lefts[0]+(lefts[lefts.length-1]-lefts[0])*(pos/(order.length-1))-lefts[0];
-                    // Y 方向：手指上移多少，泡泡就上浮多少（最多上浮 120px）
-                    var lift=Math.max(0, Math.min(120, -dy));
-                    ind.style.transform='translate('+tx+'px, -'+lift+'px) scale(1.08)';
+                    // Y 方向完全跟随手指，想拖到哪就拖到哪
+                    var lift=-dy;
+                    ind.style.transform='translate('+tx+'px, '+lift+'px) scale(1.08)';
                 });
             }, {passive:true});
             document.addEventListener('touchend', function(e){
