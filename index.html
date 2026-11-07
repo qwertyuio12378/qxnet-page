@@ -1706,7 +1706,11 @@
         }
 
         function goBack() {
-            if (currentPage === 'template-edit') switchTab('workbench');
+            if (pageStack.length > 1) {
+                history.back();
+            } else if (currentPage === 'template-edit') {
+                switchTab('workbench');
+            }
         }
 
         function nextSceneName(base) {
@@ -1932,6 +1936,10 @@
             document.querySelectorAll('.page').forEach(function (p) { p.classList.remove('active'); });
             document.getElementById('page-template-edit').classList.add('active');
             updateNavBar('template-edit');
+            if (!isPoppingState && pageStack[pageStack.length-1] !== 'template-edit') {
+                pageStack.push('template-edit');
+                history.pushState({page: 'template-edit'}, '');
+            }
             locateClientCity();
             updateNetStats();
         }
