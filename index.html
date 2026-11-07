@@ -1763,9 +1763,14 @@
                 if(targetIdx!==idx) switchTab(order[targetIdx]);
                 else updateTabIndicator();
                 ind.style.transition='none';
-                ind.style.transform='translate(0,0)';
+                ind.style.transform='none';
+                ind.style.webkitTransform='none';
                 ind.classList.remove('dragging');
                 bar.classList.remove('dragging');
+                // 兜底：下一帧再清一次
+                requestAnimationFrame(function(){
+                    ind.style.transform='none';
+                });
             }, {passive:true});
         })();
 
