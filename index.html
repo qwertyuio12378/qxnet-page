@@ -1057,13 +1057,69 @@
                 sub: 'UDP协议',
                 desc: '某些特殊网络出于安全考虑会禁用UDP协议，用此模板来验证UDP协议禁用时的工作情况',
                 config: { protocol: 15 }
+            },
+            '2G网络': {
+                sub: '2G / 边缘网络',
+                desc: '高延迟、低带宽、偶发丢包，模拟偏远地区2G网络环境',
+                config: { out_bandwidth: 50, in_bandwidth: 50, out_delay: 600, in_delay: 600, out_rate: 10, in_rate: 10, out_loss: 5, in_loss: 5 }
+            },
+            '3G网络': {
+                sub: '3G / HSPA',
+                desc: '中等延迟和带宽，模拟地铁、地下车库等弱信号场景',
+                config: { out_bandwidth: 400, in_bandwidth: 400, out_delay: 200, in_delay: 200, out_loss: 2, in_loss: 2 }
+            },
+            '4G弱信号': {
+                sub: '4G 边缘覆盖',
+                desc: '延迟波动大、偶发丢包，模拟高楼或偏远地区4G信号边缘',
+                config: { out_delay: 300, in_delay: 300, out_rate: 30, in_rate: 30, out_loss: 3, in_loss: 3 }
+            },
+            '弱WiFi远场': {
+                sub: 'WiFi 距离远/遮挡',
+                desc: '带宽波动、延迟高、丢包，模拟远离路由器或穿墙后的WiFi',
+                config: { out_bandwidth: 1000, in_bandwidth: 2000, out_delay: 150, in_delay: 150, out_loss: 8, in_loss: 8 }
+            },
+            '跨境欧美网络': {
+                sub: '北京 - 洛杉矶',
+                desc: '模拟出海用户连接国内服务，高延迟约200ms',
+                netProfile: {server: '洛杉矶', client: '北京市', isp: '中国电信', netType: '4G'},
+                config: { out_delay: 200, in_delay: 200, out_rate: 5, in_rate: 5, out_loss: 2, in_loss: 2 }
+            },
+            '跨境东南亚': {
+                sub: '北京 - 新加坡',
+                desc: '模拟东南亚用户访问国内服务，延迟约120ms',
+                netProfile: {server: '新加坡', client: '北京市', isp: '中国电信', netType: '4G'},
+                config: { out_delay: 120, in_delay: 120, out_loss: 1, in_loss: 1 }
+            },
+            '卫星网络': {
+                sub: '卫星互联网',
+                desc: '高延迟但几乎不丢包，模拟Starlink等卫星网络',
+                config: { out_delay: 500, in_delay: 500, out_rate: 5, in_rate: 5 }
+            },
+            '频繁闪断': {
+                sub: '弱信号频繁断连',
+                desc: '每5秒断网2秒再恢复，模拟电梯、隧道等频繁闪断场景',
+                config: { out_loss: 100, out_pass: 5000, out_burst: 2000, in_loss: 100, in_pass: 5000, in_burst: 2000 }
+            },
+            '弱网+大带宽': {
+                sub: '延迟高但带宽充足',
+                desc: '带宽足够但延迟高，模拟骨干网拥塞场景',
+                config: { out_bandwidth: 5000, in_bandwidth: 10000, out_delay: 400, in_delay: 400 }
+            },
+            '高抖动直播场景': {
+                sub: '直播弱网',
+                desc: '延迟和抖动都很大，模拟直播推流弱网环境',
+                config: { out_delay: 250, in_delay: 250, out_rate: 80, in_rate: 80, out_loss: 10, in_loss: 10 }
             }
         };
 
         var recommendScenes = [
             '极差网络', '连续丢包', '断线重连(短)', '断线重连(长)',
             '上下行高延时高抖动', '上下行低延时', '上下行低丢包率', '上下行高丢包率',
-            'WiFi-4G网络切换', '新疆地区网络模拟', '全球弱网络模拟', '视频频标准', 'UDP协议不可用'
+            'WiFi-4G网络切换', '新疆地区网络模拟', '全球弱网络模拟',
+            '2G网络', '3G网络', '4G弱信号', '弱WiFi远场',
+            '跨境欧美网络', '跨境东南亚', '卫星网络',
+            '频繁闪断', '弱网+大带宽', '高抖动直播场景',
+            '视频频标准', 'UDP协议不可用'
         ];
 
         // ==================== 随机生成函数 ====================
