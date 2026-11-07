@@ -1059,19 +1059,24 @@
                 config: { protocol: 15 }
             },
             '2G网络': {
-                sub: '2G / 边缘网络',
-                desc: '高延迟、低带宽、偶发丢包，模拟偏远地区2G网络环境',
-                config: { out_bandwidth: 50, in_bandwidth: 50, out_delay: 600, in_delay: 600, out_rate: 10, in_rate: 10, out_loss: 5, in_loss: 5 }
+                sub: '2G / EDGE',
+                desc: '高延迟600ms、低带宽50kbps、偶发丢包5%，模拟2G边缘网络',
+                config: { out_bandwidth: 30, in_bandwidth: 80, out_delay: 600, in_delay: 600, out_loss: 5, in_loss: 5 }
             },
             '3G网络': {
-                sub: '3G / HSPA',
-                desc: '中等延迟和带宽，模拟地铁、地下车库等弱信号场景',
-                config: { out_bandwidth: 400, in_bandwidth: 400, out_delay: 200, in_delay: 200, out_loss: 2, in_loss: 2 }
+                sub: '3G / HSPA+',
+                desc: '中等延迟200ms、带宽400kbps、低丢包2%，模拟3G网络环境',
+                config: { out_bandwidth: 200, in_bandwidth: 700, out_delay: 200, in_delay: 200, out_loss: 2, in_loss: 2 }
+            },
+            '4G正常': {
+                sub: '4G / LTE 正常信号',
+                desc: '低延迟50ms、高带宽，正常4G网络基准',
+                config: { out_bandwidth: 2000, in_bandwidth: 10000, out_delay: 50, in_delay: 50 }
             },
             '4G弱信号': {
                 sub: '4G 边缘覆盖',
-                desc: '延迟波动大、偶发丢包，模拟高楼或偏远地区4G信号边缘',
-                config: { out_delay: 300, in_delay: 300, out_rate: 30, in_rate: 30, out_loss: 3, in_loss: 3 }
+                desc: '延迟波动大300ms、偶发丢包3%，模拟高楼或偏远地区4G信号边缘',
+                config: { out_bandwidth: 500, in_bandwidth: 2000, out_delay: 300, in_delay: 300, out_loss: 3, in_loss: 3 }
             },
             '弱WiFi远场': {
                 sub: 'WiFi 距离远/遮挡',
@@ -1168,7 +1173,7 @@
             '极差网络', '连续丢包', '断线重连(短)', '断线重连(长)',
             '上下行高延时高抖动', '上下行低延时', '上下行低丢包率', '上下行高丢包率',
             'WiFi-4G网络切换', '新疆地区网络模拟', '全球弱网络模拟',
-            '2G网络', '3G网络', '4G弱信号', '弱WiFi远场',
+            '2G网络', '3G网络', '4G正常', '4G弱信号', '弱WiFi远场',
             '跨境欧美网络', '跨境东南亚', '卫星网络',
             '频繁闪断', '弱网+大带宽', '高抖动直播场景',
             '高铁移动场景', '地铁场景', '弱网语音通话', '晚高峰拥塞',
