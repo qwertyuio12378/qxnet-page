@@ -2036,20 +2036,7 @@
         function initRecommendScenes() {
             var list = document.getElementById('recommendList');
             list.innerHTML = '';
-            var sceneNames = [];
-            var customNames = [];
             recommendScenes.forEach(function (name) {
-                var scene = presetScenes[name];
-                if (scene.sub || scene.netProfile) sceneNames.push(name);
-                else customNames.push(name);
-            });
-            function renderHeader(text) {
-                var h = document.createElement('div');
-                h.style.cssText = 'padding:12px 16px 6px; font-size:13px; color:#999; font-weight:500; background:#fff;';
-                h.textContent = text;
-                list.appendChild(h);
-            }
-            function renderItem(name) {
                 var scene = presetScenes[name];
                 var item = document.createElement('div');
                 item.className = 'recommend-item';
@@ -2057,15 +2044,7 @@
                 var right = '<div class="add-btn" onclick="event.stopPropagation();addScene(\'' + name + '\')">添加</div>';
                 item.innerHTML = '<div class="recommend-info"><div class="title">' + name + '</div>' + sub + '<div class="reason">推荐理由: ' + scene.desc + '</div></div>' + right;
                 list.appendChild(item);
-            }
-            if (sceneNames.length > 0) {
-                renderHeader('场景模板');
-                sceneNames.forEach(renderItem);
-            }
-            if (customNames.length > 0) {
-                renderHeader('自定义模板');
-                customNames.forEach(renderItem);
-            }
+            });
         }
 
         function selectScene(scene) {
