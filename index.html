@@ -1760,11 +1760,9 @@
                 else targetIdx=Math.round(idx+dx/tabW);
                 if(targetIdx<0) targetIdx=0;
                 if(targetIdx>order.length-1) targetIdx=order.length-1;
-                // 先更新 left 到目标 tab，再让 transform 归位
                 if(targetIdx!==idx) switchTab(order[targetIdx]);
                 else updateTabIndicator();
-                ind.style.transition='transform 0.3s cubic-bezier(0.34,1.56,0.64,1)';
-                void ind.offsetWidth; // 强制 reflow
+                ind.style.transition='none';
                 ind.style.transform='translate(0,0)';
                 ind.classList.remove('dragging');
                 bar.classList.remove('dragging');
