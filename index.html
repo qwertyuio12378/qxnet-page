@@ -1707,7 +1707,7 @@
             }
         }
 
-        // 在 tabBar 上拖动切换 tab，泡泡跟手（支持跨多步）
+        // 在 tabBar 上拖动切换 tab（GPU transform 加速）
         (function(){
             var bar=document.getElementById('tabBar');
             if(!bar) return;
@@ -1715,64 +1715,57 @@
             var items=bar.querySelectorAll('.tab-item');
             var sx=0, tracking=false;
             var order=['workbench','scene','settings'];
-            var rects=[];
-            function cacheRects(){rects=[];for(var i=0;i<items.length;i++){rects.push({left:items[i].offsetLeft,width:items[i].offsetWidth});}}
-            function setBubble(l,w){ind.style.transition='none';ind.style.left=l+'px';ind.style.width=w+'px';}
-            function snapTo(i){if(!rects[i])return;ind.style.transition='';ind.style.left=rects[i].left+'px';ind.style.width=rects[i].width+'px';}
+            var lefts=[];
+            function cache(){lefts=[];for(var i=0;i<items.length;i++)lefts.push(items[i].offsetLeft);}
             bar.style.touchAction='pan-y';
-            ind.style.willChange='left,width';
+            ind.style.willChange='transform';
             bar.addEventListener('touchstart', function(e){
                 if(e.touches.length>1) return;
                 sx=e.touches[0].clientX; tracking=true;
-                cacheRects();
+                cache();
+                // 把泡泡基准位置设到第一个 tab
+                ind.style.transition='none';
+                ind.style.left=lefts[0]+'px';
+                ind.style.width=items[0].offsetWidth+'px';
                 bar.classList.add('dragging');
             }, {passive:true});
-            var rafPending=false, lastDx=0;
+            var rafPending=false;
             bar.addEventListener('touchmove', function(e){
                 if(!tracking) return;
-                var t=e.touches[0];
-                lastDx=t.clientX-sx;
-                if(Math.abs(lastDx)<8) return;
+                var dx=e.touches[0].clientX-sx;
+                if(Math.abs(dx)<8) return;
                 ind.classList.add('dragging');
                 if(rafPending) return;
                 rafPending=true;
                 requestAnimationFrame(function(){
                     rafPending=false;
-                    var dx=lastDx;
                     var idx=order.indexOf(currentPage); if(idx<0) return;
-                    if(!rects[idx]) return;
-                    var tabW=rects[idx].width;
+                    var tabW=items[0].offsetWidth;
                     var pos=idx+dx/tabW;
                     if(pos<0) pos=0;
                     if(pos>order.length-1) pos=order.length-1;
-                    var i0=Math.floor(pos);
-                    var i1=Math.min(order.length-1,i0+1);
-                    var frac=pos-i0;
-                    var ra=rects[i0], rb=rects[i1];
-                    if(!ra||!rb) return;
-                    setBubble(ra.left+(rb.left-ra.left)*frac, ra.width+(rb.width-ra.width)*frac);
+                    // 从 lefts[0] 开始按比例位移
+                    var tx=lefts[0]+(lefts[lefts.length-1]-lefts[0])*(pos/(order.length-1))-lefts[0];
+                    ind.style.transform='translateX('+tx+'px)';
                 });
-            }, {passive:false});
+            }, {passive:true});
             bar.addEventListener('touchend', function(e){
                 if(!tracking) return;
                 tracking=false;
-                var t=e.changedTouches[0];
-                var dx=t.clientX-sx;
+                var dx=e.changedTouches[0].clientX-sx;
                 var idx=order.indexOf(currentPage); if(idx<0) return;
-                if(!rects[idx]) return;
-                var tabW=rects[idx].width;
+                var tabW=items[0].offsetWidth;
                 var targetIdx;
                 if(Math.abs(dx)<20) targetIdx=idx;
                 else targetIdx=Math.round(idx+dx/tabW);
                 if(targetIdx<0) targetIdx=0;
                 if(targetIdx>order.length-1) targetIdx=order.length-1;
-                // 松手：切页，泡泡瞬间缩回正常大小
-                ind.style.transition='none';
+                ind.style.transform='';
+                ind.style.transition='';
                 ind.classList.remove('dragging');
                 bar.classList.remove('dragging');
-                for(var k=0;k<items.length;k++) items[k].classList.remove('bubble-blur');
                 if(targetIdx!==idx) switchTab(order[targetIdx]);
-                else snapTo(idx);
+                else updateTabIndicator();
             }, {passive:true});
         })();
 
