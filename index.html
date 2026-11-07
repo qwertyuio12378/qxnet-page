@@ -1746,15 +1746,8 @@
                 var ra=rects[i0], rb=rects[i1];
                 if(!ra||!rb) return;
                 setBubble(ra.left+(rb.left-ra.left)*frac, ra.width+(rb.width-ra.width)*frac);
-                // 模糊泡泡中心所在的 tab（带迟滞，避免边界来回跳）
-                var centerIdx;
-                if(pos < 0.5) centerIdx = 0;
-                else if(pos > order.length-1.5) centerIdx = order.length-1;
-                else centerIdx = Math.round(pos);
-                for(var k=0;k<items.length;k++){
-                    if(k===centerIdx) items[k].classList.add('bubble-blur');
-                    else items[k].classList.remove('bubble-blur');
-                }
+                // 模糊暂时关闭，测试卡顿源
+                for(var k=0;k<items.length;k++) items[k].classList.remove('bubble-blur');
             }, {passive:false});
             bar.addEventListener('touchend', function(e){
                 if(!tracking) return;
