@@ -1726,8 +1726,6 @@
                 ind.style.transition='none';
                 ind.style.left=lefts[startIdx]+'px';
                 ind.style.width=items[startIdx].offsetWidth+'px';
-                bar.classList.add('dragging');
-                ind.classList.add('dragging');
             }, {passive:true});
             bar.addEventListener('touchmove', function(e){
                 if(!tracking) return;
