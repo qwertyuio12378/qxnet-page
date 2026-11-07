@@ -2983,6 +2983,7 @@
             else el.classList.remove('on');
             var checkbox = document.getElementById(type);
             if (checkbox) checkbox.checked = newState;
+            if (typeof simpleSaveAll === 'function') simpleSaveAll();
             if (typeof cloudMarkDirty === 'function') cloudMarkDirty();
             if (type === 'controlFw' || type === 'infoFw' || type === 'dumpPcap') {
                 var cfw = document.getElementById('controlFw').checked ? 1 : 0;
