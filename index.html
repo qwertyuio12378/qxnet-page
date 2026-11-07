@@ -1731,7 +1731,7 @@
                 if(!tracking) return;
                 var t=e.touches[0];
                 var dx=t.clientX-sx;
-                if(Math.abs(dx)<8) { ind.classList.remove('dragging'); return; }
+                if(Math.abs(dx)<8) return;
                 e.preventDefault();
                 ind.classList.add('dragging');
                 var idx=order.indexOf(currentPage); if(idx<0) return;
@@ -1764,20 +1764,12 @@
                 else targetIdx=Math.round(idx+dx/tabW);
                 if(targetIdx<0) targetIdx=0;
                 if(targetIdx>order.length-1) targetIdx=order.length-1;
-                if(targetIdx!==idx){
-                    switchTab(order[targetIdx]);
-                    // 切换后保持泡泡放大一会再缩回
-                    setTimeout(function(){
-                        ind.classList.remove('dragging');
-                        bar.classList.remove('dragging');
-                        for(var k=0;k<items.length;k++) items[k].classList.remove('bubble-blur');
-                    }, 180);
-                } else {
-                    ind.classList.remove('dragging');
-                    bar.classList.remove('dragging');
-                    for(var k=0;k<items.length;k++) items[k].classList.remove('bubble-blur');
-                    snapTo(idx);
-                }
+                ind.style.transition='';
+                ind.classList.remove('dragging');
+                bar.classList.remove('dragging');
+                for(var k=0;k<items.length;k++) items[k].classList.remove('bubble-blur');
+                if(targetIdx!==idx) switchTab(order[targetIdx]);
+                else snapTo(idx);
             }, {passive:true});
         })();
 
