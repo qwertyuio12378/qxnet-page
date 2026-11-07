@@ -1109,6 +1109,58 @@
                 sub: '直播弱网',
                 desc: '延迟和抖动都很大，模拟直播推流弱网环境',
                 config: { out_delay: 250, in_delay: 250, out_rate: 80, in_rate: 80, out_loss: 10, in_loss: 10 }
+            },
+            '高铁移动场景': {
+                sub: '高铁/动车行驶中',
+                desc: '高速移动导致频繁切换基站，延迟波动大、偶发丢包',
+                config: { out_delay: 350, in_delay: 350, out_rate: 60, in_rate: 60, out_loss: 5, in_loss: 5 }
+            },
+            '地铁场景': {
+                sub: '地铁/城轨',
+                desc: '信号弱、带宽低、进出站频繁闪断',
+                config: { out_bandwidth: 200, in_bandwidth: 500, out_delay: 400, in_delay: 400, out_loss: 8, in_loss: 8 }
+            },
+            '弱网语音通话': {
+                sub: '微信/QQ语音弱网',
+                desc: '上行带宽小、偶发丢包，模拟语音通话卡顿',
+                config: { out_bandwidth: 80, in_bandwidth: 150, out_delay: 200, in_delay: 200, out_loss: 15, in_loss: 15 }
+            },
+            '晚高峰拥塞': {
+                sub: '晚高峰19-21点',
+                desc: '小区/商圈多人同时上网，带宽被挤占、延迟升高',
+                config: { out_bandwidth: 300, in_bandwidth: 800, out_delay: 250, in_delay: 250, out_loss: 4, in_loss: 4 }
+            },
+            '热点共享弱网': {
+                sub: '手机热点',
+                desc: '热点本身网络差、多设备共享导致带宽分割',
+                config: { out_bandwidth: 500, in_bandwidth: 1000, out_delay: 180, in_delay: 180, out_loss: 3, in_loss: 3 }
+            },
+            '信号盲区': {
+                sub: '地下停车场/电梯井',
+                desc: '长时间完全无信号，进入和离开时网络突恢复',
+                config: { out_loss: 100, out_pass: 10000, out_burst: 30000, in_loss: 100, in_pass: 10000, in_burst: 30000 }
+            },
+            '弱网页游加载': {
+                sub: 'H5/小游戏加载',
+                desc: '带宽极低、延迟中等，模拟首次加载网页游戏资源',
+                config: { out_bandwidth: 150, in_bandwidth: 300, out_delay: 300, in_delay: 300 }
+            },
+            '弱网图片加载': {
+                sub: '朋友圈图片弱网',
+                desc: '下行带宽受限、图片加载慢但不丢包',
+                config: { out_bandwidth: 200, in_bandwidth: 400, out_delay: 150, in_delay: 150 }
+            },
+            '跨运营商延迟': {
+                sub: '电信 - 联通互联',
+                desc: '跨运营商互联互通瓶颈，延迟高、偶发丢包',
+                netProfile: {server: '上海', client: '北京市', isp: '中国电信→中国联通', netType: '4G'},
+                config: { out_delay: 180, in_delay: 180, out_loss: 3, in_loss: 3 }
+            },
+            '海外回国网络': {
+                sub: '海外 - 北京',
+                desc: '海外用户访问国内服务，高延迟、丢包率较高',
+                netProfile: {server: '法兰克福', client: '北京市', isp: '德国电信', netType: 'WiFi'},
+                config: { out_delay: 280, in_delay: 280, out_rate: 20, in_rate: 20, out_loss: 8, in_loss: 8 }
             }
         };
 
@@ -1119,6 +1171,9 @@
             '2G网络', '3G网络', '4G弱信号', '弱WiFi远场',
             '跨境欧美网络', '跨境东南亚', '卫星网络',
             '频繁闪断', '弱网+大带宽', '高抖动直播场景',
+            '高铁移动场景', '地铁场景', '弱网语音通话', '晚高峰拥塞',
+            '热点共享弱网', '信号盲区', '弱网页游加载', '弱网图片加载',
+            '跨运营商延迟', '海外回国网络',
             '视频频标准', 'UDP协议不可用'
         ];
 
