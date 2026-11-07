@@ -2983,6 +2983,7 @@
             else el.classList.remove('on');
             var checkbox = document.getElementById(type);
             if (checkbox) checkbox.checked = newState;
+            if (typeof cloudMarkDirty === 'function') cloudMarkDirty();
             if (type === 'controlFw' || type === 'infoFw' || type === 'dumpPcap') {
                 var cfw = document.getElementById('controlFw').checked ? 1 : 0;
                 var ifw = document.getElementById('infoFw').checked ? 1 : 0;
@@ -3508,7 +3509,6 @@
                 if (res.error || !res.data || !res.data.data) return;
                 var d = res.data.data;
                 if (d && d.scenes && d.scenes.length > 0) {
-                    // 只在本机没有模板或云端更新时恢复
                     var local = null;
                     try { local = JSON.parse(localStorage.getItem(SIMPLE_STORAGE_KEY) || 'null'); } catch(e) {}
                     var localT = local && local.t ? local.t : 0;
@@ -3518,6 +3518,21 @@
                         initWorkbenchScenes();
                         initRecommendScenes();
                     }
+                }
+                // 恢复设置偏好
+                if (d && d.settings) {
+                    var st = d.settings;
+                    function setToggle(id, onId, val) {
+                        var cb = document.getElementById(id);
+                        var sw = document.getElementById(onId);
+                        if (cb) cb.checked = !!val;
+                        if (sw) sw.className = val ? 'switch on' : 'switch';
+                    }
+                    setToggle('controlFw', 'switchControlFw', st.controlFw);
+                    setToggle('infoFw', 'switchInfoFw', st.infoFw);
+                    setToggle('dumpPcap', 'switchPcap', st.dumpPcap);
+                    setToggle('antiBlock', 'switchAntiBlock', st.antiBlock);
+                    setToggle('reportSwitch', 'switchReport', st.reportSwitch);
                 }
             }).catch(function () {});
         }
