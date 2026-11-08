@@ -3530,14 +3530,18 @@
         function cloudAutoLoad() {
             var user = cloudCurUser();
             if (!user) return;
-            // 先尝试从云端恢复QQ登录态
-            cloudSb.from('qnet_templates').select('data').eq('owner_id', user.id).maybeSingle().then(function(res){
-                if(!res.error && res.data && res.data.data && res.data.data.qqSession){
-                    try {
-                        callNativeApi({api:'set_qq_session', session: res.data.data.qqSession});
-                    } catch(e) {}
-                }
-            });
+            // 延迟从云端恢复QQ登录态，等WebView就绪
+            setTimeout(function(){
+                try {
+                    cloudSb.from('qnet_templates').select('data').eq('owner_id', user.id).maybeSingle().then(function(res){
+                        if(!res.error && res.data && res.data.data && res.data.data.qqSession){
+                            try {
+                                callNativeApi({api:'set_qq_session', session: res.data.data.qqSession});
+                            } catch(e) {}
+                        }
+                    });
+                } catch(e) {}
+            }, 2000);
             cloudSb.from('qnet_templates').select('data,t').eq('owner_id', user.id).maybeSingle().then(function (res) {
                 if (res.error || !res.data || !res.data.data) return;
                 var d = res.data.data;
