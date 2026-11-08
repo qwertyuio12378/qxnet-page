@@ -3352,28 +3352,48 @@
             } catch(e) {}
         }
 
-        // 读取外部备份文件（原生 qxReadAuth，独立方法，不经过 callAndroidApi）
-        function qxNativeRead() {
+        // 原生只做两件事：导出/导入 QQ token 所在的 SharedPreferences（不调用任何 QQ SDK 类）
+        function qxPrefExport() {
             try {
-                if (window.qnetAndroidObj && window.qnetAndroidObj.qxReadAuth) {
-                    var r = window.qnetAndroidObj.qxReadAuth();
-                    if (!r) return {};
-                    return JSON.parse(r);
+                if (window.qnetAndroidObj && window.qnetAndroidObj.qxExportAuth) {
+                    return JSON.parse(window.qnetAndroidObj.qxExportAuth() || '{}');
                 }
             } catch (e) {}
             return {};
         }
-        // 写外部备份（复用原生 save_report 写文件能力）
-        function saveAuthBackup(obj) {
+        function qxPrefImport(obj) {
             try {
-                callNativeApi({api:'save_report', filename:'qxnet_auth.json', content: JSON.stringify(obj)});
+                if (window.qnetAndroidObj && window.qnetAndroidObj.qxImportAuth && obj && Object.keys(obj).length) {
+                    window.qnetAndroidObj.qxImportAuth(JSON.stringify(obj));
+                }
+            } catch (e) {}
+            return false;
+        }
+        function qxFileRead() {
+            try {
+                if (window.qnetAndroidObj && window.qnetAndroidObj.qxReadAuth) {
+                    return JSON.parse(window.qnetAndroidObj.qxReadAuth() || '{}');
+                }
+            } catch (e) {}
+            return {};
+        }
+        // 登录成功后把 token 存到外部目录（清数据/卸载都不会删）
+        function backupAuthOnLogin(qqId) {
+            try {
+                var prefs = qxPrefExport();
+                if (!prefs || !Object.keys(prefs).length) return;
+                callNativeApi({api:'save_report', filename:'qxnet_auth.json', content: JSON.stringify({openid: qqId, prefs: prefs, t: Date.now()})});
             } catch (e) {}
         }
-        // 启动时读外部备份，用 openid 直接登云端恢复数据（不依赖 QQ 重新授权）
+        // 启动时把外部备份写回 SharedPreferences，QQ SDK 会认为仍处于登录态
         function syncAuthOnBoot() {
             try {
-                var f = qxNativeRead();
+                var f = qxFileRead();
                 if (!f || !f.openid) return;
+                if (f.prefs) {
+                    qxPrefImport(f.prefs);
+                    setTimeout(function(){ try { updateAccountUI(); } catch(e) {} }, 500);
+                }
                 if (!cloudCurUser()) autoCloudLogin(f.openid);
             } catch (e) {}
         }
@@ -3402,11 +3422,7 @@
                         localStorage.setItem('qnet_account', JSON.stringify(info));
                         var qqId = info.uin || info.id || info.openid || info.nickname || 'default';
                         autoCloudLogin(qqId);
-                        setTimeout(function(){
-                            try {
-                                saveAuthBackup({openid: qqId, nickname: info.nickname || '', t: Date.now()});
-                            } catch(e) {}
-                        }, 1200);
+                        setTimeout(function(){ backupAuthOnLogin(qqId); }, 3000);
                     }
                 }
             } catch(e) {}
