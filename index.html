@@ -1546,26 +1546,7 @@
                     case 'set_package_name': handleSetPackageName(data); break;
                     case 'start_qnet': handleStartQnet(data); break;
                     case 'stop_qnet': handleStopQnet(data); break;
-                    case 'get_qq_session':
-                    if (data && data.session) {
-                        try {
-                            var sessStr = typeof data.session === 'string' ? data.session : JSON.stringify(data.session);
-                            localStorage.setItem('qq_session_backup', sessStr);
-                            // 保存到云端
-                            var user = cloudCurUser();
-                            if (user && window.cloudSb) {
-                                cloudSb.from('qnet_templates').select('data').eq('owner_id', user.id).maybeSingle().then(function(res){
-                                    if(!res.error && res.data && res.data.data){
-                                        var d = res.data.data;
-                                        d.qqSession = data.session;
-                                        cloudSb.from('qnet_templates').update({data:d, t:Date.now()}).eq('owner_id', user.id).then(function(){});
-                                    }
-                                });
-                            }
-                        } catch(e) {}
-                    }
-                    break;
-                case 'pcap_path': handlePcapPath(data); break;
+                    case 'pcap_path': handlePcapPath(data); break;
                     case 'update_qnet_by_qnet':
                         if (data.profile_id === '__switch__') {
                             if (window._isClosed && window._openScene) {
@@ -3381,6 +3362,8 @@
                     if (info.avatar) {
                         document.getElementById('avatarBox').innerHTML = '<img src="'+info.avatar+'" style="width:44px;height:44px;border-radius:50%;object-fit:cover;">';
                     }
+                    var qid = info.uin || info.id || info.openid || info.nickname || 'default';
+                    autoCloudLogin(qid);
                     return;
                 }
                 if (window.qnetAndroidObj && qnetAndroidObj.getAccountInfo) {
@@ -3394,8 +3377,6 @@
                         localStorage.setItem('qnet_account', JSON.stringify(info));
                         var qqId = info.uin || info.id || info.openid || info.nickname || 'default';
                         autoCloudLogin(qqId);
-                        // 保存QQ登录态到云端，清数据后自动恢复
-                        callNativeApi({api:'get_qq_session'});
                     }
                 }
             } catch(e) {}
@@ -3477,6 +3458,7 @@
         var SUPABASE_URL = 'https://gngcducutevgllbaejec.supabase.co';
         var SUPABASE_ANON_KEY = 'sb_publishable_i5npxDKfL83UBEDBBPm57A_WqqYeh-P';
         var cloudSb = null;
+        var cloudReady = false;
         var cloudDirty = false;      // 数据是否有变化待上传
         var cloudSyncing = false;    // 是否正在上传
         var cloudLastPush = 0;       // 上次成功推送时间
@@ -3509,6 +3491,7 @@
         }
         // 数据变化时由 simpleSaveAll 调用，节流推送（最多每5秒一次）
         function cloudAutoPush() {
+            if (!cloudReady) return;
             if (!cloudDirty || cloudSyncing) return;
             var user = cloudCurUser();
             if (!user) return;
@@ -3522,28 +3505,24 @@
                 data: data,
                 t: data.t
             }, { onConflict: 'owner_id' }).then(function (res) {
-                if (!res.error) cloudLastPush = Date.now();
+                if (!res.error) {
+                    cloudLastPush = Date.now();
+                    var st0 = document.getElementById('cloudUserState');
+                    if (st0) {
+                        var d0 = new Date(cloudLastPush);
+                        function p2(n){return n<10?'0'+n:''+n;}
+                        st0.textContent = '已登录 · 已备份 ' + p2(d0.getHours()) + ':' + p2(d0.getMinutes()) + ':' + p2(d0.getSeconds());
+                    }
+                }
                 cloudSyncing = false;
             }).catch(function () { cloudSyncing = false; cloudDirty = true; });
         }
         // 启动时自动从云端恢复
-        function cloudAutoLoad() {
+        function cloudAutoLoad(cb) {
             var user = cloudCurUser();
-            if (!user) return;
-            // 延迟从云端恢复QQ登录态，等WebView就绪
-            setTimeout(function(){
-                try {
-                    cloudSb.from('qnet_templates').select('data').eq('owner_id', user.id).maybeSingle().then(function(res){
-                        if(!res.error && res.data && res.data.data && res.data.data.qqSession){
-                            try {
-                                callNativeApi({api:'set_qq_session', session: res.data.data.qqSession});
-                            } catch(e) {}
-                        }
-                    });
-                } catch(e) {}
-            }, 2000);
+            if (!user) { if (cb) cb(); return; }
             cloudSb.from('qnet_templates').select('data,t').eq('owner_id', user.id).maybeSingle().then(function (res) {
-                if (res.error || !res.data || !res.data.data) return;
+                if (res.error || !res.data || !res.data.data) { cloudReady = true; if (cb) cb(); return; }
                 var d = res.data.data;
                 if (d && d.scenes && d.scenes.length > 0) {
                     var local = null;
@@ -3559,19 +3538,21 @@
                 // 恢复设置偏好
                 if (d && d.settings) {
                     var st = d.settings;
-                    function setToggle(id, onId, val) {
-                        var cb = document.getElementById(id);
-                        var sw = document.getElementById(onId);
-                        if (cb) cb.checked = !!val;
-                        if (sw) sw.className = val ? 'switch on' : 'switch';
-                    }
+                    var setToggle = function(id, onId, val) {
+                        var el0 = document.getElementById(id);
+                        var sw0 = document.getElementById(onId);
+                        if (el0) el0.checked = !!val;
+                        if (sw0) sw0.className = val ? 'switch on' : 'switch';
+                    };
                     setToggle('controlFw', 'switchControlFw', st.controlFw);
                     setToggle('infoFw', 'switchInfoFw', st.infoFw);
                     setToggle('dumpPcap', 'switchPcap', st.dumpPcap);
                     setToggle('antiBlock', 'switchAntiBlock', st.antiBlock);
                     setToggle('reportSwitch', 'switchReport', st.reportSwitch);
                 }
-            }).catch(function () {});
+                cloudReady = true;
+                if (cb) cb();
+            }).catch(function () { cloudReady = true; if (cb) cb(); });
         }
         function cloudRenderLoginState() {
             var user = cloudCurUser();
@@ -3611,7 +3592,7 @@
         // 用 QQ 账号自动登录云端（不需要用户手动输密码）
         function autoCloudLogin(qqId) {
             if (!cloudSb) return;
-            if (cloudCurUser()) { cloudAutoLoad(); return; }
+            if (cloudCurUser()) { cloudAutoLoad(function(){ cloudReady = true; cloudMarkDirty(); }); return; }
             var email = 'qq_' + String(qqId).replace(/[^a-zA-Z0-9]/g,'') + '@qxnet.com';
             var pwd = 'qxnet_' + String(qqId).replace(/[^a-zA-Z0-9]/g,'');
             cloudSb.auth.signInWithPassword({ email: email, password: pwd }).then(function (res) {
@@ -3620,12 +3601,12 @@
                     cloudSb.auth.signUp({ email: email, password: pwd }).then(function (supRes) {
                         if (!supRes.error) {
                             cloudRenderLoginState();
-                            cloudAutoLoad();
+                            cloudAutoLoad(function(){ cloudReady = true; cloudMarkDirty(); });
                         }
                     });
                 } else {
                     cloudRenderLoginState();
-                    cloudAutoLoad();
+                    cloudAutoLoad(function(){ cloudReady = true; cloudMarkDirty(); });
                 }
             });
         }
