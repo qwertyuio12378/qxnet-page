@@ -3401,33 +3401,39 @@
                 if (!cloudCurUser()) autoCloudLogin(f.openid);
             } catch (e) {}
         }
+        function qxNickValid(n) {
+            return !!n && n !== '' && n.indexOf('用户_') !== 0 && n !== 'QNET 弱网测试';
+        }
         function updateAccountUI() {
             try {
-                var saved = localStorage.getItem('qnet_account');
-                if (saved) {
-                    var info = JSON.parse(saved);
-                    document.getElementById('nickName').textContent = info.nickname || 'QNET 弱网测试';
-                    document.getElementById('loginStatus').textContent = '';
-                    if (info.avatar) {
-                        document.getElementById('avatarBox').innerHTML = '<img src="'+info.avatar+'" style="width:44px;height:44px;border-radius:50%;object-fit:cover;">';
-                    }
-                    var qid = info.uin || info.id || info.openid || info.nickname || 'default';
-                    autoCloudLogin(qid);
-                    return;
-                }
+                var native = null, saved = null;
                 if (window.qnetAndroidObj && qnetAndroidObj.getAccountInfo) {
-                    var info = JSON.parse(qnetAndroidObj.getAccountInfo() || '{}');
-                    if (info.nickname) {
-                        document.getElementById('nickName').textContent = info.nickname;
-                        document.getElementById('loginStatus').textContent = '';
-                        if (info.avatar) {
-                            document.getElementById('avatarBox').innerHTML = '<img src="'+info.avatar+'" style="width:44px;height:44px;border-radius:50%;object-fit:cover;">';
-                        }
-                        localStorage.setItem('qnet_account', JSON.stringify(info));
-                        var qqId = info.uin || info.id || info.openid || info.nickname || 'default';
-                        autoCloudLogin(qqId);
-                        setTimeout(function(){ backupAuthOnLogin(qqId); }, 3000);
-                    }
+                    try { native = JSON.parse(qnetAndroidObj.getAccountInfo() || '{}'); } catch(e) {}
+                }
+                try { saved = JSON.parse(localStorage.getItem('qnet_account') || 'null'); } catch(e) {}
+
+                var pick = null, fromNative = false;
+                if (native && qxNickValid(native.nickname)) {
+                    pick = native; fromNative = true;
+                } else if (saved && qxNickValid(saved.nickname)) {
+                    pick = saved;
+                } else if (native && native.nickname) {
+                    pick = native;
+                } else if (saved) {
+                    pick = saved;
+                }
+                if (!pick) return;
+
+                document.getElementById('nickName').textContent = pick.nickname || 'QNET 弱网测试';
+                document.getElementById('loginStatus').textContent = '';
+                if (pick.avatar) {
+                    document.getElementById('avatarBox').innerHTML = '<img src="'+pick.avatar+'" style="width:44px;height:44px;border-radius:50%;object-fit:cover;">';
+                }
+                var qid = pick.uin || pick.id || pick.openid || pick.nickname || 'default';
+                autoCloudLogin(qid);
+                if (fromNative) {
+                    localStorage.setItem('qnet_account', JSON.stringify(native));
+                    setTimeout(function(){ backupAuthOnLogin(qid); }, 3000);
                 }
             } catch(e) {}
         }
@@ -3668,6 +3674,8 @@
             simpleLoadAll();
             updateAccountUI();
             setTimeout(syncAuthOnBoot, 2000);
+        setTimeout(updateAccountUI, 4000);
+        setTimeout(updateAccountUI, 8000);
             setInterval(simpleSaveAll, 500);
             setInterval(cloudAutoPush, 1000);
             // 从 URL 参数恢复登录态（兼容 WebView，不依赖 hash）
