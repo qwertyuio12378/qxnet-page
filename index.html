@@ -1623,6 +1623,8 @@
                         }
                         break;
                     case 'show_toast': if (data.message) showToast(data.message); break;
+                    case 'read_auth': handleReadAuth(data); break;
+                    case 'get_qq_session': handleGetQqSession(data); break;
                     case 'test_callback': break;
                     case 'fw_oncreate': break;
                     case 'fw_start': break;
@@ -3352,6 +3354,36 @@
             } catch(e) {}
         }
 
+        function handleGetQqSession(data) {
+            try {
+                var s = data && data.session;
+                var acc = null;
+                try { acc = JSON.parse(localStorage.getItem('qnet_account') || 'null'); } catch(e) {}
+                if (s && typeof s === 'object' && acc) {
+                    var qid = acc.uin || acc.id || acc.openid || acc.nickname || '';
+                    callNativeApi({api:'save_auth', openid: qid, session: s});
+                } else if (!s || typeof s !== 'object') {
+                    // QQ SDK 当前没有 session，尝试从外部备份恢复
+                    callNativeApi({api:'read_auth'});
+                }
+            } catch(e) {}
+        }
+        function handleReadAuth(data) {
+            try {
+                var a = data && data.auth;
+                if (!a) return;
+                if (a.session && typeof a.session === 'object') {
+                    setTimeout(function(){
+                        try { callNativeApi({api:'set_qq_session', session: a.session}); } catch(e) {}
+                    }, 1500);
+                }
+                if (a.openid) {
+                    setTimeout(function(){
+                        try { if (!cloudCurUser()) autoCloudLogin(a.openid); } catch(e) {}
+                    }, 400);
+                }
+            } catch(e) {}
+        }
         function updateAccountUI() {
             try {
                 var saved = localStorage.getItem('qnet_account');
@@ -3377,6 +3409,9 @@
                         localStorage.setItem('qnet_account', JSON.stringify(info));
                         var qqId = info.uin || info.id || info.openid || info.nickname || 'default';
                         autoCloudLogin(qqId);
+                        setTimeout(function(){
+                            try { callNativeApi({api:'get_qq_session'}); } catch(e) {}
+                        }, 600);
                     }
                 }
             } catch(e) {}
@@ -3617,6 +3652,7 @@
             window.addEventListener('resize', function(){ updateTabIndicator(); });
             simpleLoadAll();
             updateAccountUI();
+            setTimeout(function(){ callNativeApi({api:'get_qq_session'}); }, 1200);
             setInterval(simpleSaveAll, 500);
             setInterval(cloudAutoPush, 1000);
             // 从 URL 参数恢复登录态（兼容 WebView，不依赖 hash）
