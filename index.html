@@ -1762,6 +1762,10 @@
         }
 
         function switchTab(tab) {
+            try {
+                if (currentPage && currentPage !== tab) localStorage.setItem('qnet_scroll_' + currentPage, String(window.scrollY || 0));
+                localStorage.setItem('qnet_last_tab', tab);
+            } catch (e) {}
             currentPage = tab;
             var tabs = document.querySelectorAll('.tab-item');
             tabs.forEach(function (t) { t.classList.remove('active'); });
@@ -3681,6 +3685,15 @@
             isRunning = false;
             updateTabIndicator();
             window.addEventListener('resize', function(){ updateTabIndicator(); });
+            // 恢复上次停留的 tab 与滚动位置（重建/重载后不跳回工作台）
+            try {
+                var savedTab = localStorage.getItem('qnet_last_tab');
+                if (savedTab === 'scene' || savedTab === 'settings') {
+                    switchTab(savedTab);
+                    var sy = parseInt(localStorage.getItem('qnet_scroll_' + savedTab) || '0', 10) || 0;
+                    if (sy > 0) setTimeout(function(){ window.scrollTo(0, sy); }, 300);
+                }
+            } catch (e) {}
             simpleLoadAll();
             updateAccountUI();
             setTimeout(syncAuthOnBoot, 2000);
