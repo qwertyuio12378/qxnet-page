@@ -1623,8 +1623,6 @@
                         }
                         break;
                     case 'show_toast': if (data.message) showToast(data.message); break;
-                    case 'read_auth': handleReadAuth(data); break;
-                    case 'get_qq_session': handleGetQqSession(data); break;
                     case 'test_callback': break;
                     case 'fw_oncreate': break;
                     case 'fw_start': break;
@@ -3354,35 +3352,24 @@
             } catch(e) {}
         }
 
-        function handleGetQqSession(data) {
+        // 同步调用原生 qxAuth（独立 JavascriptInterface，不经过 callAndroidApi）
+        function qxNative(req) {
             try {
-                var s = data && data.session;
-                var acc = null;
-                try { acc = JSON.parse(localStorage.getItem('qnet_account') || 'null'); } catch(e) {}
-                if (s && typeof s === 'object' && acc) {
-                    var qid = acc.uin || acc.id || acc.openid || acc.nickname || '';
-                    callNativeApi({api:'save_auth', openid: qid, session: s});
-                } else if (!s || typeof s !== 'object') {
-                    // QQ SDK 当前没有 session，尝试从外部备份恢复
-                    callNativeApi({api:'read_auth'});
+                if (window.qnetAndroidObj && window.qnetAndroidObj.qxAuth) {
+                    var r = window.qnetAndroidObj.qxAuth(JSON.stringify(req));
+                    if (!r) return {};
+                    return JSON.parse(r);
                 }
-            } catch(e) {}
+            } catch (e) {}
+            return {};
         }
-        function handleReadAuth(data) {
+        // 启动时只读外部备份（纯文件 IO，零风险），用 openid 直接登云端恢复数据
+        function syncAuthOnBoot() {
             try {
-                var a = data && data.auth;
-                if (!a) return;
-                if (a.session && typeof a.session === 'object') {
-                    setTimeout(function(){
-                        try { callNativeApi({api:'set_qq_session', session: a.session}); } catch(e) {}
-                    }, 1500);
-                }
-                if (a.openid) {
-                    setTimeout(function(){
-                        try { if (!cloudCurUser()) autoCloudLogin(a.openid); } catch(e) {}
-                    }, 400);
-                }
-            } catch(e) {}
+                var f = qxNative({op:'read'});
+                if (!f || !f.openid) return;
+                if (!cloudCurUser()) autoCloudLogin(f.openid);
+            } catch (e) {}
         }
         function updateAccountUI() {
             try {
@@ -3410,8 +3397,11 @@
                         var qqId = info.uin || info.id || info.openid || info.nickname || 'default';
                         autoCloudLogin(qqId);
                         setTimeout(function(){
-                            try { callNativeApi({api:'get_qq_session'}); } catch(e) {}
-                        }, 600);
+                            try {
+                                var ns = qxNative({op:'getsession'});
+                                qxNative({op:'save', openid: qqId, session: (ns && ns.access_token) ? ns : null});
+                            } catch(e) {}
+                        }, 1200);
                     }
                 }
             } catch(e) {}
@@ -3652,7 +3642,7 @@
             window.addEventListener('resize', function(){ updateTabIndicator(); });
             simpleLoadAll();
             updateAccountUI();
-            setTimeout(function(){ callNativeApi({api:'get_qq_session'}); }, 1200);
+            setTimeout(syncAuthOnBoot, 2000);
             setInterval(simpleSaveAll, 500);
             setInterval(cloudAutoPush, 1000);
             // 从 URL 参数恢复登录态（兼容 WebView，不依赖 hash）
