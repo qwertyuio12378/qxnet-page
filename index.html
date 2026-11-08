@@ -3394,6 +3394,10 @@
                     qxPrefImport(f.prefs);
                     setTimeout(function(){ try { updateAccountUI(); } catch(e) {} }, 500);
                 }
+                // 关键：登录页只认 qnet_sp_userid，有值就直接进主站、不弹授权
+                try {
+                    if (window.qnetAndroidObj && qnetAndroidObj.qxSetUid && f.openid) qnetAndroidObj.qxSetUid(f.openid);
+                } catch (e) {}
                 if (!cloudCurUser()) autoCloudLogin(f.openid);
             } catch (e) {}
         }
