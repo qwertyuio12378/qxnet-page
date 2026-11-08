@@ -21,12 +21,13 @@
         .page.active { display: block; }
         @keyframes fadeUp { 0% { opacity: 0; transform: translateY(12px); } 100% { opacity: 1; transform: translateY(0); } }
         .tab-bar { position: fixed; overscroll-behavior: contain; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; bottom: 16px; left: 50%; transform: translateX(-50%); width: 75%; max-width: 340px; height: 60px; background: #fff; display: flex; border-radius: 30px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); z-index: 99; padding: 6px; touch-action: pan-y; }
-        .tab-indicator { position: absolute; top: 6px; left: 6px; width: 0; height: calc(100% - 12px); background: linear-gradient(135deg, rgba(180,220,255,0.55) 0%, rgba(255,255,255,0.65) 50%, rgba(160,210,255,0.55) 100%); -webkit-backdrop-filter: blur(20px) saturate(180%); backdrop-filter: blur(20px) saturate(180%); border-radius: 24px; box-shadow: inset 0 0 0 0.5px rgba(255,255,255,0.7), inset 0 1px 2px rgba(255,255,255,0.6), inset 0 -1px 2px rgba(100,160,220,0.2), 0 2px 8px rgba(100,160,220,0.15); transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1), height 0.25s ease, top 0.25s ease, border-radius 0.25s ease; z-index: 0; }
-        .tab-indicator.dragging { height: calc(100% + 16px); top: -4px; border-radius: 28px; -webkit-backdrop-filter: none; backdrop-filter: none; background: linear-gradient(135deg, rgba(160,210,255,0.7) 0%, rgba(220,240,255,0.8) 50%, rgba(140,200,255,0.7) 100%); box-shadow: inset 0 0 0 0.5px rgba(255,255,255,0.9), inset 0 2px 4px rgba(255,255,255,0.8), inset 0 -2px 4px rgba(80,140,210,0.3), 0 6px 20px rgba(80,140,210,0.3); }
+        .tab-indicator { position: absolute; top: 6px; left: 6px; width: 0; height: calc(100% - 12px); background: linear-gradient(135deg, rgba(180,220,255,0.55) 0%, rgba(255,255,255,0.65) 50%, rgba(160,210,255,0.55) 100%); -webkit-backdrop-filter: blur(20px) saturate(180%); backdrop-filter: blur(20px) saturate(180%); border-radius: 24px; box-shadow: inset 0 0 0 0.5px rgba(255,255,255,0.7), inset 0 1px 2px rgba(255,255,255,0.6), inset 0 -1px 2px rgba(100,160,220,0.2), 0 2px 8px rgba(100,160,220,0.15); transition: left 0.38s cubic-bezier(0.34,1.2,0.64,1), width 0.38s cubic-bezier(0.34,1.2,0.64,1), transform 0.38s cubic-bezier(0.34,1.2,0.64,1), height 0.36s cubic-bezier(0.32,1.22,0.62,1), top 0.36s cubic-bezier(0.32,1.22,0.62,1), border-radius 0.36s cubic-bezier(0.32,1.22,0.62,1), box-shadow 0.36s ease, -webkit-backdrop-filter 0.3s ease, backdrop-filter 0.3s ease; z-index: 0; }
+        .tab-indicator.dragging { height: calc(100% + 16px); top: -4px; border-radius: 28px; -webkit-backdrop-filter: blur(28px) saturate(230%); backdrop-filter: blur(28px) saturate(230%); box-shadow: inset 0 0 0 0.5px rgba(255,255,255,0.9), inset 0 2px 4px rgba(255,255,255,0.8), inset 0 -2px 4px rgba(80,140,210,0.3), 0 6px 20px rgba(80,140,210,0.3); }
+        .tab-indicator.drag-hand { transition: transform 0s linear, left 0.38s cubic-bezier(0.34,1.2,0.64,1), width 0.38s cubic-bezier(0.34,1.2,0.64,1), height 0.36s cubic-bezier(0.32,1.22,0.62,1), top 0.36s cubic-bezier(0.32,1.22,0.62,1), border-radius 0.36s cubic-bezier(0.32,1.22,0.62,1), box-shadow 0.36s ease, -webkit-backdrop-filter 0.3s ease, backdrop-filter 0.3s ease; }
         .tab-item.bubble-blur { filter: blur(2px); }
-        .tab-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #666; font-size: 12px; gap: 2px; cursor: pointer; transition: color 0.2s; position: relative; z-index: 1; }
+        .tab-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #666; font-size: 12px; gap: 2px; cursor: pointer; transition: color 0.2s, filter 0.24s ease; position: relative; z-index: 1; }
         .tab-item.active { color: var(--primary); }
-        .tab-item .tab-icon { transition: transform 0.2s; }
+        .tab-item .tab-icon { transition: transform 0.26s cubic-bezier(0.34,1.4,0.64,1); }
         .tab-item:active .tab-icon { transform: scale(0.88); }
         .tab-icon { width: 24px; height: 24px; }
         .search-bar { padding: 10px 16px; background: #fff; }
@@ -1749,8 +1750,19 @@
             }
             var it = items[idx >= 0 ? idx : 0];
             if (!it) return;
-            ind.style.left = it.offsetLeft + 'px';
-            ind.style.width = it.offsetWidth + 'px';
+            var tx = ind.style.transform;
+            if (tx && tx !== 'none') {
+                // 拖动残留：瞬时换基准，避免叠加偏移
+                ind.style.transition = 'transform 0s linear, left 0s linear, width 0s linear';
+                ind.style.transform = 'none';
+                ind.style.left = it.offsetLeft + 'px';
+                ind.style.width = it.offsetWidth + 'px';
+                void ind.offsetWidth;
+                ind.style.transition = '';
+            } else {
+                ind.style.left = it.offsetLeft + 'px';
+                ind.style.width = it.offsetWidth + 'px';
+            }
         }
 
         function switchTab(tab) {
@@ -1838,15 +1850,22 @@
             var order=['workbench','scene','settings'];
             var lefts=[];
             function cache(){lefts=[];for(var i=0;i<items.length;i++)lefts.push(items[i].offsetLeft);}
+            function snapTo(i){
+                ind.style.transition='transform 0s linear, left 0s linear, width 0s linear';
+                ind.style.transform='none';
+                ind.style.left=lefts[i]+'px';
+                ind.style.width=items[i].offsetWidth+'px';
+                void ind.offsetWidth;
+                ind.style.transition='';
+            }
             ind.style.willChange='transform';
             bar.addEventListener('touchstart', function(e){
                 if(e.touches.length>1) return;
                 sx=e.touches[0].clientX; tracking=true; gestureLocked=false;
                 cache();
                 startIdx=order.indexOf(currentPage); if(startIdx<0) startIdx=0;
-                ind.style.transition='none';
-                ind.style.left=lefts[startIdx]+'px';
-                ind.style.width=items[startIdx].offsetWidth+'px';
+                ind.classList.add('drag-hand');
+                snapTo(startIdx);
             }, {passive:true});
             bar.addEventListener('touchmove', function(e){
                 if(!tracking) return;
@@ -1854,9 +1873,9 @@
                 if(!gestureLocked){
                     if(Math.abs(dx)<10) return;
                     gestureLocked=true;
+                    ind.classList.add('dragging');
                 }
                 e.preventDefault();
-                ind.classList.add('dragging');
                 ind.style.transform='translateX('+dx+'px)';
             }, {passive:false});
             bar.addEventListener('touchend', function(e){
@@ -1875,15 +1894,14 @@
                 window.updateTabIndicator = function(){};
                 if(targetIdx!==idx) switchTab(order[targetIdx]);
                 window.updateTabIndicator = savedUpdate;
-                ind.style.transition='transform 0.25s cubic-bezier(0.22,1,0.36,1)';
+                ind.classList.remove('drag-hand');
                 ind.style.transform='translateX('+targetTx+'px)';
-                setTimeout(function(){
-                    ind.style.transition='none';
-                    ind.style.transform='none';
-                    updateTabIndicator();
+                clearTimeout(ind._snapTimer);
+                ind._snapTimer=setTimeout(function(){
+                    snapTo(targetIdx);
                     ind.classList.remove('dragging');
                     bar.classList.remove('dragging');
-                }, 250);
+                }, 400);
             }, {passive:true});
         })();
 
