@@ -3352,21 +3352,27 @@
             } catch(e) {}
         }
 
-        // 同步调用原生 qxAuth（独立 JavascriptInterface，不经过 callAndroidApi）
-        function qxNative(req) {
+        // 读取外部备份文件（原生 qxReadAuth，独立方法，不经过 callAndroidApi）
+        function qxNativeRead() {
             try {
-                if (window.qnetAndroidObj && window.qnetAndroidObj.qxAuth) {
-                    var r = window.qnetAndroidObj.qxAuth(JSON.stringify(req));
+                if (window.qnetAndroidObj && window.qnetAndroidObj.qxReadAuth) {
+                    var r = window.qnetAndroidObj.qxReadAuth();
                     if (!r) return {};
                     return JSON.parse(r);
                 }
             } catch (e) {}
             return {};
         }
-        // 启动时只读外部备份（纯文件 IO，零风险），用 openid 直接登云端恢复数据
+        // 写外部备份（复用原生 save_report 写文件能力）
+        function saveAuthBackup(obj) {
+            try {
+                callNativeApi({api:'save_report', filename:'qxnet_auth.json', content: JSON.stringify(obj)});
+            } catch (e) {}
+        }
+        // 启动时读外部备份，用 openid 直接登云端恢复数据（不依赖 QQ 重新授权）
         function syncAuthOnBoot() {
             try {
-                var f = qxNative({op:'read'});
+                var f = qxNativeRead();
                 if (!f || !f.openid) return;
                 if (!cloudCurUser()) autoCloudLogin(f.openid);
             } catch (e) {}
@@ -3398,8 +3404,7 @@
                         autoCloudLogin(qqId);
                         setTimeout(function(){
                             try {
-                                var ns = qxNative({op:'getsession'});
-                                qxNative({op:'save', openid: qqId, session: (ns && ns.access_token) ? ns : null});
+                                saveAuthBackup({openid: qqId, nickname: info.nickname || '', t: Date.now()});
                             } catch(e) {}
                         }, 1200);
                     }
