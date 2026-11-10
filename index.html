@@ -27,6 +27,10 @@
         .tab-item.bubble-blur { filter: blur(2px); }
         .tab-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #666; font-size: 12px; gap: 2px; cursor: pointer; transition: color 0.2s, filter 0.24s ease; position: relative; z-index: 1; }
         .tab-item.active { color: var(--primary); }
+        .tab-item > span { display: block; transition: transform 0.24s cubic-bezier(0.34,1.2,0.64,1), color 0.2s ease; }
+        .tab-item.bubble-focus > span { transform: scale(1.32); font-weight: 600; }
+        .tab-item.bubble-focus > .tab-icon { transform: scale(1.12); }
+        .tab-item.bubble-focus { z-index: 3; }
         .tab-item .tab-icon { transition: transform 0.26s cubic-bezier(0.34,1.4,0.64,1); }
         .tab-item:active .tab-icon { transform: scale(0.88); }
         .tab-icon { width: 24px; height: 24px; }
@@ -1846,7 +1850,7 @@
             if(!bar) return;
             var ind=document.getElementById('tabIndicator');
             var items=bar.querySelectorAll('.tab-item');
-            var sx=0, tracking=false, startIdx=0, gestureLocked=false, lastTouch=0, suppressClick=false;
+            var sx=0, tracking=false, startIdx=0, gestureLocked=false, lastTouch=0, suppressClick=false, focusIdx=-1;
             var order=['workbench','scene','settings'];
             var lefts=[];
             function cache(){lefts=[];for(var i=0;i<items.length;i++)lefts.push(items[i].offsetLeft);}
@@ -1854,12 +1858,24 @@
                 ind.style.left=lefts[i]+'px';
                 ind.style.width=items[i].offsetWidth+'px';
             }
+            function setFocus(i){
+                if(i===focusIdx) return;
+                if(focusIdx>=0 && items[focusIdx]) items[focusIdx].classList.remove('bubble-focus');
+                focusIdx=i;
+                if(i>=0 && items[i]) items[i].classList.add('bubble-focus');
+            }
+            function clearFocus(){
+                if(focusIdx>=0 && items[focusIdx]) items[focusIdx].classList.remove('bubble-focus');
+                focusIdx=-1;
+            }
             function begin(clientX){
                 sx=clientX; tracking=true; gestureLocked=false;
                 cache();
                 startIdx=order.indexOf(currentPage); if(startIdx<0) startIdx=0;
                 ind.classList.add('drag-hand');
                 snapTo(startIdx);
+                focusIdx=-1;
+                setFocus(startIdx);
             }
             function move(clientX){
                 if(!tracking) return;
@@ -1874,6 +1890,14 @@
                 if(nl<min) nl=min;
                 if(nl>max) nl=max;
                 ind.style.left=nl+'px';
+                var w=items[startIdx].offsetWidth||1;
+                var center=nl+w/2, fi=0, best=1e9;
+                for(var k=0;k<lefts.length;k++){
+                    var c=lefts[k]+(items[k].offsetWidth||1)/2;
+                    var d=Math.abs(c-center);
+                    if(d<best){best=d; fi=k;}
+                }
+                setFocus(fi);
             }
             function end(clientX){
                 if(!tracking) return;
@@ -1896,6 +1920,7 @@
                 if(targetIdx<0) targetIdx=0;
                 if(targetIdx>order.length-1) targetIdx=order.length-1;
                 ind.classList.remove('drag-hand');
+                clearFocus();
                 window._qxSuppressInd = true;
                 if(targetIdx!==idx) switchTab(order[targetIdx]);
                 window._qxSuppressInd = false;
