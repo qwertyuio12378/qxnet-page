@@ -20,7 +20,7 @@
         #page-workbench { background: #fff; min-height: 100vh; padding-bottom: 100px; }
         .page.active { display: block; }
         @keyframes fadeUp { 0% { opacity: 0; transform: translateY(12px); } 100% { opacity: 1; transform: translateY(0); } }
-        .tab-bar { position: fixed; overscroll-behavior: contain; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; bottom: 16px; left: 50%; transform: translateX(-50%); width: 75%; max-width: 340px; height: 60px; background: #fff; display: flex; border-radius: 30px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); z-index: 99; padding: 6px; touch-action: pan-y; }
+        .tab-bar { cursor: grab; position: fixed; overscroll-behavior: contain; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; bottom: 16px; left: 50%; transform: translateX(-50%); width: 75%; max-width: 340px; height: 60px; background: #fff; display: flex; border-radius: 30px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); z-index: 99; padding: 6px; touch-action: pan-y; }
         .tab-indicator { position: absolute; top: 6px; left: 6px; width: 0; height: calc(100% - 12px); background: linear-gradient(135deg, rgba(180,220,255,0.55) 0%, rgba(255,255,255,0.65) 50%, rgba(160,210,255,0.55) 100%); -webkit-backdrop-filter: blur(20px) saturate(180%); backdrop-filter: blur(20px) saturate(180%); border-radius: 24px; box-shadow: inset 0 0 0 0.5px rgba(255,255,255,0.7), inset 0 1px 2px rgba(255,255,255,0.6), inset 0 -1px 2px rgba(100,160,220,0.2), 0 2px 8px rgba(100,160,220,0.15); transition: left 0.38s cubic-bezier(0.34,1.2,0.64,1), width 0.38s cubic-bezier(0.34,1.2,0.64,1), transform 0.38s cubic-bezier(0.34,1.2,0.64,1), height 0.36s cubic-bezier(0.32,1.22,0.62,1), top 0.36s cubic-bezier(0.32,1.22,0.62,1), border-radius 0.36s cubic-bezier(0.32,1.22,0.62,1), box-shadow 0.36s ease, -webkit-backdrop-filter 0.3s ease, backdrop-filter 0.3s ease; z-index: 0; }
         .tab-indicator.dragging { height: calc(100% + 16px); top: -4px; border-radius: 28px; -webkit-backdrop-filter: blur(28px) saturate(230%); backdrop-filter: blur(28px) saturate(230%); box-shadow: inset 0 0 0 0.5px rgba(255,255,255,0.9), inset 0 2px 4px rgba(255,255,255,0.8), inset 0 -2px 4px rgba(80,140,210,0.3), 0 6px 20px rgba(80,140,210,0.3); }
         .tab-indicator.drag-hand { transition: left 0s linear, width 0s linear, transform 0s linear, height 0.36s cubic-bezier(0.32,1.22,0.62,1), top 0.36s cubic-bezier(0.32,1.22,0.62,1), border-radius 0.36s cubic-bezier(0.32,1.22,0.62,1), box-shadow 0.36s ease, -webkit-backdrop-filter 0.3s ease, backdrop-filter 0.3s ease; }
@@ -1840,13 +1840,13 @@
             }
         }
 
-        // 在 tabBar 上水平拖动切 tab（纯 left 跟手，不再叠加 transform）
+        // 在 tabBar 上水平拖动切 tab（纯 left 跟手，不再叠加 transform）— 触摸 + 鼠标双支持
         (function(){
             var bar=document.getElementById('tabBar');
             if(!bar) return;
             var ind=document.getElementById('tabIndicator');
             var items=bar.querySelectorAll('.tab-item');
-            var sx=0, tracking=false, startIdx=0, gestureLocked=false;
+            var sx=0, tracking=false, startIdx=0, gestureLocked=false, lastTouch=0, suppressClick=false;
             var order=['workbench','scene','settings'];
             var lefts=[];
             function cache(){lefts=[];for(var i=0;i<items.length;i++)lefts.push(items[i].offsetLeft);}
@@ -1854,38 +1854,45 @@
                 ind.style.left=lefts[i]+'px';
                 ind.style.width=items[i].offsetWidth+'px';
             }
-            bar.addEventListener('touchstart', function(e){
-                if(e.touches.length>1) return;
-                sx=e.touches[0].clientX; tracking=true; gestureLocked=false;
+            function begin(clientX){
+                sx=clientX; tracking=true; gestureLocked=false;
                 cache();
                 startIdx=order.indexOf(currentPage); if(startIdx<0) startIdx=0;
                 ind.classList.add('drag-hand');
                 snapTo(startIdx);
-            }, {passive:true});
-            bar.addEventListener('touchmove', function(e){
+            }
+            function move(clientX){
                 if(!tracking) return;
-                var dx=e.touches[0].clientX-sx;
+                var dx=clientX-sx;
                 if(!gestureLocked){
                     if(Math.abs(dx)<10) return;
                     gestureLocked=true;
                     ind.classList.add('dragging');
                 }
-                e.preventDefault();
                 var min=lefts[0], max=lefts[lefts.length-1];
                 var nl=lefts[startIdx]+dx;
                 if(nl<min) nl=min;
                 if(nl>max) nl=max;
                 ind.style.left=nl+'px';
-            }, {passive:false});
-            bar.addEventListener('touchend', function(e){
-                if(!tracking && !gestureLocked) return;
+            }
+            function end(clientX){
+                if(!tracking) return;
                 tracking=false; gestureLocked=false;
-                var dx=e.changedTouches[0].clientX-sx;
+                var dx=clientX-sx;
+                if(Math.abs(dx)>=10){
+                    suppressClick=true;
+                    setTimeout(function(){suppressClick=false;},0);
+                }
                 var idx=order.indexOf(currentPage); if(idx<0) idx=startIdx;
-                var tabW=items[0].offsetWidth||1;
-                var targetIdx;
-                if(Math.abs(dx)<20) targetIdx=idx;
-                else targetIdx=Math.round(idx+dx/tabW);
+                var targetIdx=idx;
+                if(Math.abs(dx)<20){
+                    targetIdx=idx;
+                }else{
+                    var want=lefts[startIdx]+dx;
+                    for(var i=0;i<lefts.length;i++){
+                        if(Math.abs(lefts[i]-want) < Math.abs(lefts[targetIdx]-want)) targetIdx=i;
+                    }
+                }
                 if(targetIdx<0) targetIdx=0;
                 if(targetIdx>order.length-1) targetIdx=order.length-1;
                 ind.classList.remove('drag-hand');
@@ -1898,7 +1905,56 @@
                     ind.classList.remove('dragging');
                     bar.classList.remove('dragging');
                 }, 400);
+            }
+
+            // 触摸
+            bar.addEventListener('touchstart', function(e){
+                if(e.touches.length>1) return;
+                lastTouch=Date.now();
+                begin(e.touches[0].clientX);
             }, {passive:true});
+            bar.addEventListener('touchmove', function(e){
+                if(!tracking) return;
+                e.preventDefault();
+                move(e.touches[0].clientX);
+            }, {passive:false});
+            bar.addEventListener('touchend', function(e){
+                if(!tracking) return;
+                end(e.changedTouches[0].clientX);
+            }, {passive:true});
+            bar.addEventListener('touchcancel', function(e){
+                if(!tracking) return;
+                end(e.changedTouches[0].clientX);
+            }, {passive:true});
+
+            // 鼠标（PC / 桌面浏览器）
+            function onMove(e){
+                if(!tracking) return;
+                e.preventDefault();
+                move(e.clientX);
+            }
+            function onUp(e){
+                document.removeEventListener('mousemove', onMove);
+                document.removeEventListener('mouseup', onUp);
+                end(e.clientX);
+            }
+            bar.addEventListener('mousedown', function(e){
+                if(e.button!==0) return;
+                if(Date.now()-lastTouch<800) return;
+                e.preventDefault();
+                begin(e.clientX);
+                document.addEventListener('mousemove', onMove);
+                document.addEventListener('mouseup', onUp);
+            });
+
+            // 拖动结束后抑制紧随的 click，避免又切回原 tab
+            bar.addEventListener('click', function(e){
+                if(suppressClick){
+                    e.stopPropagation();
+                    e.preventDefault();
+                    suppressClick=false;
+                }
+            }, true);
         })();
 
         function goBack() {
