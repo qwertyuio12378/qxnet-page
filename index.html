@@ -353,7 +353,6 @@
     <div style="background:#fff; margin-top:10px; padding:16px; padding-bottom:30px;">
      <div style="font-size:16px; font-weight:600; margin-bottom:12px;">关于</div>
      <div style="font-size:13px; color:#666; line-height:1.6;">无需ROOT手机，无需连接数据线，以独立app的方式，为用户提供给快捷、可靠、功能完善的弱网络模拟服务</div>
-     <div style="font-size:12px; color:#9aa4b2; margin-top:10px;">页面版本 v132 · 拖动支持鼠标</div>
     </div>
    </div> 
    <div class="page" id="page-template-edit"> 
@@ -2064,33 +2063,39 @@
         }
 
         function bindSwipeEvents(item, wrapper) {
-            var startX = 0, startY = 0, isHorizontal = null;
-            item.addEventListener('touchstart', function (e) {
-                startX = e.touches[0].clientX;
-                startY = e.touches[0].clientY;
-                isHorizontal = null;
-            }, { passive: true });
-            item.addEventListener('touchmove', function (e) {
-                var moveX = e.touches[0].clientX;
-                var moveY = e.touches[0].clientY;
-                var diffX = moveX - startX;
-                var diffY = moveY - startY;
+            var startX = 0, startY = 0, isHorizontal = null, tracking = false, lastTouch = 0, suppressClick = false;
+
+            function begin(clientX, clientY) {
+                startX = clientX; startY = clientY; isHorizontal = null; tracking = true;
+            }
+            function move(clientX, clientY, ev) {
+                if (!tracking) return false;
+                var diffX = clientX - startX;
+                var diffY = clientY - startY;
                 if (isHorizontal === null) {
                     if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 10) isHorizontal = true;
                     else if (Math.abs(diffY) > Math.abs(diffX) && Math.abs(diffY) > 10) isHorizontal = false;
                 }
                 if (isHorizontal) {
-                    e.preventDefault();
+                    if (ev && ev.cancelable) ev.preventDefault();
                     var translateX = diffX;
                     if (wrapper === currentOpenDelete) translateX = -80 + diffX;
                     if (translateX > 0) translateX = 0;
                     if (translateX < -80) translateX = -80;
                     item.style.transform = 'translateX(' + translateX + 'px)';
+                    return true;
                 }
-            }, { passive: false });
-            item.addEventListener('touchend', function (e) {
-                if (!isHorizontal) return;
-                var diffX = e.changedTouches[0].clientX - startX;
+                return false;
+            }
+            function end(clientX) {
+                if (!tracking) return;
+                tracking = false;
+                if (isHorizontal !== true) { isHorizontal = null; return; }
+                if (Math.abs(clientX - startX) >= 10) {
+                    suppressClick = true;
+                    setTimeout(function () { suppressClick = false; }, 0);
+                }
+                var diffX = clientX - startX;
                 var translateX = diffX;
                 if (wrapper === currentOpenDelete) translateX = -80 + diffX;
                 if (translateX < -40) {
@@ -2100,7 +2105,54 @@
                 } else {
                     closeDeleteBtn(wrapper);
                 }
+                isHorizontal = null;
+            }
+
+            // 触摸
+            item.addEventListener('touchstart', function (e) {
+                if (e.touches.length > 1) return;
+                lastTouch = Date.now();
+                begin(e.touches[0].clientX, e.touches[0].clientY);
+            }, { passive: true });
+            item.addEventListener('touchmove', function (e) {
+                if (!tracking) return;
+                move(e.touches[0].clientX, e.touches[0].clientY, e);
+            }, { passive: false });
+            item.addEventListener('touchend', function (e) {
+                if (!tracking) return;
+                end(e.changedTouches[0].clientX);
+            }, { passive: true });
+            item.addEventListener('touchcancel', function (e) {
+                if (!tracking) return;
+                end(e.changedTouches[0].clientX);
+            }, { passive: true });
+
+            // 鼠标（PC）
+            function onMove(e) {
+                if (!tracking) return;
+                if (move(e.clientX, e.clientY, e)) e.preventDefault();
+            }
+            function onUp(e) {
+                document.removeEventListener('mousemove', onMove);
+                document.removeEventListener('mouseup', onUp);
+                end(e.clientX);
+            }
+            item.addEventListener('mousedown', function (e) {
+                if (e.button !== 0) return;
+                if (Date.now() - lastTouch < 800) return;
+                e.preventDefault();
+                begin(e.clientX, e.clientY);
+                document.addEventListener('mousemove', onMove);
+                document.addEventListener('mouseup', onUp);
             });
+            // 拖动结束抑制紧随的 click，避免误选中场景
+            item.addEventListener('click', function (e) {
+                if (suppressClick) {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    suppressClick = false;
+                }
+            }, true);
         }
 
         function closeDeleteBtn(wrapper) {
