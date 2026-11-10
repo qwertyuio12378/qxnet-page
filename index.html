@@ -3443,20 +3443,32 @@
                 if (pick.avatar) {
                     document.getElementById('avatarBox').innerHTML = '<img src="'+pick.avatar+'" style="width:44px;height:44px;border-radius:50%;object-fit:cover;">';
                 }
-                var qid = pick.uin || pick.id || pick.openid || pick.nickname || 'default';
-                autoCloudLogin(qid);
-                if (fromNative) {
+                var qid = pick.uin || pick.id || pick.openid;
+                if (!qid) {
+                    try { var _af = qxFileRead(); if (_af && _af.openid) qid = _af.openid; } catch (e) {}
+                }
+                if (qid) autoCloudLogin(qid);
+                if (fromNative && qid) {
                     localStorage.setItem('qnet_account', JSON.stringify(native));
                     setTimeout(function(){ backupAuthOnLogin(qid); }, 3000);
                 }
             } catch(e) {}
         }
         function logoutAccount() {
-            localStorage.removeItem('qnet_account');
+            try { if (cloudSb && cloudSb.auth) cloudSb.auth.signOut(); } catch (e) {}
+            try {
+                if (window.qnetAndroidObj && qnetAndroidObj.qxWipeAccount) qnetAndroidObj.qxWipeAccount();
+            } catch (e) {}
+            try {
+                Object.keys(localStorage).forEach(function (k) {
+                    if (k.indexOf('sb-') === 0 || k === 'qnet_account' || k.indexOf('qxnet_') === 0) localStorage.removeItem(k);
+                });
+            } catch (e) {}
             document.getElementById('nickName').textContent = 'QNET 弱网测试';
             document.getElementById('loginStatus').textContent = '';
             document.getElementById('avatarBox').textContent = 'QNET';
             callNativeApi({api:"login_out"});
+            setTimeout(function () { location.reload(); }, 400);
         }
 
         function simpleLoadAll() {
