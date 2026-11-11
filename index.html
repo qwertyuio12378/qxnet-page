@@ -1270,7 +1270,7 @@
                     updateBtnStatus();
                     showStatusBanner('停止QNET成功');
                     showToast('QNET已停止');
-                    callNativeApi({api:'set_float_icon', icon:-1});
+                    sendFloatIcon(-1);
                     if (_reportStart > 0) { showTestReport(_reportStart, Date.now()); _reportStart = 0; }
                     setTimeout(function () {
                         var cfw = document.getElementById('controlFw').checked ? 1 : 0;
@@ -1309,7 +1309,7 @@
                 callNativeApi(cfg);
                 isRunning = true;
                 updateBtnStatus();
-                callNativeApi({api:'set_float_icon', icon:-1});
+                sendFloatIcon(-1);
                 showToast('模板已切换');
                 setTimeout(function () { updateFloatWindow(); }, 500);
             }, 600);
@@ -1505,6 +1505,17 @@
             } catch (e) { console.error('syncUserProfilesToNative error:', e); }
         }
 
+        // 悬浮窗图标去重：同一轮事件里相同图标只下发一次，避免原生反复重画造成闪烁
+        function sendFloatIcon(icon) {
+            try {
+                var now = Date.now();
+                if (window._lastFloatIcon === icon && now - (window._lastFloatIconAt || 0) < 400) return;
+                window._lastFloatIcon = icon;
+                window._lastFloatIconAt = now;
+                callNativeApi({ api: 'set_float_icon', icon: icon });
+            } catch (e) {}
+        }
+
         function updateFloatWindow() {
             try {
                 var sceneName = "自定义配置";
@@ -1537,7 +1548,7 @@
                 }
                 callNativeApi({ api: "update_float_text", scene_name: sceneName, status_text: displayText });
                 var _icon = window._isClosed ? 1 : -1;
-                callNativeApi({api:'set_float_icon', icon: _icon});
+                sendFloatIcon(_icon);
             } catch (e) { console.log("悬浮窗更新失败", e); }
         }
         // ==================== Android回调入口 ====================
@@ -1592,13 +1603,12 @@
                                 if (closeScene) {
                                     var prevScene = selectedScene;
                                     var wasRunning = isRunning;
-                                    selectScene(closeScene);
                                     window._isClosed = true;
                                     window._openScene = prevScene;
                                     window._wasRunning = wasRunning;
                                     window._hasCloseSwitch = true;
+                                    selectScene(closeScene, true);
                                     callNativeApi({api:'set_close_template', name: closeName});
-                                    callNativeApi({api:'set_float_icon', icon:1});
                                     if (wasRunning) {
                                         var cfg1 = getStartConfig();
                                         cfg1.api = "update_qnet";
@@ -1694,7 +1704,7 @@
             if (data.os_version) document.getElementById('osVersion').textContent = data.os_version;
         }
         function handleGetAppInfo(data) {
-            if (data.app_version) document.getElementById('appVersion').textContent = '2.1.5 (' + data.app_version + ')';
+            if (data.app_version) document.getElementById('appVersion').textContent = '2.1.5 v92 (' + data.app_version + ')';
         }
         function handleSetQnetOption(data) {}
         function handleQnetStatus(data) {
@@ -2204,7 +2214,7 @@
             });
         }
 
-        function selectScene(scene) {
+        function selectScene(scene, keepClosed) {
             if (typeof scene === 'string') {
                 var found = null;
                 for (var i = 0; i < customScenes.length; i++) {
@@ -2214,7 +2224,7 @@
                 scene = found;
             }
             selectedScene = scene;
-            if (!scene.config || !scene.config.close_template) {
+            if (!keepClosed && (!scene.config || !scene.config.close_template)) {
                 window._isClosed = false;
                 window._hasCloseSwitch = false;
                 window._openScene = null;
@@ -2238,9 +2248,9 @@
             // 刚选场景时就根据close_template配置直接设置图标，避免刚启动时闪▶
             var _hasCloseCfg = scene.config && scene.config.close_template;
             if (window._isClosed) {
-                callNativeApi({api:'set_float_icon', icon:1});
+                sendFloatIcon(1);
             } else {
-                callNativeApi({api:'set_float_icon', icon:-1});
+                sendFloatIcon(-1);
             }
             syncUserProfilesToNative();
             // 把当前场景的关闭模板同步给原生，悬浮窗按钮才能判断走模板还是切状态
