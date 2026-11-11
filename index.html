@@ -68,6 +68,8 @@
         .recommend-info .reason { font-size: 13px; color: var(--text-sub); line-height: 1.5; }
         .add-btn { color: #1a3a8a; font-size: 15px; cursor: pointer; flex-shrink: 0; margin-left: 16px; transition: transform 0.2s, color 0.2s; font-weight:500; }
         .add-btn:active { transform: scale(0.88); color: #0d2b6b; }
+        .add-btn.added { color: #9aa4b2; cursor: default; font-weight: 400; }
+        .add-btn.added:active { transform: none; color: #9aa4b2; }
         .settings-group { background: #fff; margin-top: 12px; border-radius: 12px; margin-left: 12px; margin-right: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); }
         .settings-group-title { padding: 12px 16px 8px; font-size: 13px; color: var(--text-sub); font-weight: 500; background: #fff; }
         .setting-item { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; transition: background 0.15s; }
@@ -2193,7 +2195,10 @@
                 var item = document.createElement('div');
                 item.className = 'recommend-item';
                 var sub = scene.sub ? '<div style="font-size:13px; color:#999; margin-top:4px; line-height:1.5;">' + scene.sub + '</div>' : '';
-                var right = '<div class="add-btn" onclick="event.stopPropagation();addScene(\'' + name + '\')">添加</div>';
+                var added = customScenes.some(function (s) { return s.name === name; });
+                var right = added
+                    ? '<div class="add-btn added">已添加</div>'
+                    : '<div class="add-btn" onclick="event.stopPropagation();addScene(\'' + name + '\')">添加</div>';
                 item.innerHTML = '<div class="recommend-info"><div class="title">' + name + '</div>' + sub + '<div class="reason">推荐理由: ' + scene.desc + '</div></div>' + right;
                 list.appendChild(item);
             });
@@ -2294,6 +2299,7 @@
                 initWorkbenchScenes();
             fillWeakSceneOptions();
             switchTemplateMode();
+                initRecommendScenes();
                 syncUserProfilesToNative();
                 showToast('添加成功');
                 switchTab('workbench');
@@ -2317,6 +2323,7 @@
             customScenes = customScenes.filter(function (s) { return s.name !== name; });
             if (selectedScene && selectedScene.name === name) selectedScene = null;
             initWorkbenchScenes();
+            initRecommendScenes();
             syncUserProfilesToNative();
             showToast('删除成功');
         }
