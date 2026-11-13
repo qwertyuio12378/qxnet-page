@@ -1500,7 +1500,7 @@
                 if (userProfiles.length === 0) userProfiles.push({ profile_id: "scene_default", name: "自定义配置" });
                 callNativeApi({ api: "get_user_profiles", user_profiles: userProfiles });
                 setTimeout(function () {
-                    callNativeApi({ api: "set_qnet_option", control_fw: 0, info_fw: 0, dump_pcap: document.getElementById('dumpPcap').checked ? 1 : 0 });
+                    callNativeApi({ api: "set_qnet_option", control_fw: -1, info_fw: -1, dump_pcap: document.getElementById('dumpPcap').checked ? 1 : 0 });
                 }, 100);
             } catch (e) { console.error('syncUserProfilesToNative error:', e); }
         }
