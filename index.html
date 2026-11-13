@@ -3828,15 +3828,8 @@
             var email = 'qq_' + String(qqId).replace(/[^a-zA-Z0-9]/g,'') + '@qxnet.com';
             var pwd = 'qxnet_' + String(qqId).replace(/[^a-zA-Z0-9]/g,'');
             cloudSb.auth.signInWithPassword({ email: email, password: pwd }).then(function (res) {
-                if (res.error) {
-                    // 账号不存在则自动注册
-                    cloudSb.auth.signUp({ email: email, password: pwd }).then(function (supRes) {
-                        if (!supRes.error) {
-                            cloudRenderLoginState();
-                            cloudAutoLoad(function(){ cloudReady = true; cloudMarkDirty(); });
-                        }
-                    });
-                } else {
+                // 只允许已存在的云端账号登录：不再自动注册，避免产生无授权账号
+                if (!res.error) {
                     cloudRenderLoginState();
                     cloudAutoLoad(function(){ cloudReady = true; cloudMarkDirty(); });
                 }
