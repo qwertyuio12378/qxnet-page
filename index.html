@@ -1578,6 +1578,7 @@
                     case 'stop_qnet': handleStopQnet(data); break;
                     case 'pcap_path': handlePcapPath(data); break;
                     case 'update_qnet_by_qnet':
+                        try { var _dbg1 = 'SW_IN pid=' + data.profile_id + ' closed=' + (window._isClosed ? 1 : 0) + ' open=' + (window._openScene && window._openScene.name) + ' t=' + Date.now(); console.log(_dbg1); callNativeApi({api:'dbg_sw', msg:_dbg1}); } catch(e) {}
                         // 防回环：原生回发的切换请求在短时间内只处理一次，避免两边互相触发
                         var _swNow = Date.now();
                         if (window._lastSwitchAt && _swNow - window._lastSwitchAt < 400) break;
@@ -1585,6 +1586,7 @@
                         if (data.profile_id === '__switch__') {
                             if (!isRunning) { showToast('弱网未启动，请在工作台点击启动'); break; }
                             if (window._isClosed && window._openScene) {
+                                try { var _dbg2 = 'SW_BACK open=' + window._openScene.name + ' t=' + Date.now(); console.log(_dbg2); callNativeApi({api:'dbg_sw', msg:_dbg2}); } catch(e) {}
                                 // 当前在关闭模板上，切回开启模板
                                 window._isClosed = false;
                                 var _backScene = window._openScene;
