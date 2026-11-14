@@ -3361,8 +3361,8 @@
                 if (d.switches) {
                     var s = d.switches;
                     try {
-                        if (s.controlFw) { document.getElementById('switchControlFw').className = 'switch on'; document.getElementById('controlFw').checked = true; }
-                        else { document.getElementById('switchControlFw').className = 'switch'; document.getElementById('controlFw').checked = false; }
+                        document.getElementById('switchControlFw').className = 'switch';
+                        document.getElementById('controlFw').checked = false;
                         if (s.infoFw) { document.getElementById('switchInfoFw').className = 'switch on'; document.getElementById('infoFw').checked = true; }
                         else { document.getElementById('switchInfoFw').className = 'switch'; document.getElementById('infoFw').checked = false; }
                         if (s.dumpPcap) { document.getElementById('switchPcap').className = 'switch on'; document.getElementById('dumpPcap').checked = true; }
@@ -3816,7 +3816,7 @@
                         if (el0) el0.checked = !!val;
                         if (sw0) sw0.className = val ? 'switch on' : 'switch';
                     };
-                    setToggle('controlFw', 'switchControlFw', st.controlFw);
+                    // controlFw 不随云端设置自动打开，必须由用户点启动按钮开启
                     setToggle('infoFw', 'switchInfoFw', st.infoFw);
                     setToggle('dumpPcap', 'switchPcap', st.dumpPcap);
                     setToggle('antiBlock', 'switchAntiBlock', st.antiBlock);
