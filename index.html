@@ -1580,7 +1580,7 @@
                     case 'update_qnet_by_qnet':
                         // 防回环：原生回发的切换请求在短时间内只处理一次，避免两边互相触发
                         var _swNow = Date.now();
-                        if (window._lastSwitchAt && _swNow - window._lastSwitchAt < 1500) break;
+                        if (window._lastSwitchAt && _swNow - window._lastSwitchAt < 400) break;
                         window._lastSwitchAt = _swNow;
                         if (data.profile_id === '__switch__') {
                             if (!isRunning) { showToast('弱网未启动，请在工作台点击启动'); break; }
@@ -2236,7 +2236,7 @@
             try {
                 var _nm = (typeof scene === 'string') ? scene : (scene && scene.name);
                 var _now = Date.now();
-                if (!keepClosed && window._lastSelName === _nm && _now - (window._lastSelAt || 0) < 1000) return;
+                if (!keepClosed && window._lastSelName === _nm && _now - (window._lastSelAt || 0) < 400) return;
                 window._lastSelName = _nm;
                 window._lastSelAt = _now;
             } catch (e) {}
