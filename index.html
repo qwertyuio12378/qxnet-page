@@ -1267,6 +1267,18 @@
                 var success = callNativeApi(config);
                 if (success) {
                     isRunning = false;
+                    // 停止时退出"关闭模板"状态，避免下次启动落在关闭模板上
+                    if (window._isClosed && window._openScene) {
+                        var _backScene = window._openScene;
+                        window._isClosed = false;
+                        window._openScene = null;
+                        window._hasCloseSwitch = false;
+                        selectScene(_backScene);
+                    } else {
+                        window._isClosed = false;
+                        window._openScene = null;
+                        window._hasCloseSwitch = false;
+                    }
                     updateBtnStatus();
                     showStatusBanner('停止QNET成功');
                     showToast('QNET已停止');
@@ -1569,6 +1581,7 @@
                     case 'pcap_path': handlePcapPath(data); break;
                     case 'update_qnet_by_qnet':
                         if (data.profile_id === '__switch__') {
+                            if (!isRunning) { showToast('弱网未启动，请在工作台点击启动'); break; }
                             if (window._isClosed && window._openScene) {
                                 // 当前在关闭模板上，切回开启模板
                                 window._isClosed = false;
