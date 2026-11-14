@@ -1498,7 +1498,7 @@
                     if (!found) userProfiles.unshift({ profile_id: "scene_" + selectedScene.name, name: selectedScene.name });
                 }
                 if (userProfiles.length === 0) userProfiles.push({ profile_id: "scene_default", name: "自定义配置" });
-                callNativeApi({ api: "get_user_profiles", user_profiles: userProfiles });
+                callNativeApi({ api: "get_user_profiles", user_profiles: userProfiles, current_profile_id: currentSceneProfileId() });
                 setTimeout(function () {
                     var _cfwEl = document.getElementById('controlFw');
                     var _ifwEl = document.getElementById('infoFw');
