@@ -310,7 +310,7 @@
         显示/切换弱网模板
        </div> 
       </div> 
-      <div class="switch on" id="switchControlFw" onclick="toggleSwitch(this, 'controlFw')"><input type="checkbox" id="controlFw" class="native-checkbox" checked></div> 
+      <div class="switch" id="switchControlFw" onclick="toggleSwitch(this, 'controlFw')"><input type="checkbox" id="controlFw" class="native-checkbox"></div> 
      </div> 
      <div class="setting-item"> 
       <div class="setting-info"> 
@@ -1257,6 +1257,9 @@
                 return;
             }
             if (!isRunning) {
+                var _cfwSw = document.getElementById('switchControlFw');
+                if (_cfwSw) { _cfwSw.className = 'switch on'; }
+                document.getElementById('controlFw').checked = true;
                 var controlFw = document.getElementById('controlFw').checked ? 1 : 0;
                 var infoFw = document.getElementById('infoFw').checked ? 1 : 0;
                 var dumpPcap = document.getElementById('dumpPcap').checked ? 1 : 0;
@@ -1279,6 +1282,9 @@
                         window._openScene = null;
                         window._hasCloseSwitch = false;
                     }
+                    var _cfwOff = document.getElementById('switchControlFw');
+                    if (_cfwOff) { _cfwOff.className = 'switch'; }
+                    document.getElementById('controlFw').checked = false;
                     updateBtnStatus();
                     showStatusBanner('停止QNET成功');
                     showToast('QNET已停止');
@@ -3343,8 +3349,8 @@
                 if (d.switches) {
                     var s = d.switches;
                     try {
-                        if (s.controlFw) { document.getElementById('switchControlFw').className = 'switch on'; document.getElementById('controlFw').checked = true; }
-                        else { document.getElementById('switchControlFw').className = 'switch'; document.getElementById('controlFw').checked = false; }
+                        document.getElementById('switchControlFw').className = 'switch';
+                        document.getElementById('controlFw').checked = false;
                         if (s.infoFw) { document.getElementById('switchInfoFw').className = 'switch on'; document.getElementById('infoFw').checked = true; }
                         else { document.getElementById('switchInfoFw').className = 'switch'; document.getElementById('infoFw').checked = false; }
                         if (s.dumpPcap) { document.getElementById('switchPcap').className = 'switch on'; document.getElementById('dumpPcap').checked = true; }
