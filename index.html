@@ -2229,6 +2229,14 @@
         }
 
         function selectScene(scene, keepClosed) {
+            // 同一场景短时间内重复调用直接忽略，避免与原生回调互相触发形成切换循环
+            try {
+                var _nm = (typeof scene === 'string') ? scene : (scene && scene.name);
+                var _now = Date.now();
+                if (!keepClosed && window._lastSelName === _nm && _now - (window._lastSelAt || 0) < 1000) return;
+                window._lastSelName = _nm;
+                window._lastSelAt = _now;
+            } catch (e) {}
             if (typeof scene === 'string') {
                 var found = null;
                 for (var i = 0; i < customScenes.length; i++) {
