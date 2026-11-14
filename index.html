@@ -2609,7 +2609,7 @@
             } catch (e) {}
             callNativeApi(config);
             setTimeout(function () {
-                var cfw = document.getElementById('controlFw').checked ? 1 : 0;
+                var cfw = isRunning && document.getElementById('controlFw').checked ? 1 : 0;
                 var ifw = document.getElementById('infoFw').checked ? 1 : 0;
                 var dp = document.getElementById('dumpPcap').checked ? 1 : 0;
                 callNativeApi({ api: "set_qnet_option", control_fw: cfw, info_fw: ifw, dump_pcap: document.getElementById('dumpPcap').checked ? 1 : 0 });
@@ -3361,8 +3361,8 @@
                 if (d.switches) {
                     var s = d.switches;
                     try {
-                        document.getElementById('switchControlFw').className = 'switch';
-                        document.getElementById('controlFw').checked = false;
+                        if (s.controlFw) { document.getElementById('switchControlFw').className = 'switch on'; document.getElementById('controlFw').checked = true; }
+                        else { document.getElementById('switchControlFw').className = 'switch'; document.getElementById('controlFw').checked = false; }
                         if (s.infoFw) { document.getElementById('switchInfoFw').className = 'switch on'; document.getElementById('infoFw').checked = true; }
                         else { document.getElementById('switchInfoFw').className = 'switch'; document.getElementById('infoFw').checked = false; }
                         if (s.dumpPcap) { document.getElementById('switchPcap').className = 'switch on'; document.getElementById('dumpPcap').checked = true; }
