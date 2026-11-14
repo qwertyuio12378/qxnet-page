@@ -1264,8 +1264,8 @@
                 setTimeout(function () { startQNetInternal(); }, 300);
             } else {
                 var config = { api: "stop_qnet" };
-                var success = callNativeApi(config);
-                if (success) {
+                callNativeApi(config);
+                if (true) {
                     isRunning = false;
                     // 停止时退出"关闭模板"状态，避免下次启动落在关闭模板上
                     if (window._isClosed && window._openScene) {
