@@ -1575,6 +1575,10 @@
                     case 'stop_qnet': handleStopQnet(data); break;
                     case 'pcap_path': handlePcapPath(data); break;
                     case 'update_qnet_by_qnet':
+                        // 防回环：原生回发的切换请求在短时间内只处理一次，避免两边互相触发
+                        var _swNow = Date.now();
+                        if (window._lastSwitchAt && _swNow - window._lastSwitchAt < 1500) break;
+                        window._lastSwitchAt = _swNow;
                         if (data.profile_id === '__switch__') {
                             if (!isRunning) { showToast('弱网未启动，请在工作台点击启动'); break; }
                             if (window._isClosed && window._openScene) {
