@@ -1508,7 +1508,12 @@
                     if (!found) userProfiles.unshift({ profile_id: "scene_" + selectedScene.name, name: selectedScene.name });
                 }
                 if (userProfiles.length === 0) userProfiles.push({ profile_id: "scene_default", name: "自定义配置" });
-                callNativeApi({ api: "get_user_profiles", user_profiles: userProfiles, current_profile_id: currentSceneProfileId() });
+                var _cpId = currentSceneProfileId();
+                var _cpNow = Date.now();
+                if (window._lastProfId === _cpId && _cpNow - (window._lastProfAt || 0) < 700) return;
+                window._lastProfId = _cpId;
+                window._lastProfAt = _cpNow;
+                callNativeApi({ api: "get_user_profiles", user_profiles: userProfiles, current_profile_id: _cpId });
                 setTimeout(function () {
                     var _cfwEl = document.getElementById('controlFw');
                     var _ifwEl = document.getElementById('infoFw');
@@ -2594,6 +2599,14 @@
             if (!selectedScene) return;
             var config = getStartConfig();
             config.api = "update_qnet";
+            // 同模板短时间重复下发直接丢弃，避免前后端来回把"当前模板"写成两个值
+            try {
+                var _pcId = (config.profile && config.profile.profile_id) || '';
+                var _pcNow = Date.now();
+                if (window._lastQnetCfgId === _pcId && _pcNow - (window._lastQnetCfgAt || 0) < 700) return;
+                window._lastQnetCfgId = _pcId;
+                window._lastQnetCfgAt = _pcNow;
+            } catch (e) {}
             callNativeApi(config);
             setTimeout(function () {
                 var cfw = document.getElementById('controlFw').checked ? 1 : 0;
