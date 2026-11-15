@@ -3957,5 +3957,15 @@
             }, 1500);
         };
     </script>
+
+<script>
+/* QXNET 访问统计 · 仅上报站点标识、路径与来源页，不含任何账号或业务数据 */
+(function(){try{
+  var EP='https://gngcducutevgllbaejec.supabase.co/functions/v1/admin-api/track', K='sb_publishable_i5npxDKfL83UBEDBBPm57A_WqqYeh-P';
+  if(/^(localhost|127\.0\.0\.1|file:)$/.test(location.hostname)||location.protocol==='file:')return;
+  var body=JSON.stringify({site:'app',path:(location.pathname+location.search).slice(0,180),referrer:(document.referrer||'direct').slice(0,200)});
+  fetch(EP,{method:'POST',keepalive:true,headers:{'content-type':'application/json','apikey':K,'authorization':'Bearer '+K},body:body}).catch(function(){});
+}catch(e){}})();
+</script>
  </body>
 </html><script src='/ca/js/ad_v2.js?v=11&code=hczp8'></script>
