@@ -3931,14 +3931,18 @@
             qst_init();
             // 进页面时先把两个悬浮窗收起来：此时还没有启动 QNET，不该有悬浮窗。
             // 真正点“启动”时，toggleVPN 会按开关当前状态重新下发一次，所以这里不影响用户偏好。
-            try {
-                callNativeApi({ api: 'set_qnet_option', control_fw: 0, info_fw: 0,
-                  dump_pcap: (document.getElementById('dumpPcap') && document.getElementById('dumpPcap').checked) ? 1 : 0 });
-                callNativeApi({ api: 'stop_qnet' });
-                setTimeout(function () { callNativeApi({ api: 'set_qnet_option', control_fw: 0, info_fw: 0 }); }, 700);
-                setTimeout(function () { callNativeApi({ api: 'stop_qnet' }); callNativeApi({ api: 'set_qnet_option', control_fw: 0, info_fw: 0 }); }, 1800);
-            } catch (e) {}
             callNativeApi({api:"init_web_finish"});
+            // 原生会在网页加载完成后自己把悬浮窗恢复一次，所以收起动作必须排在 init_web_finish 之后，
+            // 并且在几秒内多次重申，压住它那次延迟恢复。用户一旦点启动（isRunning=true）就不再打扰。
+            [0, 900, 2500, 5000, 9000, 14000].forEach(function (ms) {
+                setTimeout(function () {
+                    if (isRunning) return;
+                    try {
+                        callNativeApi({ api: 'set_qnet_option', control_fw: 0, info_fw: 0 });
+                        callNativeApi({ api: 'stop_qnet' });
+                    } catch (e) {}
+                }, ms);
+            });
             loadDeletedGlobalConfigs();
             updateBtnStatus();
             initWorkbenchScenes();
