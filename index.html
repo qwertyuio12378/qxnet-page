@@ -1257,6 +1257,7 @@
                 return;
             }
             if (!isRunning) {
+                window._bootGate = false;
                 var _cfwSw = document.getElementById('switchControlFw');
                 if (_cfwSw) { _cfwSw.className = 'switch on'; }
                 document.getElementById('controlFw').checked = true;
@@ -1730,7 +1731,15 @@
         function handleGetAppInfo(data) {
             if (data.app_version) document.getElementById('appVersion').textContent = '2.1.5 v99 (' + data.app_version + ')';
         }
-        function handleSetQnetOption(data) {}
+        // 原生在 init_web_finish 之后会主动下发一次它自己保存的选项（control_fw / info_fw）。
+        // 页面刚加载、还没启动 QNET 时，如果照单全收，悬浮窗就会被那一份旧设置拉回来
+        // （表现就是“闪了一下又出来”）。所以这段窗口期内立刻反向压一次 0。
+        // 用户真正点启动后 _bootGate 置 false，此后完全按用户的开关走。
+        function handleSetQnetOption(data) {
+            if (!isRunning && window._bootGate !== false) {
+                try { callNativeApi({ api: 'set_qnet_option', control_fw: 0, info_fw: 0 }); } catch (e) {}
+            }
+        }
         function handleQnetStatus(data) {
             if (data.status !== undefined && !ignoreNativeStatus) {
                 isRunning = data.status === 1;
