@@ -188,6 +188,7 @@
         .search-result-empty { padding: 40px 20px; text-align: center; color: var(--text-sub); font-size: 14px; }
         .search-result-empty .icon { font-size: 36px; margin-bottom: 10px; opacity: 0.5; }
     </style> 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
  </head> 
  <body> 
   <div class="nav-bar"> 
@@ -3190,6 +3191,7 @@
             var checkbox = document.getElementById(type);
             if (checkbox) checkbox.checked = newState;
             if (typeof simpleSaveAll === 'function') simpleSaveAll();
+            if (typeof cloudMarkDirty === 'function') cloudMarkDirty();
             if (type === 'controlFw' || type === 'infoFw' || type === 'dumpPcap') {
                 var cfw = document.getElementById('controlFw').checked ? 1 : 0;
                 var ifw = document.getElementById('infoFw').checked ? 1 : 0;
@@ -3553,6 +3555,7 @@
                     t: Date.now()
                 };
                 localStorage.setItem(SIMPLE_STORAGE_KEY, JSON.stringify(data));
+                cloudMarkDirty();
             } catch(e) {}
         }
 
@@ -3602,6 +3605,7 @@
                 try {
                     if (window.qnetAndroidObj && qnetAndroidObj.qxSetUid && f.openid) qnetAndroidObj.qxSetUid(f.openid);
                 } catch (e) {}
+                if (!cloudCurUser()) autoCloudLogin(f.openid);
             } catch (e) {}
         }
         function qxNickValid(n) {
@@ -3636,6 +3640,7 @@
                 if (!qid) {
                     try { var _af = qxFileRead(); if (_af && _af.openid) qid = _af.openid; } catch (e) {}
                 }
+                if (qid) autoCloudLogin(qid);
                 if (fromNative && qid) {
                     localStorage.setItem('qnet_account', JSON.stringify(native));
                     setTimeout(function(){ backupAuthOnLogin(qid); }, 3000);
@@ -3643,6 +3648,7 @@
             } catch(e) {}
         }
         function logoutAccount() {
+            try { if (cloudSb && cloudSb.auth) cloudSb.auth.signOut(); } catch (e) {}
             try {
                 if (window.qnetAndroidObj && qnetAndroidObj.qxWipeAccount) qnetAndroidObj.qxWipeAccount();
             } catch (e) {}
@@ -3723,7 +3729,231 @@
             setInterval(tick, 1000);
         }
 
-
+        // ==================== 云端模板备份 (Supabase 账号自动) ====================
+        var SUPABASE_URL = 'https://gngcducutevgllbaejec.supabase.co';
+        var SUPABASE_ANON_KEY = 'sb_publishable_i5npxDKfL83UBEDBBPm57A_WqqYeh-P';
+        var cloudSb = null;
+        var cloudReady = false;
+        var cloudDirty = false;      // 数据是否有变化待上传
+        var cloudSyncing = false;    // 是否正在上传
+        var cloudLastPush = 0;       // 上次成功推送时间
+        var cloudUserCache = null;   // 当前云端用户缓存（supabase-js v2 的 getSession 是 Promise，不能同步读）
+        var cloudLastHash = '';      // 上次成功上传的内容指纹，避免每 5 秒重复推送同一份数据
+        try { cloudSb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { detectSessionInUrl: true, autoRefreshToken: true, persistSession: true } }); } catch(e) {}
+        function cloudSetUser(u) { cloudUserCache = u || null; }
+        function cloudRefreshUser(cb) {
+            try {
+                if (!cloudSb) { cloudUserCache = null; if (cb) cb(null); return; }
+                var s = cloudSb.auth.getSession();
+                if (s && typeof s.then === 'function') {
+                    s.then(function (res) {
+                        cloudUserCache = (res && res.data && res.data.session && res.data.session.user) || null;
+                        if (cb) cb(cloudUserCache);
+                    }).catch(function () { cloudUserCache = null; if (cb) cb(null); });
+                    return;
+                }
+                cloudUserCache = (s && s.data && s.data.session && s.data.session.user) || null;
+                if (cb) cb(cloudUserCache);
+            } catch (e) { cloudUserCache = null; if (cb) cb(null); }
+        }
+        function cloudCurUser() {
+            if (cloudUserCache) return cloudUserCache;
+            try {
+                if (cloudSb) {
+                    var s = cloudSb.auth.getSession();
+                    if (s && typeof s.then !== 'function' && s.data && s.data.session && s.data.session.user) {
+                        cloudUserCache = s.data.session.user;
+                    }
+                }
+            } catch (e) {}
+            return cloudUserCache;
+        }
+        function cloudData() {
+            var d = {
+                scenes: customScenes,
+                settings: {
+                    controlFw: document.getElementById('controlFw') ? document.getElementById('controlFw').checked : false,
+                    infoFw: document.getElementById('infoFw') ? document.getElementById('infoFw').checked : false,
+                    dumpPcap: document.getElementById('dumpPcap') ? document.getElementById('dumpPcap').checked : false,
+                    antiBlock: document.getElementById('antiBlock') ? document.getElementById('antiBlock').checked : false,
+                    reportSwitch: document.getElementById('reportSwitch') ? document.getElementById('reportSwitch').checked : false
+                },
+                t: Date.now()
+            };
+            return d;
+        }
+        function cloudMarkDirty() {
+            cloudDirty = true;
+        }
+        function cloudSetState(txt) {
+            try {
+                var el = document.getElementById('cloudUserState');
+                if (el) el.textContent = txt;
+                if (window.console && console.log) console.log('[cloud] ' + txt);
+            } catch (e) {}
+        }
+        // 数据变化时由 simpleSaveAll 调用，节流推送（最多每5秒一次）
+        function cloudAutoPush() {
+            if (!cloudReady) return;
+            if (!cloudDirty || cloudSyncing) return;
+            var user = cloudCurUser();
+            if (!user) return;
+            var now = Date.now();
+            if (now - cloudLastPush < 5000) return;
+            var data = cloudData();
+            // 本地模板为空时绝不覆盖云端已有备份，避免把云端数据洗成空
+            if (!data.scenes || data.scenes.length === 0) { cloudDirty = false; return; }
+            // 内容没变就不重复上传（simpleSaveAll 每 500ms 会置 dirty，不比对会 5 秒传一次）
+            var fp = JSON.stringify(data.scenes) + '|' + JSON.stringify(data.settings);
+            if (fp === cloudLastHash) { cloudDirty = false; return; }
+            cloudDirty = false;
+            cloudSyncing = true;
+            var guard = setTimeout(function () { cloudSyncing = false; cloudDirty = true; }, 15000);
+            cloudSb.from('qnet_templates').upsert({
+                owner_id: user.id,
+                data: data,
+                t: data.t
+            }, { onConflict: 'owner_id' }).then(function (res) {
+                clearTimeout(guard);
+                if (!res.error) {
+                    cloudLastHash = fp;
+                    cloudLastPush = Date.now();
+                    var d0 = new Date(cloudLastPush);
+                    function p2(n){return n<10?'0'+n:''+n;}
+                    cloudSetState('已备份 ' + p2(d0.getHours()) + ':' + p2(d0.getMinutes()) + ':' + p2(d0.getSeconds()) + ' · 模板 ' + data.scenes.length + ' 个');
+                } else {
+                    cloudDirty = true;
+                    cloudSetState('备份失败：' + (res.error.message || '未知错误'));
+                }
+                cloudSyncing = false;
+            }).catch(function (e) {
+                clearTimeout(guard);
+                cloudSyncing = false;
+                cloudDirty = true;
+                cloudSetState('备份异常：' + ((e && e.message) || '网络错误'));
+            });
+        }
+        // 启动时自动从云端恢复
+        function cloudAutoLoad(cb) {
+            var user = cloudCurUser();
+            if (!user) { cloudReady = true; if (cb) cb(); return; }
+            cloudSb.from('qnet_templates').select('data,t').eq('owner_id', user.id).maybeSingle().then(function (res) {
+                if (res.error || !res.data || !res.data.data) { cloudReady = true; if (cb) cb(); return; }
+                var d = res.data.data;
+                if (d && d.scenes && d.scenes.length > 0) {
+                    var local = null;
+                    try { local = JSON.parse(localStorage.getItem(SIMPLE_STORAGE_KEY) || 'null'); } catch(e) {}
+                    var localT = local && local.t ? local.t : 0;
+                    if (!local || localT < (d.t || 0)) {
+                        customScenes = d.scenes;
+                        simpleSaveAll();
+                        initWorkbenchScenes();
+                        initRecommendScenes();
+                    }
+                }
+                // 恢复设置偏好
+                if (d && d.settings) {
+                    var st = d.settings;
+                    var setToggle = function(id, onId, val) {
+                        var el0 = document.getElementById(id);
+                        var sw0 = document.getElementById(onId);
+                        if (el0) el0.checked = !!val;
+                        if (sw0) sw0.className = val ? 'switch on' : 'switch';
+                    };
+                    // controlFw 不随云端设置自动打开，必须由用户点启动按钮开启
+                    setToggle('infoFw', 'switchInfoFw', st.infoFw);
+                    setToggle('dumpPcap', 'switchPcap', st.dumpPcap);
+                    setToggle('antiBlock', 'switchAntiBlock', st.antiBlock);
+                    setToggle('reportSwitch', 'switchReport', st.reportSwitch);
+                }
+                cloudReady = true;
+                if (cb) cb();
+            }).catch(function () { cloudReady = true; if (cb) cb(); });
+        }
+        function cloudRenderLoginState() {
+            var user = cloudCurUser();
+            var section = document.getElementById('cloudBackupSection');
+            if (!section) return;
+            if (user) {
+                section.style.display = 'block';
+                var email = user.email || '';
+                document.getElementById('cloudUserName').textContent = '云端备份';
+                cloudSetState('已登录 ' + email.split('@')[0] + ' · 模板自动备份中');
+            } else {
+                // 未登录也显示，避免"备份完全静默失败、用户毫无感知"
+                section.style.display = 'block';
+                document.getElementById('cloudUserName').textContent = '云端备份（未登录）';
+                cloudSetState('未登录云端账号，模板不会上传');
+            }
+        }
+        function cloudLogin() {
+            var accEl = document.getElementById('cloudAccount');
+            var pwdEl = document.getElementById('cloudPassword');
+            if (!accEl || !pwdEl) { showToast('已自动使用设备账号登录云端，无需手动输入'); return; }
+            var acc = accEl.value.trim();
+            var pwd = pwdEl.value.trim();
+            if (!acc || !pwd) { showToast('请输入账号和密码'); return; }
+            var email = acc;
+            if (email.indexOf('@') < 0) email = email + '@qxnet.com';
+            cloudSb.auth.signInWithPassword({ email: email, password: pwd }).then(function (res) {
+                if (res.error) {
+                    showToast('登录失败：' + (res.error.message.indexOf('Invalid login credentials') >= 0 ? '账号或密码错误' : res.error.message));
+                    return;
+                }
+                showToast('登录成功，模板自动备份已开启');
+                if (res.data && res.data.user) cloudSetUser(res.data.user);
+                cloudRenderLoginState();
+                cloudAutoLoad();
+            });
+        }
+        function cloudLogout() {
+            cloudSb.auth.signOut().then(function () {
+                cloudSetUser(null);
+                showToast('已退出云端备份');
+                cloudRenderLoginState();
+            });
+        }
+        // 用 QQ 账号自动登录云端（不需要用户手动输密码）
+        var cloudLoginBusy = false;
+        function autoCloudLogin(qqId) {
+            if (!cloudSb) return;
+            if (cloudCurUser()) { cloudAutoLoad(function(){ cloudReady = true; cloudMarkDirty(); }); return; }
+            var raw = String(qqId).replace(/[^a-zA-Z0-9]/g, '');
+            if (!raw) { cloudSetState('未取到账号标识，无法登录云端'); return; }
+            if (cloudLoginBusy) return;
+            cloudLoginBusy = true;
+            var email = 'qq_' + raw + '@qxnet.com';
+            var pwd = 'qxnet_' + raw;
+            function afterLogin(u) {
+                cloudLoginBusy = false;
+                if (u) cloudSetUser(u);
+                cloudRenderLoginState();
+                cloudAutoLoad(function(){ cloudReady = true; cloudMarkDirty(); });
+            }
+            cloudSb.auth.signInWithPassword({ email: email, password: pwd }).then(function (res) {
+                if (!res.error) { afterLogin(res.data && res.data.user); return; }
+                // 账号不存在 → 用同一套派生邮箱/密码补建一次（固定推导，重复执行不会产生第二个账号）
+                if (!/Invalid login credentials|User not found|invalid_grant|400/i.test(res.error.message || '')) {
+                    cloudLoginBusy = false;
+                    cloudSetState('云端登录失败：' + res.error.message);
+                    return;
+                }
+                cloudSetState('首次使用，正在创建云端账号…');
+                cloudSb.auth.signUp({ email: email, password: pwd }).then(function (r2) {
+                    if (r2.error) {
+                        cloudLoginBusy = false;
+                        cloudSetState('云端账号创建失败：' + r2.error.message);
+                        return;
+                    }
+                    if (r2.data && r2.data.session) { afterLogin((r2.data.session && r2.data.session.user) || (r2.data && r2.data.user)); return; }
+                    // 若开启了邮箱确认，signUp 不给 session，补一次密码登录
+                    cloudSb.auth.signInWithPassword({ email: email, password: pwd }).then(function (r3) {
+                        if (r3.error) { cloudLoginBusy = false; cloudSetState('云端登录失败：' + r3.error.message); return; }
+                        afterLogin(r3.data && r3.data.user);
+                    }).catch(function (e) { cloudLoginBusy = false; cloudSetState('云端登录异常：' + ((e && e.message) || 'network')); });
+                }).catch(function (e) { cloudLoginBusy = false; cloudSetState('云端注册异常：' + ((e && e.message) || 'network')); });
+            }).catch(function (e) { cloudLoginBusy = false; cloudSetState('云端登录异常：' + ((e && e.message) || 'network')); });
+        }
 
         window.onload = function () {
             isRunning = false;
@@ -3744,6 +3974,37 @@
         setTimeout(updateAccountUI, 4000);
         setTimeout(updateAccountUI, 8000);
             setInterval(simpleSaveAll, 500);
+            setInterval(cloudAutoPush, 1000);
+            // 从 URL 参数恢复登录态（兼容 WebView，不依赖 hash）
+            (function(){
+              try {
+                var params = new URLSearchParams(window.location.search || '');
+                var at = params.get('at');
+                var rt = params.get('rt');
+                if (!at || !rt || !cloudSb || !cloudSb.auth) return;
+                cloudSb.auth.setSession({ access_token: at, refresh_token: rt }).then(function(res){
+                  if (!res.error) {
+                    if (res.data && res.data.user) cloudSetUser(res.data.user);
+                    cloudRenderLoginState();
+                    cloudAutoLoad();
+                  }
+                  history.replaceState(null, '', window.location.pathname);
+                });
+              } catch(e) {}
+            })();
+            // supabase-js v2 的 getSession() 返回 Promise，必须先异步刷新用户缓存再渲染/恢复
+            cloudRefreshUser(function () { cloudRenderLoginState(); cloudAutoLoad(); });
+            if (cloudSb && cloudSb.auth) {
+              cloudSb.auth.onAuthStateChange(function(event, session) {
+                cloudSetUser(session && session.user);
+                if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
+                  cloudRenderLoginState();
+                  cloudAutoLoad();
+                } else if (event === 'SIGNED_OUT') {
+                  cloudRenderLoginState();
+                }
+              });
+            }
             qst_init();
             // 进页面时先把两个悬浮窗收起来：此时还没有启动 QNET，不该有悬浮窗。
             // 真正点“启动”时，toggleVPN 会按开关当前状态重新下发一次，所以这里不影响用户偏好。
