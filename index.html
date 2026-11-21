@@ -14,6 +14,7 @@
         .nav-bar .nav-title { position: absolute; left: 0; right: 0; text-align: center; pointer-events: none; }
         .nav-back { width: 24px; height: 24px; cursor: pointer; }
         .nav-back svg { width: 100%; height: 100%; fill: #fff; }
+        .nav-back-text { font-size: 15px; color: #fff; }
         .page-container { height: calc(100vh - 48px - 80px); overflow-y: auto; padding-bottom: 100px; }
         .page-container.no-tab { height: calc(100vh - 48px); }
         .page { display: none; animation: fadeUp 0.25s ease both; }
@@ -193,6 +194,7 @@
  <body> 
   <div class="nav-bar"> 
    <div class="nav-left" id="navLeft" onclick="goBack()"> 
+    <span class="nav-back-text" id="navBackText" style="display:none;">返回</span>
     <div class="nav-back" id="navBack" style="display:none;"> 
      <svg viewbox="0 0 24 24">
       <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
@@ -1857,12 +1859,17 @@
             var navTitle = document.getElementById('navTitle');
             var navRight = document.getElementById('navRight');
             var navBack = document.getElementById('navBack');
+            var navBackText = document.getElementById('navBackText');
+            var navLeft = document.getElementById('navLeft');
             var tabBar = document.getElementById('tabBar');
             var pageContainer = document.getElementById('pageContainer');
 
             tabBar.style.display = 'flex';
             pageContainer.classList.remove('no-tab');
             navBack.style.display = 'none';
+            navBackText.style.display = 'none';
+            navLeft.style.pointerEvents = 'none';
+            navLeft.style.cursor = 'default';
 
             if (page === 'workbench') {
                 navTitle.textContent = 'QXNET';
@@ -1872,15 +1879,23 @@
                 navTitle.textContent = '网络场景推荐';
                 navRight.textContent = '新增';
                 navRight.style.display = 'flex';
+                navBackText.style.display = 'inline';
+                navLeft.style.pointerEvents = 'auto';
+                navLeft.style.cursor = 'pointer';
             } else if (page === 'settings') {
                 navTitle.textContent = '设置';
                 navRight.textContent = '';
                 navRight.style.display = 'none';
+                navBackText.style.display = 'inline';
+                navLeft.style.pointerEvents = 'auto';
+                navLeft.style.cursor = 'pointer';
             } else if (page === 'template-edit') {
                 navTitle.textContent = '编辑模板';
                 navRight.textContent = '保存';
                 navRight.style.display = 'flex';
                 navBack.style.display = 'block';
+                navLeft.style.pointerEvents = 'auto';
+                navLeft.style.cursor = 'pointer';
                 tabBar.style.display = 'none';
                 pageContainer.classList.add('no-tab');
             }
