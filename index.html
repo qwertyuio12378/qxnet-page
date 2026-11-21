@@ -194,7 +194,7 @@
  <body> 
   <div class="nav-bar"> 
    <div class="nav-left" id="navLeft" onclick="goBack()"> 
-    <span class="nav-back-text" id="navBackText" style="display:none;">返回</span>
+    <span class="nav-back-text" id="navBackText" style="display:inline;">返回</span>
     <div class="nav-back" id="navBack" style="display:none;"> 
      <svg viewbox="0 0 24 24">
       <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
@@ -977,6 +977,15 @@
         var pageStack = ['workbench'];
         var isPoppingState = false;
 
+        function syncTabActive(page) {
+            var order = ['workbench', 'scene', 'settings'];
+            var idx = order.indexOf(page);
+            var tabs = document.querySelectorAll('.tab-item');
+            for (var i = 0; i < tabs.length; i++) tabs[i].classList.remove('active');
+            if (idx >= 0 && tabs[idx]) tabs[idx].classList.add('active');
+            updateTabIndicator();
+        }
+
         function navigateToPage(page, recordHistory) {
             isPoppingState = true;
             currentPage = page;
@@ -984,6 +993,7 @@
             var el = document.getElementById('page-' + page);
             if (el) el.classList.add('active');
             updateNavBar(page);
+            syncTabActive(page);
             window.scrollTo(0, 0);
             setTimeout(function(){ isPoppingState = false; }, 50);
         }
@@ -1875,6 +1885,9 @@
                 navTitle.textContent = 'QXNET';
                 navRight.textContent = '新增';
                 navRight.style.display = 'flex';
+                navBackText.style.display = 'inline';
+                navLeft.style.pointerEvents = 'auto';
+                navLeft.style.cursor = 'pointer';
             } else if (page === 'scene') {
                 navTitle.textContent = '网络场景推荐';
                 navRight.textContent = '新增';
@@ -2039,7 +2052,10 @@
         })();
 
         function goBack() {
-            if (currentPage === 'workbench') return;
+            if (currentPage === 'workbench') {
+                callNativeApi({ api: 'click_back_button' });
+                return;
+            }
             if (currentPage === 'template-edit') { switchTab('workbench'); return; }
             if (pageStack.length > 1) {
                 history.back();
