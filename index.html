@@ -1601,6 +1601,7 @@
                                 // 无关闭模板：通知原生切 qnetRunningStatus 0↔4，VPN不断、参数不改
                                 window._isPaused = !window._isPaused;
                                 callNativeApi({api:'set_qnet_pause', paused: window._isPaused});
+                                updateFloatWindow();
                                 showToast(window._isPaused ? '已暂停弱网' : '已恢复弱网');
                                 break;
                             }
@@ -1610,6 +1611,7 @@
                                 if (!closeScene) {
                                     window._isPaused = !window._isPaused;
                                     callNativeApi({api:'set_qnet_pause', paused: window._isPaused});
+                                    updateFloatWindow();
                                     showToast(window._isPaused ? '已暂停弱网' : '已恢复弱网');
                                     break;
                                 }
