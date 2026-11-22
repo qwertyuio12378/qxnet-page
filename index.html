@@ -3229,7 +3229,7 @@
             var newState = !isOn;
             if (newState) el.classList.add('on');
             else el.classList.remove('on');
-            var checkbox = document.getElementById(type);
+            var checkbox = document.getElementById(type === 'report' ? 'reportSwitch' : type);
             if (checkbox) checkbox.checked = newState;
             if (typeof simpleSaveAll === 'function') simpleSaveAll();
             if (typeof cloudMarkDirty === 'function') cloudMarkDirty();
