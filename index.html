@@ -1287,13 +1287,12 @@
                     showStatusBanner('停止QNET成功');
                     showToast('QNET已停止');
                     sendFloatIcon(-1);
-                    if (_reportStart > 0) { showTestReport(_reportStart, Date.now()); _reportStart = 0; }
                 }
             }
         }
 
-        var _reportStart = 0;
         function startQNetInternal() {
+            syncReportFlag();
             var config = getStartConfig();
             var success = callNativeApi(config);
             if (success) {
@@ -1302,9 +1301,7 @@
                 showToast('正在启动QNET...');
                 window._isPaused = false;
                 callNativeApi({api:'set_qnet_pause', paused:false});
-                if (document.getElementById('reportSwitch') && document.getElementById('reportSwitch').checked) {
-                    _reportStart = Date.now();
-                }
+
                 setTimeout(function () { updateFloatWindow(); }, 500);
             } else {
                 showStatusBanner('启动QNET失败');
@@ -1583,6 +1580,10 @@
                     case 'start_qnet': handleStartQnet(data); break;
                     case 'stop_qnet': handleStopQnet(data); break;
                     case 'pcap_path': handlePcapPath(data); break;
+                    case 'report_saved':
+                        if (data && data.ok === 1) showToast('测试报告已保存: ' + (data.path || ''));
+                        else showToast('测试报告保存失败');
+                        break;
                     case 'update_qnet_by_qnet':
                         try { var _dbg1 = 'SW_IN pid=' + data.profile_id + ' closed=' + (window._isClosed ? 1 : 0) + ' open=' + (window._openScene && window._openScene.name) + ' t=' + Date.now(); console.log(_dbg1); callNativeApi({api:'dbg_sw', msg:_dbg1}); } catch(e) {}
                         // 防回环：原生回发的切换请求在短时间内只处理一次，避免两边互相触发
@@ -3219,6 +3220,10 @@
                 if (sw) sw.className = 'switch' + (cb.checked ? ' on' : '');
             });
         }
+        function syncReportFlag() {
+            var el = document.getElementById('reportSwitch');
+            callNativeApi({ api: 'set_report_enabled', enabled: (el && el.checked) ? 1 : 0, app: (currentApp && currentApp.name) ? currentApp.name : '' });
+        }
         function toggleSwitch(el, type) {
             var isOn = el.classList.contains('on');
             var newState = !isOn;
@@ -3228,6 +3233,7 @@
             if (checkbox) checkbox.checked = newState;
             if (typeof simpleSaveAll === 'function') simpleSaveAll();
             if (typeof cloudMarkDirty === 'function') cloudMarkDirty();
+            if (type === 'report') syncReportFlag();
             if (type === 'controlFw' || type === 'infoFw' || type === 'dumpPcap') {
                 var cfw = document.getElementById('controlFw').checked ? 1 : 0;
                 var ifw = document.getElementById('infoFw').checked ? 1 : 0;
@@ -3238,54 +3244,6 @@
         }
 
         // ==================== 工具函数 ====================
-        function showTestReport(start, end) {
-            try {
-                var dur = Math.round((end - start) / 1000);
-                var sceneName = selectedScene ? selectedScene.name : '未选择';
-                var c = (selectedScene && selectedScene.config) || {};
-                var upDelay = c.out_delay || 0;
-                var downDelay = c.in_delay || 0;
-                var upLoss = c.out_loss || 0;
-                var downLoss = c.in_loss || 0;
-                // 生成时间序列点（每秒一个点）
-                var points = Math.max(10, Math.min(120, dur));
-                var upData = [], downData = [], lossData = [];
-                for (var i = 0; i < points; i++) {
-                    upData.push(upDelay);
-                    downData.push(downDelay);
-                    lossData.push(upLoss);
-                }
-                var xLabels = [];
-                for (var i = 1; i <= points; i++) xLabels.push(String(i));
-                function fmtDate(ts) {
-                    var d = new Date(ts);
-                    function p(n){return n<10?'0'+n:''+n;}
-                    return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds());
-                }
-                var html = '<!DOCTYPE html><html style="height:100%"><head><title>QNET网络测试报告</title><meta charset="utf-8">'
-                    + '<style>th{text-align:center;font-size:16px;padding:10px 20px;color:#fff;background:#1E90FF;}'
-                    + 'td{text-align:center;color:#000;background:#fff;padding:8px 12px;}'
-                    + 'h3{text-align:center;color:#1E90FF;font-size:22px;margin:5px 0;}'
-                    + '.chartstyle{border:1px solid #87CEEB;height:250px;width:90%;margin:15px auto;}</style></head><body style="height:100%">'
-                    + '<table align="center" style="border-collapse:collapse;"><tr><th>测试时间</th><th>测试场景</th><th>上行延时</th><th>下行延时</th><th>上行丢包</th><th>下行丢包</th></tr>'
-                    + '<tr><td>'+fmtDate(end)+'</td><td>'+sceneName+'</td><td>'+upDelay+' ms</td><td>'+(downDelay||'N/A')+' ms</td><td>'+upLoss+' %</td><td>'+(downLoss||'0')+' %</td></tr></table>'
-                    + '<div class="chartstyle"><h3>上行数据延时</h3><div id="up_delay" style="height:90%;"></div></div>'
-                    + '<div class="chartstyle"><h3>下行数据延时</h3><div id="down_delay" style="height:90%;"></div></div>'
-                    + '<div class="chartstyle"><h3>丢包走势</h3><div id="lose_packet" style="height:90%;"></div></div>'
-                    + '<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"><\/script>'
-                    + '<script>'
-                    + 'var c0=echarts.init(document.getElementById("up_delay"));'
-                    + 'c0.setOption({xAxis:{type:"category",data:'+JSON.stringify(xLabels)+'},yAxis:{type:"value"},series:[{data:'+JSON.stringify(upData)+',type:"bar"}]});'
-                    + 'var c1=echarts.init(document.getElementById("down_delay"));'
-                    + 'c1.setOption({xAxis:{type:"category",data:'+JSON.stringify(xLabels)+'},yAxis:{type:"value"},series:[{data:'+JSON.stringify(downData)+',type:"bar"}]});'
-                    + 'var c2=echarts.init(document.getElementById("lose_packet"));'
-                    + 'c2.setOption({xAxis:{type:"category",data:'+JSON.stringify(xLabels)+'},yAxis:{type:"value"},series:[{data:'+JSON.stringify(lossData)+',type:"line",step:"lose_packet"}]});'
-                    + '<\/script></body></html>';
-                var fname = '_' + fmtDate(end).replace(/[-: ]/g,'-') + '.html';
-                callNativeApi({ api: 'save_report', filename: fname, content: html });
-                showToast('测试报告已保存: /sdcard/qnet_save/report/' + fname);
-            } catch(e) { console.log('report error', e); }
-        }
         function showToast(msg) {
             var toast = document.getElementById('toast');
             toast.textContent = msg;
@@ -3901,6 +3859,7 @@
                     setToggle('dumpPcap', 'switchPcap', st.dumpPcap);
                     setToggle('antiBlock', 'switchAntiBlock', st.antiBlock);
                     setToggle('reportSwitch', 'switchReport', st.reportSwitch);
+                    syncReportFlag();
                 }
                 cloudReady = true;
                 if (cb) cb();
