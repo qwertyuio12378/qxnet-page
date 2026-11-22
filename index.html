@@ -3222,7 +3222,9 @@
         }
         function syncReportFlag() {
             var el = document.getElementById('reportSwitch');
-            callNativeApi({ api: 'set_report_enabled', enabled: (el && el.checked) ? 1 : 0, app: (currentApp && currentApp.name) ? currentApp.name : '' });
+            var sw = document.getElementById('switchReport');
+            var on = !!(el && el.checked) || !!(sw && sw.classList.contains('on'));
+            callNativeApi({ api: 'set_report_enabled', enabled: on ? 1 : 0, app: (currentApp && currentApp.name) ? currentApp.name : '' });
         }
         function toggleSwitch(el, type) {
             var isOn = el.classList.contains('on');
